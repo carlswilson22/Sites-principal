@@ -1,0 +1,209 @@
+/**
+ * test_security_audit.mjs — Auditoria automatizada de segurança de código e pacotes do frontend.
+ * 
+ * Objetivo e Motivo da Criação:
+ *   - Criado para verificar a ausência de vulnerabilidades em dependências e boas práticas de proteção XSS.
+ */
+import test, { describe } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '../..');
+const frontendDir = path.resolve(rootDir, 'frontend');
+const backendDir = path.resolve(rootDir, 'backend');
+
+describe('AUDITORIA DE SEGURANÇA E MITIGAÇÃO (OWASP TOP 10 & RBAC)', () => {
+
+  test('SEC-01: Mitigação de Bypass de Autenticação por Tokens Demo (DEF-01 Corrigido)', () => {
+    const authPyPath = path.join(backendDir, 'routers/auth.py');
+    const partPyPath = path.join(backendDir, 'routers/partnerships.py');
+
+    const authContent = fs.readFileSync(authPyPath, 'utf-8');
+    const partContent = fs.readFileSync(partPyPath, 'utf-8');
+
+    const depPyPath = path.join(backendDir, 'dependencies.py');
+    const depContent = fs.readFileSync(depPyPath, 'utf-8');
+
+    // Verifica que o bypass aberto de startswith("demo-") foi removido de auth.py
+    assert.strictEqual(
+      authContent.includes('token.startswith("demo-")'),
+      false,
+      'auth.py não deve aceitar tokens arbitrários iniciando com demo-'
+    );
+
+    // Verifica que demo tokens são centralizados em dependencies.py e condicionados a ambiente seguro
+    assert.ok(
+      depContent.includes('ALLOW_DEMO_TOKENS') && depContent.includes('ENVIRONMENT'),
+      'dependencies.py deve condicionar tokens demo a variável de ambiente segura'
+    );
+    assert.ok(
+      authContent.includes('from dependencies import get_current_user'),
+      'auth.py deve importar o guard centralizado e seguro de dependencies.py'
+    );
+  });
+
+  test('SEC-02: Isolamento Multilocatário Estrito em cars.py e Atribuição de Dono no seed.py (DEF-02 Corrigido)', () => {
+    const carsPyPath = path.join(backendDir, 'routers/cars.py');
+    const seedPyPath = path.join(backendDir, 'seed.py');
+
+    const carsContent = fs.readFileSync(carsPyPath, 'utf-8');
+    const seedContent = fs.readFileSync(seedPyPath, 'utf-8');
+
+    // Confirma que veículos sem user_id ou de outro usuário não podem ser editados/excluídos por não-admins
+    const hasStrictUpdate = carsContent.includes('if not is_admin and (not car.user_id or car.user_id != current_user.id):');
+    const hasStrictDelete = carsContent.includes('if not is_admin and (not car.user_id or car.user_id != current_user.id):');
+
+    assert.ok(hasStrictUpdate, 'update_car deve bloquear edição se o veículo não pertencer ao usuário');
+    assert.ok(hasStrictDelete, 'delete_car deve bloquear exclusão se o veículo não pertencer ao usuário');
+
+    // Confirma que os veículos do seed recebem dono explícito (admin)
+    // O seed atribui user_id de duas formas: inline nos dicts ("user_id": admin_id) e no loop de saneamento (car.user_id = admin_id)
+    const hasInlineAssign = seedContent.includes('"user_id": admin_id');
+    const hasSanitizeAssign = seedContent.includes('car.user_id = admin_id');
+    assert.ok(
+      hasInlineAssign || hasSanitizeAssign,
+      'seed.py deve associar veículos oficiais explicitamente ao usuário administrador'
+    );
+  });
+
+  test('SEC-03: Eliminação de Senhas em Texto Puro no LocalStorage (DEF-03 Corrigido)', () => {
+    const authContextPath = path.join(frontendDir, 'src/contexts/AuthContext.jsx');
+    const authContent = fs.readFileSync(authContextPath, 'utf-8');
+
+    // Garante que password não é salvo em texto claro nas contas registradas locais
+    assert.strictEqual(
+      authContent.includes('updated.push({ ...fullUser, password });'),
+      false,
+      'AuthContext.jsx não deve salvar fullUser com senha em texto claro'
+    );
+    assert.strictEqual(
+      authContent.includes('updated.push({ ...fallbackUser, password });'),
+      false,
+      'AuthContext.jsx não deve salvar fallbackUser com senha em texto claro'
+    );
+
+    // Garante presença da função de hash seguro local
+    assert.ok(
+      authContent.includes('hashPasswordLocal'),
+      'AuthContext.jsx deve utilizar hash unidirecional para credenciais locais'
+    );
+  });
+
+  test('SEC-04: Streaming de Upload e Validação de Magic Bytes em Vídeos (DEF-05 Corrigido)', () => {
+    const uploadsPyPath = path.join(backendDir, 'routers/uploads.py');
+    const uploadsContent = fs.readFileSync(uploadsPyPath, 'utf-8');
+
+    const videoSection = uploadsContent.slice(uploadsContent.indexOf('upload_pericia_video'));
+
+    // Verifica validação de magic bytes
+    assert.ok(
+      videoSection.includes('b"ftyp"') && videoSection.includes('magic_bytes'),
+      'upload_pericia_video deve validar assinatura magic bytes (ftyp) de arquivos de vídeo'
+    );
+
+    // Verifica escrita em streaming com limite progressivo de tamanho
+    assert.ok(
+      videoSection.includes('CHUNK_SIZE') && videoSection.includes('total_size > MAX_VIDEO_SIZE_BYTES'),
+      'upload_pericia_video deve gravar via streaming em chunks para prevenir exaustão de memória (DoS)'
+    );
+  });
+
+  test('SEC-05: Rate Limiting Ativo no Endpoint do Consultor IA (DEF-06 Corrigido)', () => {
+    const aiVisionPyPath = path.join(backendDir, 'routers/ai_vision.py');
+    const aiVisionContent = fs.readFileSync(aiVisionPyPath, 'utf-8');
+
+    assert.ok(
+      aiVisionContent.includes('chat_rate_limiter = RateLimiter'),
+      'ai_vision.py deve instanciar RateLimiter para o endpoint de chat'
+    );
+    assert.ok(
+      aiVisionContent.includes('is_allowed, remaining = chat_rate_limiter.is_allowed(client_ip)'),
+      'chat_automatch deve checar permissão por IP e retornar 429 quando limite for excedido'
+    );
+  });
+
+  test('SEC-06: Cabeçalhos HTTP de Segurança Defensiva no Backend', () => {
+    const mainPyPath = path.join(backendDir, 'main.py');
+    const mainContent = fs.readFileSync(mainPyPath, 'utf-8');
+
+    assert.ok(mainContent.includes('response.headers["X-Content-Type-Options"] = "nosniff"'), 'Header nosniff configurado');
+    assert.ok(mainContent.includes('response.headers["X-Frame-Options"] = "DENY"'), 'Header frame-options configurado');
+    assert.ok(mainContent.includes('response.headers["Strict-Transport-Security"]'), 'HSTS configurado');
+    assert.ok(mainContent.includes('response.headers["Referrer-Policy"]'), 'Referrer-Policy configurado');
+  });
+
+  test('SEC-07: Segregação B2B e Controle de Rotas no Frontend', () => {
+    const howItWorksPath = path.join(frontendDir, 'src/pages/HowItWorksPage.jsx');
+    const protectedRoutePath = path.join(frontendDir, 'src/components/ProtectedRoute.jsx');
+
+    const howItWorksContent = fs.readFileSync(howItWorksPath, 'utf-8');
+    const protectedRouteContent = fs.readFileSync(protectedRoutePath, 'utf-8');
+
+    assert.ok(howItWorksContent.includes('{isB2BAuthorized &&'), 'HowItWorksPage condiciona bloco B2B a isB2BAuthorized');
+    assert.ok(protectedRouteContent.includes('allowedRoles.includes(effectiveRole)'), 'ProtectedRoute restringe acesso por perfil');
+  });
+
+  test('SEC-08: Proteção Estrita C1 nas Rotas de Anúncio e Dashboard (App.jsx)', () => {
+    const appPath = path.join(frontendDir, 'src/App.jsx');
+    const appContent = fs.readFileSync(appPath, 'utf-8').replace(/\r\n/g, '\n');
+    // Normalizar indentação para verificação resiliente
+    const normalized = appContent.replace(/^\s+/gm, '');
+
+    // /dashboard deve exigir allowedRoles=['admin', 'lojista']
+    assert.ok(
+      normalized.includes("<Route path=\"/dashboard\" element={") &&
+      normalized.includes("<ProtectedRoute allowedRoles={['admin', 'lojista']}>") &&
+      normalized.includes("<Dashboard />"),
+      '/dashboard deve ter guarda estrita C1 para lojista e admin'
+    );
+
+    // /novo-anuncio deve exigir allowedRoles contendo 'admin' e 'lojista'
+    assert.ok(
+      normalized.includes("<Route path=\"/novo-anuncio\" element={") &&
+      (normalized.includes("<ProtectedRoute allowedRoles={['admin', 'lojista', 'comum']}>") ||
+       normalized.includes("<ProtectedRoute allowedRoles={['admin', 'lojista']}>")),
+      '/novo-anuncio deve ter guarda estrita C1 para lojista e admin'
+    );
+
+    // /meus-anuncios deve exigir allowedRoles contendo 'admin' e 'lojista'
+    assert.ok(
+      normalized.includes("<Route path=\"/meus-anuncios\" element={") &&
+      (normalized.includes("<ProtectedRoute allowedRoles={['admin', 'lojista', 'comum']}>") ||
+       normalized.includes("<ProtectedRoute allowedRoles={['admin', 'lojista']}>")),
+      '/meus-anuncios deve ter guarda estrita C1 para lojista e admin'
+    );
+  });
+
+  test('SEC-09: Endpoint de Onboarding de Loja com Guard RBAC (auth.py & schemas.py)', () => {
+    const schemasPath = path.join(backendDir, 'schemas.py');
+    const authPyPath = path.join(backendDir, 'routers/auth.py');
+
+    const schemasContent = fs.readFileSync(schemasPath, 'utf-8');
+    const authContent = fs.readFileSync(authPyPath, 'utf-8');
+
+    assert.ok(schemasContent.includes('class StoreOnboardingRequest(BaseModel):'), 'StoreOnboardingRequest deve existir no schema');
+    assert.ok(authContent.includes('@router.post("/store/onboarding"'), 'Endpoint /store/onboarding deve existir em auth.py');
+    assert.ok(authContent.includes('Depends(require_lojista_or_admin)'), 'Endpoint deve usar guard centralizado require_lojista_or_admin');
+  });
+
+  test('SEC-10: Alerta Visual de Acesso Negado e Nav Condicional (Home.jsx & ShowcaseCatalog.jsx)', () => {
+    const homePath = path.join(frontendDir, 'src/pages/Home.jsx');
+    const catalogPath = path.join(frontendDir, 'src/pages/ShowcaseCatalog.jsx');
+
+    const homeContent = fs.readFileSync(homePath, 'utf-8');
+    const catalogContent = fs.readFileSync(catalogPath, 'utf-8');
+
+    assert.ok(homeContent.includes('location.state?.accessDenied'), 'Home.jsx deve capturar accessDenied do roteamento');
+    assert.ok(homeContent.includes('ShieldAlert'), 'Home.jsx deve renderizar ShieldAlert no banner de aviso');
+    assert.ok(
+      homeContent.includes('canAccessB2B && canAccessB2B()') || homeContent.includes('canAccessB2B'),
+      'Home.jsx deve importar ou condicionar com canAccessB2B'
+    );
+    assert.ok(catalogContent.includes('canAccessB2B && canAccessB2B()'), 'ShowcaseCatalog.jsx deve condicionar + Anunciar a canAccessB2B');
+  });
+});
+

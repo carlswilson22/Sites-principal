@@ -1,0 +1,56 @@
+/**
+ * index.css — Folha de estilos central e diretivas globais do Automatch.
+ * 
+ * Objetivo e Motivo da Criação:
+ *   - Define as camadas base do TailwindCSS, variáveis de cores CSS customizadas (temas),
+ *     fontes tipográficas e classes utilitárias compartilhadas em toda a aplicação.
+ */
+/* Fonte principal: Atkinson Hyperlegible Next (Google Fonts) — SIL Open Font License */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-navy: #0f172a;
+    --brand-blue: #2563eb;
+    --brand-blue-hover: #1d4ed8;
+    --brand-blue-subtle: #eff6ff;
+    --brand-blue-border: #bfdbfe;
+    --status-emerald: #10b981;
+    --status-amber: #f59e0b;
+    --status-rose: #f43f5e;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Suporte rigoroso a Acessibilidade: prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-card;
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-2xl;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

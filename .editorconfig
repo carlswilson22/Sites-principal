@@ -1,0 +1,24 @@
+# ==============================================================================
+# .editorconfig — Padronização de formatação de código entre IDEs.
+#
+# Objetivo e Motivo da Criação:
+#   - Criado para manter a consistência de formatação (charset UTF-8, finais de linha LF,
+#     indentação de 2 espaços para JS/JSON e 4 espaços para Python) entre diferentes editores da equipe.
+#   - Evita ruídos em diffs do Git e previne inconsistências de estilo de código.
+# ==============================================================================
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
