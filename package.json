@@ -15,5 +15,8 @@
     "build": "node scripts/build-all.mjs",
     "build:portal": "npm --workspace=portal run build",
     "preview": "npm --workspace=portal run preview"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.28.1"
   }
 }

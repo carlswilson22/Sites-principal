@@ -24,17 +24,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
-        run: |
-          npm install
-          npm install -D @rollup/rollup-linux-x64-gnu
-          for d in sites/*/; do
-            if [ -f "$d/package.json" ]; then
-              (cd "$d" && npm install -D @rollup/rollup-linux-x64-gnu)
-            fi
-          done
+        run: npm install --include=optional
 
       - name: Build
         run: npm run build

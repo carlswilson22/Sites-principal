@@ -25,7 +25,7 @@ fs.mkdirSync(outputDist, { recursive: true });
 // 2. Compilar Portal Hub (Vitrine / sites/portal) para a raiz de dist/
 if (fs.existsSync(portalPath)) {
   console.log(`📦 1/2 Compilando Portal Hub com base [${baseRoot}] em [sites/portal]...`);
-  execSync(`npx vite build --base ${baseRoot}`, {
+  execSync(`npm run build -- --base ${baseRoot}`, {
     stdio: 'inherit',
     cwd: portalPath,
     env: { ...process.env, BASE_PATH: baseRoot }
@@ -54,7 +54,7 @@ if (fs.existsSync(sitesDir)) {
         const modelBase = `${baseRoot}${entry.name}/`;
         console.log(`\n➡️  Construindo modelo: [${entry.name}] com base [${modelBase}]...`);
         try {
-          execSync(`npx vite build --base ${modelBase}`, {
+          execSync(`npm run build -- --base ${modelBase}`, {
             stdio: 'inherit',
             cwd: sitePath,
             env: { ...process.env, BASE_PATH: modelBase }
