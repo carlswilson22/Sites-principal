@@ -1,28 +1,28 @@
-﻿import React from 'react';
+import React from 'react';
 import { GitBranch, ShieldCheck } from 'lucide-react';
 
 export const Footer = () => {
   return (
-    <footer className="mt-24 border-t border-slate-800/80 bg-slate-950/60 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-slate-400">
+    <footer className="mt-24 border-t border-slate-200/90 bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-slate-500">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
-            M
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold">
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="font-semibold text-white">Sites Modelos — Monorepo</p>
-            <p className="text-xs text-slate-400">Arquitetura modular escalável para 3 modelos de sites</p>
+            <p className="font-bold text-slate-900">Auto-Dealership™ Platform</p>
+            <p className="text-xs text-slate-500">Ecossistema Modular de 3 Edições (Essential, Pro & Enterprise)</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 text-xs text-slate-400">
+        <div className="flex items-center gap-6 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
-            <GitBranch className="w-4 h-4 text-blue-400" />
-            <span>GitHub Pages CI/CD Automático</span>
+            <GitBranch className="w-4 h-4 text-blue-600" />
+            <span>GitHub Pages CI/CD Automatizado</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Produção Otimizada</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Perícia Cautelar 100% Integrada</span>
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ export function HeroSection({ onSearch, categories }) {
         {/* Badge Flutuante de Credibilidade */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-blue-500/30 text-blue-300 text-xs sm:text-sm font-semibold backdrop-blur-md shadow-lg shadow-blue-950/40 animate-fade-in">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Showroom Certificado com Perícia Cautelar Digital</span>
+          <span>Showroom Oficial com Perícia Cautelar & Visão 360° Orbital</span>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </div>
 

@@ -9,16 +9,24 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          500: '#0284c7',
-          600: '#0369a1',
-          700: '#075985',
+          navy: '#0f172a',
+          blue: '#2563eb',
+          'blue-hover': '#1d4ed8',
+          'blue-subtle': '#eff6ff',
+          'blue-border': '#bfdbfe',
+          emerald: '#10b981',
+          amber: '#f59e0b',
+          rose: '#f43f5e',
         }
       },
+      boxShadow: {
+        'card': '0 4px 20px -2px rgb(0 0 0 / 0.05), 0 2px 6px -1px rgb(0 0 0 / 0.03)',
+        'card-hover': '0 14px 34px -4px rgb(37 99 235 / 0.12), 0 4px 12px -2px rgb(0 0 0 / 0.04)',
+        'glow-blue': '0 0 25px -4px rgb(37 99 235 / 0.35)',
+      },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        heading: ['Outfit', 'sans-serif'],
+        sans: ['"Atkinson Hyperlegible Next"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['"Atkinson Hyperlegible Next"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       }
     },
   },

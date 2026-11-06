@@ -27,16 +27,17 @@ export function Footer({ onNavigate }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Coluna 1: Sobre & Marca */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-black shadow-lg shadow-amber-500/20">
-                <Crown className="w-6 h-6 stroke-[2.2]" />
-              </div>
-              <span className="font-heading font-black text-xl text-white tracking-wider">
-                APEX <span className="text-amber-400">MOTORS</span>
+            <div className="flex items-center gap-2">
+              <span className="font-heading font-black text-xl text-white tracking-tight uppercase italic">
+                AUTO<span className="text-indigo-400 ml-1">DEALERSHIP</span>
+                <sup className="text-indigo-400 font-bold text-xs ml-0.5">™</sup>
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                PRO
               </span>
             </div>
             <p className="text-xs sm:text-sm leading-relaxed">
-              Curadoria de superesportivos e veículos blindados de altíssimo padrão. Atendimento privativo e entrega em todo o território nacional.
+              Plataforma com simulação financeira em tempo real, avaliação de seminovo na troca e visualizador 360° orbital interativo.
             </p>
             <div className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
               <Shield className="w-4 h-4 text-amber-400 shrink-0" />

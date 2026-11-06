@@ -1,11 +1,11 @@
-﻿export const dealershipInfo = {
-  nome: "DriveNow Motors",
-  slogan: "Financiamento Inteligente, Seminovos Periciados & IA Automotiva",
+export const dealershipInfo = {
+  nome: "Auto-Dealership Enterprise",
+  slogan: "A Suíte Mais Completa com Inteligência Artificial, Comparador e Dossiê",
   cnpj: "38.991.024/0001-55",
   telefone: "(61) 3361-8800",
   whatsapp: "5561999999999",
   whatsappFormatado: "(61) 99999-9999",
-  email: "contato@drivenowmotors.com.br",
+  email: "contato@autodealership.com.br",
   endereco: {
     logradouro: "SIA Trecho 3, Lotes 620/640",
     bairro: "Zona Industrial",
@@ -16,12 +16,12 @@
   horarios: {
     semana: "Seg a Sex: 08:00 às 19:00",
     sabado: "Sábado: 08:30 às 17:00",
-    domingo: "Domingo: 09:00 às 14:00 (Plantão de Vendas & Feirão)"
+    domingo: "Domingo: Plantão IA 24/7 & Feirão Showroom"
   },
   beneficios: [
-    { titulo: "Aprovação em 15 Minutos", desc: "Integração direta com mais de 10 bancos e financeiras." },
-    { titulo: "Troca com Troco no Pix", desc: "Pagamos a diferença do seu usado na hora direto na sua conta." },
-    { titulo: "1 Ano de Garantia Completa", desc: "Câmbio, motor e mais de 100 itens cobertos em todo o Brasil." },
-    { titulo: "Entrada em até 18x no Cartão", desc: "Facilitamos sua entrada sem comprometer seu orçamento." }
+    { titulo: "Consultor Virtual com IA", desc: "Recomendações precisas com base no seu orçamento e perfil de uso." },
+    { titulo: "Comparador Técnico Lado a Lado", desc: "Compare até 3 veículos simultaneamente em motor, consumo e TCO." },
+    { titulo: "Dossiê Cautelar IA Oficial", desc: "Auditoria preditiva com histórico de leilão, sinistros e repinturas." },
+    { titulo: "Calculadora de Custo Total (TCO)", desc: "Projeção de gastos anuais com IPVA, seguro médio e revisões." }
   ]
 };

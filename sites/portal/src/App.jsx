@@ -1,19 +1,30 @@
-﻿import React from 'react';
+import React from 'react';
 import Header from './components/Header';
 import ModelCard from './components/ModelCard';
 import Footer from './components/Footer';
 import { modelsList } from './data/modelsData';
-import { Code2, Cpu, Globe2, Workflow } from 'lucide-react';
+import { ShieldCheck, Check, X, RotateCw, Sparkles, SlidersHorizontal, Calculator, MessageSquareCode } from 'lucide-react';
 
 export function App() {
-  return (
-    <div className="min-h-screen bg-[#070b12] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Background Decorative Gradient Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[160px]" />
-      </div>
+  const comparisonRows = [
+    { name: 'Catálogo de Seminovos Periciados (Grid)', essential: true, pro: true, enterprise: true },
+    { name: 'Modal de Ficha Técnica Pericial com Galeria', essential: true, pro: true, enterprise: true },
+    { name: 'Integração de Contato e Proposta via WhatsApp', essential: true, pro: true, enterprise: true },
+    { name: 'Visualizador 360° Orbital Interativo', essential: true, pro: true, enterprise: true, highlight: true },
+    { name: 'Simulador Financeiro (Amortização Price/SAC)', essential: false, pro: true, enterprise: true },
+    { name: 'Módulo de Avaliação de Troca (Trade-In / FIPE)', essential: false, pro: true, enterprise: true },
+    { name: 'Filtros Avançados de Showroom (Preço, Câmbio)', essential: false, pro: true, enterprise: true },
+    { name: 'Vídeo Pericial Integrado (20 segundos)', essential: false, pro: true, enterprise: true },
+    { name: 'Agendamento de Concierge / Test Drive VIP', essential: false, pro: true, enterprise: true },
+    { name: 'Consultor Virtual com Inteligência Artificial', essential: false, false: false, enterprise: true, highlight: true },
+    { name: 'Comparador Técnico Lado a Lado (Até 3 Carros)', essential: false, false: false, enterprise: true },
+    { name: 'Dossiê Cautelar IA (Leilão, Sinistro, Pintura)', essential: false, false: false, enterprise: true },
+    { name: 'Calculadora de Custo Total Anual (TCO)', essential: false, false: false, enterprise: true },
+    { name: 'Sistema de Veículos Favoritos & Alertas de Preço', essential: false, false: false, enterprise: true },
+  ];
 
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-600 selection:text-white font-sans">
       <div className="relative z-10 flex-1 flex flex-col">
         {/* Hero & Intro Section */}
         <Header />
@@ -26,49 +37,69 @@ export function App() {
             ))}
           </div>
 
-          {/* Architecture Insights Section */}
-          <section className="mt-20 p-8 rounded-3xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-md">
-            <div className="text-center max-w-2xl mx-auto mb-10">
-              <h2 className="text-2xl font-bold text-white font-heading">
-                Arquitetura do Repositório Monorepo
+          {/* Comparativo de Recursos das 3 Edições */}
+          <section className="mt-20 p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/90 shadow-card">
+            <div className="text-center max-w-2xl mx-auto mb-8">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-2">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Matriz Comparativa Oficial
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Comparativo de Recursos por Edição
               </h2>
-              <p className="text-sm text-slate-400 mt-2">
-                Projetado com separação estrita de responsabilidades para manter cada modelo 100% autônomo.
+              <p className="text-sm text-slate-600 mt-2">
+                Veja o que cada tier oferece e escolha a configuração exata para a necessidade da sua loja.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/60">
-                <Workflow className="w-8 h-8 text-blue-400 mb-3" />
-                <h4 className="font-semibold text-white text-sm mb-1">NPM Workspaces</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Gerenciamento compartilhado e isolado de dependências entre a raiz e cada pasta de modelo.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/60">
-                <Cpu className="w-8 h-8 text-cyan-400 mb-3" />
-                <h4 className="font-semibold text-white text-sm mb-1">Build Orquestrado</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Script automatizado que detecta dinamicamente subsites e compila todos para uma pasta unificada.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/60">
-                <Globe2 className="w-8 h-8 text-emerald-400 mb-3" />
-                <h4 className="font-semibold text-white text-sm mb-1">Roteamento GitHub Pages</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  O Hub responde na raiz e cada modelo opera em seu respectivo subcaminho relativo sem conflitos.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/60">
-                <Code2 className="w-8 h-8 text-indigo-400 mb-3" />
-                <h4 className="font-semibold text-white text-sm mb-1">Exportabilidade</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Cada modelo pode ser facilmente extraído ou entregue como repositório independente para clientes.
-                </p>
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-700">
+                    <th className="py-4 px-4 font-bold text-base">Funcionalidade</th>
+                    <th className="py-4 px-4 font-bold text-center text-blue-700 bg-blue-50/50 rounded-t-xl">
+                      Essential (Tier 1)
+                    </th>
+                    <th className="py-4 px-4 font-bold text-center text-indigo-700 bg-indigo-50/50 rounded-t-xl">
+                      Pro (Tier 2)
+                    </th>
+                    <th className="py-4 px-4 font-bold text-center text-emerald-700 bg-emerald-50/50 rounded-t-xl">
+                      Enterprise (Tier 3)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {comparisonRows.map((row, idx) => (
+                    <tr key={idx} className={row.highlight ? 'bg-blue-50/30' : 'hover:bg-slate-50/60 transition-colors'}>
+                      <td className="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
+                        {row.highlight && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                        <span>{row.name}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center bg-blue-50/20">
+                        {row.essential ? (
+                          <Check className="w-5 h-5 text-emerald-600 mx-auto" />
+                        ) : (
+                          <X className="w-4 h-4 text-slate-300 mx-auto" />
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-center bg-indigo-50/20">
+                        {row.pro ? (
+                          <Check className="w-5 h-5 text-emerald-600 mx-auto" />
+                        ) : (
+                          <X className="w-4 h-4 text-slate-300 mx-auto" />
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-center bg-emerald-50/20">
+                        {row.enterprise ? (
+                          <Check className="w-5 h-5 text-emerald-600 mx-auto" />
+                        ) : (
+                          <X className="w-4 h-4 text-slate-300 mx-auto" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </section>
         </main>

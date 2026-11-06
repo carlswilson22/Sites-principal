@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, Sparkles, User, RotateCcw, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -7,7 +7,7 @@ export function AIChatBox({ vehicles = [], onSelectVehicle }) {
     {
       id: 1,
       sender: 'ai',
-      text: 'Olá! Sou o Consultor Virtual com Inteligência Artificial da DriveNow. Posso te ajudar a encontrar o veículo ideal pelo seu orçamento, tipo de uso ou comparar custos de manutenção. O que você procura hoje?'
+      text: 'Olá! Sou o Consultor Virtual com Inteligência Artificial da Auto-Dealership Enterprise. Posso te ajudar a encontrar o veículo ideal pelo seu orçamento, tipo de uso ou comparar custos de manutenção. O que você procura hoje?'
     }
   ]);
   const [input, setInput] = useState('');

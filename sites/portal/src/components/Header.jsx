@@ -1,43 +1,54 @@
 import React from 'react';
-import { Layers, Sparkles } from 'lucide-react';
+import { ShieldCheck, Sparkles, Layers, CheckCircle2 } from 'lucide-react';
 
 export const Header = () => {
   return (
-    <header className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+    <header className="relative pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
+      {/* Brand Logo Header */}
+      <div className="flex items-center justify-center mb-6">
+        <div className="inline-flex items-center gap-2.5 font-sans select-none px-4 py-2 rounded-2xl bg-white border border-slate-200/90 shadow-card">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100">
+            <ShieldCheck className="w-6 h-6 text-blue-600" />
+          </div>
+          <span className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic leading-none inline-flex items-center">
+            <span className="text-slate-900">AUTO</span>
+            <span className="text-blue-600 ml-1.5">DEALERSHIP</span>
+            <sup className="text-blue-500 font-bold text-xs -top-2 ml-0.5 relative">™</sup>
+          </span>
+        </div>
+      </div>
 
-      {/* Badges */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6">
-        <Sparkles className="w-3.5 h-3.5" />
-        <span>Nicho Automotivo • 3 Modelos Especializados para Concessionárias</span>
+      {/* Pill Badge */}
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold uppercase tracking-wider mb-5">
+        <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+        <span>Ecossistema de Edições Oficiais para Concessionárias</span>
       </div>
 
       {/* Main Title */}
-      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight font-heading leading-tight mb-6">
-        Modelos de Sites para <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">Concessionárias & Revendas</span>
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight font-heading leading-tight mb-4 text-balance">
+        Escolha a Edição Ideal do <span className="text-blue-600">Auto-Dealership</span> para o seu Negócio
       </h1>
 
       {/* Subtitle */}
-      <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed mb-8">
-        Três abordagens de alto padrão desenvolvidas para diferentes perfis de negócios automotivos: de seminovos com perícia e supercarros de luxo a revendas focadas em financiamento ágil.
+      <p className="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8">
+        Conheça as três edições progressivas desenvolvidas com o design system oficial: do modelo ágil com visualizador 360° à plataforma completa potencializada por Inteligência Artificial.
       </p>
 
       {/* Quick Metrics Bar */}
-      <div className="inline-flex flex-wrap items-center justify-center gap-6 px-6 py-3 rounded-2xl bg-slate-900/60 border border-slate-800 text-sm text-slate-300 shadow-xl backdrop-blur-sm">
+      <div className="inline-flex flex-wrap items-center justify-center gap-6 px-6 py-3 rounded-2xl bg-white border border-slate-200/80 text-sm text-slate-600 shadow-card">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-medium text-white">3 Modelos Operacionais</span>
+          <span className="font-semibold text-slate-900">3 Edições Operacionais</span>
         </div>
-        <div className="h-4 w-px bg-slate-700 hidden sm:block" />
+        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-          <span className="font-medium text-slate-300">100% Responsivos</span>
+          <CheckCircle2 className="w-4 h-4 text-blue-600" />
+          <span className="font-medium text-slate-700">Visualizador 360° em Todos os Modelos</span>
         </div>
-        <div className="h-4 w-px bg-slate-700 hidden sm:block" />
+        <div className="h-4 w-px bg-slate-200 hidden sm:block" />
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-cyan-400" />
-          <span className="font-medium text-slate-300">Monorepo com Deploy GitHub Pages</span>
+          <Layers className="w-4 h-4 text-indigo-600" />
+          <span className="font-medium text-slate-700">Tipografia Atkinson Hyperlegible Next</span>
         </div>
       </div>
     </header>

@@ -29,16 +29,17 @@ export function Footer({ onNavigate }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Coluna 1: Sobre & Marca */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-teal-400 to-emerald-400 flex items-center justify-center text-black shadow-lg shadow-cyan-500/20">
-                <Zap className="w-6 h-6 fill-black" />
-              </div>
-              <span className="font-heading font-black text-xl text-white tracking-tight">
-                DRIVENOW <span className="text-cyan-400">MOTORS</span>
+            <div className="flex items-center gap-2">
+              <span className="font-heading font-black text-xl text-white tracking-tight uppercase italic">
+                AUTO<span className="text-emerald-400 ml-1">DEALERSHIP</span>
+                <sup className="text-emerald-400 font-bold text-xs ml-0.5">™</sup>
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                ENTERPRISE
               </span>
             </div>
             <p className="text-xs sm:text-sm leading-relaxed">
-              Referência em tecnologia, transparência e financiamento facilitado para compra, venda e troca de veículos seminovos periciados.
+              Suíte completa de inteligência automotiva com Consultor Virtual IA, Comparador Técnico, Dossiê Cautelar e Projeção TCO.
             </p>
             <div className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs">
               <Bot className="w-4 h-4 text-cyan-400 shrink-0" />

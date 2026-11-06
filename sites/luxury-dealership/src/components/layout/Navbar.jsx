@@ -4,6 +4,7 @@ import {
   Crown, Building2, Menu, X, ArrowLeft, MessageCircle 
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import AutomatchLogo from '../ui/AutomatchLogo';
 import { dealershipInfo } from '../../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../../utils/whatsapp';
 
@@ -57,28 +58,12 @@ export function Navbar({ currentPage = 'home', onNavigate }) {
               <span className="hidden sm:inline">Hub</span>
             </a>
 
-            <button 
-              onClick={() => handleNavClick('home')} 
-              className="flex items-center gap-3 group text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-black shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
-                <Crown className="w-6 h-6 stroke-[2.2]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-heading font-black text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">
-                    APEX MOTORS
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                    INTERMEDIÁRIO
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 flex items-center gap-1 font-medium">
-                  <Shield className="w-3 h-3 text-amber-400" />
-                  Luxury & Exotic Supercars
-                </p>
-              </div>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <AutomatchLogo size="md" theme="dark" onClick={() => handleNavClick('home')} className="cursor-pointer" />
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                PRO • TIER 2
+              </span>
+            </div>
           </div>
 
           {/* Links Desktop (Abas) */}

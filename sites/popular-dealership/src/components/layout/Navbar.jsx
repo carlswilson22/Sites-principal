@@ -4,6 +4,7 @@ import {
   Sparkles, Building2, Grid, Menu, X, ArrowLeft, MessageCircle 
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import AutomatchLogo from '../ui/AutomatchLogo';
 import { dealershipInfo } from '../../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../../utils/whatsapp';
 
@@ -64,28 +65,12 @@ export function Navbar({
               <span className="hidden sm:inline">Hub</span>
             </a>
 
-            <button 
-              onClick={() => handleNavClick('home')} 
-              className="flex items-center gap-2.5 group text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-teal-400 to-emerald-400 flex items-center justify-center text-black shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-                <Zap className="w-6 h-6 fill-black" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-heading font-black text-xl text-white tracking-tight">
-                    DRIVENOW
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                    COMPLETO
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 flex items-center gap-1 font-medium">
-                  <Bot className="w-3 h-3 text-cyan-400" />
-                  Inteligência Automotiva & Financiamento
-                </p>
-              </div>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <AutomatchLogo size="md" theme="dark" onClick={() => handleNavClick('home')} className="cursor-pointer" />
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                ENTERPRISE • TIER 3
+              </span>
+            </div>
           </div>
 
           {/* Links Desktop (Abas) */}

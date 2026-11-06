@@ -8,14 +8,22 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          navy: '#0f172a',
+          blue: '#2563eb',
+          'blue-hover': '#1d4ed8',
+          'blue-subtle': '#eff6ff',
+          emerald: '#10b981',
+          amber: '#f59e0b',
+        },
         prime: {
           500: '#10b981',
           600: '#059669',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        heading: ['Outfit', 'sans-serif'],
+        sans: ['"Atkinson Hyperlegible Next"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['"Atkinson Hyperlegible Next"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       }
     },
   },

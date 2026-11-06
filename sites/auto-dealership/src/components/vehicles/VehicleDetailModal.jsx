@@ -1,11 +1,13 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, ShieldCheck, CheckCircle2, MessageCircle, Calendar, 
-  Gauge, Cog, Fuel, Award, ChevronLeft, ChevronRight, Share2, Mail 
+  Gauge, Cog, Fuel, Award, ChevronLeft, ChevronRight, Share2, Mail,
+  RotateCw, Camera
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { InspectionBadge } from './InspectionBadge';
+import { Vehicle360Viewer } from './Vehicle360Viewer';
 import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
@@ -13,11 +15,13 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
   const images = vehicle?.imagens && vehicle.imagens.length > 0 ? vehicle.imagens : [vehicle?.imagemPrincipal || ''];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('laudo'); // 'laudo' | 'ficha' | 'opcionais'
+  const [mediaMode, setMediaMode] = useState('photos'); // 'photos' | '360'
 
   useEffect(() => {
     if (vehicle) {
       setCurrentIndex(0);
       setActiveTab('laudo');
+      setMediaMode('photos');
     }
   }, [vehicle]);
 
@@ -25,12 +29,12 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') handleNextImage();
-      if (e.key === 'ArrowLeft') handlePrevImage();
+      if (e.key === 'ArrowRight' && mediaMode === 'photos') handleNextImage();
+      if (e.key === 'ArrowLeft' && mediaMode === 'photos') handlePrevImage();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, currentIndex, images.length]);
+  }, [onClose, currentIndex, images.length, mediaMode]);
 
   if (!vehicle) return null;
 
@@ -45,8 +49,12 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
   const whatsappUrl = buildVehicleWhatsappLink(vehicle);
   const currentImage = images[currentIndex] || vehicle.imagemPrincipal;
 
+  // Imagens orbitais para o 360°
+  const orbitalFolderCode = `sc-00${vehicle.id <= 5 ? vehicle.id : 1}`;
+  const orbitalImages = [0, 45, 90, 135, 180, 225, 270, 315].map(deg => `images/cars/${orbitalFolderCode}/${deg}.jpg`);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md animate-fade-in font-sans">
       {/* Container do Modal */}
       <div 
         className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto"
@@ -57,7 +65,12 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
           <div className="flex items-center gap-3">
             <InspectionBadge text="Perícia Cautelar Certificada" compact={true} />
             <Badge variant="blue" size="xs">Cód. {vehicle.laudoCautelar?.codigoLaudo || 'AMT-AUTO'}</Badge>
+            <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <RotateCw className="w-3 h-3 text-blue-400" />
+              Visão 360° Inclusa
+            </span>
           </div>
+
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
@@ -94,193 +107,224 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
             </div>
           </div>
 
-          {/* Galeria Expandida de Fotos */}
-          <div className="space-y-3">
-            <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
-              <img
-                src={currentImage}
-                alt={`${vehicle.nome} - Foto ${currentIndex + 1}`}
-                className="w-full h-full object-cover transition-all duration-300"
-              />
+          {/* Seletor de Modo: Fotos HD ou 360° Orbital */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMediaMode('photos')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                mediaMode === 'photos'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
+              }`}
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Fotos em Alta Definição ({images.length})</span>
+            </button>
 
-              {/* Controles de Navegação Anterior / Próxima */}
+            <button
+              onClick={() => setMediaMode('360')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                mediaMode === '360'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
+              }`}
+            >
+              <RotateCw className="w-3.5 h-3.5 text-blue-400" />
+              <span>Visualizador 360° Orbital Interativo</span>
+            </button>
+          </div>
+
+          {/* Exibição da Mídia */}
+          {mediaMode === '360' ? (
+            <div className="space-y-2">
+              <Vehicle360Viewer images={orbitalImages} autoRotate={true} />
+              <p className="text-xs text-slate-400 text-center">
+                Use o mouse ou o touch para arrastar e inspecionar o veículo em 360 graus.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+                <img
+                  src={currentImage}
+                  alt={`${vehicle.nome} - Foto ${currentIndex + 1}`}
+                  className="w-full h-full object-cover transition-all duration-300"
+                />
+
+                {/* Controles de Navegação Anterior / Próxima */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePrevImage}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
+                      title="Foto anterior"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      onClick={handleNextImage}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
+                      title="Próxima foto"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+
+                    {/* Contador de Fotos */}
+                    <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-slate-700 text-xs font-semibold text-white">
+                      Foto {currentIndex + 1} de {images.length}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Fila de Miniaturas (Thumbnails) */}
               {images.length > 1 && (
-                <>
-                  <button
-                    onClick={handlePrevImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
-                    title="Foto anterior"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-
-                  <button
-                    onClick={handleNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
-                    title="Próxima foto"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-
-                  {/* Contador de Fotos */}
-                  <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-slate-700 text-xs font-semibold text-white">
-                    Foto {currentIndex + 1} de {images.length}
-                  </div>
-                </>
+                <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5">
+                  {images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`relative w-20 sm:w-24 h-14 sm:h-16 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
+                        currentIndex === idx 
+                          ? 'border-blue-500 ring-2 ring-blue-500/30 scale-105 shadow-md shadow-blue-500/20' 
+                          : 'border-slate-800 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
-
-            {/* Fila de Miniaturas (Thumbnails) */}
-            {images.length > 1 && (
-              <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentIndex(idx)}
-                    className={`relative w-20 sm:w-24 h-14 sm:h-16 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
-                      currentIndex === idx 
-                        ? 'border-blue-500 ring-2 ring-blue-500/30 scale-105 shadow-md shadow-blue-500/20' 
-                        : 'border-slate-800 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Grid de Especificações Rápidas */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-950/80 flex items-center justify-center text-blue-400 shrink-0">
-                <Calendar className="w-4 h-4" />
-              </div>
+              <Calendar className="w-5 h-5 text-blue-400 shrink-0" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">Ano</span>
-                <p className="text-xs font-semibold text-white">{vehicle.ano}</p>
+                <span className="text-[10px] text-slate-400 block uppercase">Ano/Modelo</span>
+                <span className="text-xs font-semibold text-white">{vehicle.ano}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-950/80 flex items-center justify-center text-blue-400 shrink-0">
-                <Gauge className="w-4 h-4" />
-              </div>
+              <Gauge className="w-5 h-5 text-blue-400 shrink-0" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">Quilometragem</span>
-                <p className="text-xs font-semibold text-white">{formatKm(vehicle.km)}</p>
+                <span className="text-[10px] text-slate-400 block uppercase">Quilometragem</span>
+                <span className="text-xs font-semibold text-white">{formatKm(vehicle.km)}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-950/80 flex items-center justify-center text-blue-400 shrink-0">
-                <Cog className="w-4 h-4" />
-              </div>
+              <Cog className="w-5 h-5 text-blue-400 shrink-0" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">Câmbio</span>
-                <p className="text-xs font-semibold text-white truncate">{vehicle.cambio}</p>
+                <span className="text-[10px] text-slate-400 block uppercase">Transmissão</span>
+                <span className="text-xs font-semibold text-white">{vehicle.cambio}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-950/80 flex items-center justify-center text-blue-400 shrink-0">
-                <Fuel className="w-4 h-4" />
-              </div>
+              <Fuel className="w-5 h-5 text-blue-400 shrink-0" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">Combustível</span>
-                <p className="text-xs font-semibold text-white">{vehicle.combustivel}</p>
+                <span className="text-[10px] text-slate-400 block uppercase">Combustível</span>
+                <span className="text-xs font-semibold text-white">{vehicle.combustivel}</span>
               </div>
             </div>
           </div>
 
-          {/* Navegação por Abas */}
-          <div>
-            <div className="flex gap-2 border-b border-slate-800 pb-2">
+          {/* Abas de Detalhamento: Laudo / Opcionais / Ficha Técnica */}
+          <div className="space-y-4">
+            <div className="flex border-b border-slate-800">
               <button
                 onClick={() => setActiveTab('laudo')}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
-                  activeTab === 'laudo' 
-                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40 shadow-sm' 
-                    : 'text-slate-400 hover:text-white'
+                className={`pb-3 px-4 text-xs font-bold transition-all relative ${
+                  activeTab === 'laudo'
+                    ? 'text-blue-400'
+                    : 'text-slate-400 hover:text-slate-300'
                 }`}
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 Laudo Pericial Cautelar
+                {activeTab === 'laudo' && (
+                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full" />
+                )}
               </button>
 
               <button
                 onClick={() => setActiveTab('opcionais')}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  activeTab === 'opcionais' 
-                    ? 'bg-blue-950 text-blue-300 border border-blue-500/40 shadow-sm' 
-                    : 'text-slate-400 hover:text-white'
+                className={`pb-3 px-4 text-xs font-bold transition-all relative ${
+                  activeTab === 'opcionais'
+                    ? 'text-blue-400'
+                    : 'text-slate-400 hover:text-slate-300'
                 }`}
               >
-                Opcionais & Itens
+                Itens de Série & Opcionais
+                {activeTab === 'opcionais' && (
+                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full" />
+                )}
               </button>
 
               <button
                 onClick={() => setActiveTab('ficha')}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  activeTab === 'ficha' 
-                    ? 'bg-blue-950 text-blue-300 border border-blue-500/40 shadow-sm' 
-                    : 'text-slate-400 hover:text-white'
+                className={`pb-3 px-4 text-xs font-bold transition-all relative ${
+                  activeTab === 'ficha'
+                    ? 'text-blue-400'
+                    : 'text-slate-400 hover:text-slate-300'
                 }`}
               >
-                Ficha Técnica
+                Ficha Técnica Completa
+                {activeTab === 'ficha' && (
+                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full" />
+                )}
               </button>
             </div>
 
-            {/* Conteúdo das Abas */}
-            <div className="pt-4">
-              {/* Aba: Laudo Pericial Cautelar */}
+            {/* Conteúdo da Aba Ativa */}
+            <div className="pt-2">
+              {/* Aba: Laudo Cautelar */}
               {activeTab === 'laudo' && (
-                <div className="p-5 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-emerald-500/20">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                        <Award className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white text-sm">Inspeção Cautelar Digital Certificada</h4>
-                        <p className="text-xs text-emerald-400">Laudo {vehicle.laudoCautelar?.codigoLaudo} • {vehicle.laudoCautelar?.status}</p>
-                      </div>
+                <div className="space-y-3">
+                  <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-3">
+                    <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <p className="font-bold text-emerald-400">Status da Perícia: {vehicle.laudoCautelar?.status}</p>
+                      <p className="text-slate-300 mt-1 leading-relaxed">
+                        Veículo submetido a inspeção técnica veicular minuciosa com verificação estrutural, análise micrométrica de espessura de pintura, histórico documental e consulta completa em bases de leilão e sinistro.
+                      </p>
                     </div>
-                    <span className="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-semibold border border-emerald-500/30">
-                      100% Aprovado
-                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-emerald-500/20 flex items-start gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-white block">Estrutura & Monobloco</span>
-                        <p className="text-slate-400">{vehicle.laudoCautelar?.estrutura || 'Longarinas e painéis íntegros'}</p>
+                        <span className="text-slate-400 block text-[10px]">Estrutura & Chassi</span>
+                        <span className="text-white font-medium">{vehicle.laudoCautelar?.estrutura}</span>
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-emerald-500/20 flex items-start gap-2.5">
+                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-white block">Pintura & Lataria</span>
-                        <p className="text-slate-400">{vehicle.laudoCautelar?.pintura || 'Original com espessura padrão'}</p>
+                        <span className="text-slate-400 block text-[10px]">Pintura & Funilaria</span>
+                        <span className="text-white font-medium">{vehicle.laudoCautelar?.pintura}</span>
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-emerald-500/20 flex items-start gap-2.5">
+                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-white block">Mecânica & Transmissão</span>
-                        <p className="text-slate-400">{vehicle.laudoCautelar?.mecanica || 'Sistemas revisados e aprovados'}</p>
+                        <span className="text-slate-400 block text-[10px]">Mecânica & Transmissão</span>
+                        <span className="text-white font-medium">{vehicle.laudoCautelar?.mecanica}</span>
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-emerald-500/20 flex items-start gap-2.5">
+                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-white block">Histórico & Procedência</span>
-                        <p className="text-slate-400">{vehicle.laudoCautelar?.sinistroLeilao || 'Nada Consta de sinistro ou leilão'}</p>
+                        <span className="text-slate-400 block text-[10px]">Histórico de Sinistro / Leilão</span>
+                        <span className="text-white font-medium">{vehicle.laudoCautelar?.sinistroLeilao}</span>
                       </div>
                     </div>
                   </div>
@@ -289,11 +333,11 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
 
               {/* Aba: Opcionais */}
               {activeTab === 'opcionais' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {vehicle.opcionais?.map((opcional, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-3 rounded-xl bg-slate-950/50 border border-slate-800 text-xs text-slate-200">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                      <span>{opcional}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {vehicle.opcionais && vehicle.opcionais.map((opt, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/50 border border-slate-800">
+                      <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
+                      <span className="text-slate-200">{opt}</span>
                     </div>
                   ))}
                 </div>
@@ -365,3 +409,5 @@ export function VehicleDetailModal({ vehicle, onClose, onContact }) {
     </div>
   );
 }
+
+export default VehicleDetailModal;

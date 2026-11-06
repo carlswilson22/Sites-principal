@@ -24,16 +24,17 @@ export function Footer({ onNavigate }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Coluna 1: Sobre & Marca */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
-                <Car className="w-6 h-6" />
-              </div>
-              <span className="font-heading font-black text-xl text-white">
-                AutoElite <span className="text-blue-500">MOTORS</span>
+            <div className="flex items-center gap-2">
+              <span className="font-heading font-black text-xl text-white tracking-tight uppercase italic">
+                AUTO<span className="text-blue-500 ml-1">DEALERSHIP</span>
+                <sup className="text-blue-400 font-bold text-xs ml-0.5">™</sup>
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                ESSENTIAL
               </span>
             </div>
             <p className="text-sm leading-relaxed">
-              Referência em compra, venda e troca de veículos seminovos periciados e revisados. Segurança absoluta para você e sua família.
+              Referência em compra, venda e troca de veículos seminovos periciados e revisados. Segurança absoluta para você e sua família com visualizador 360°.
             </p>
             <div className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs">
               <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />

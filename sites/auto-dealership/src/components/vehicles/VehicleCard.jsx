@@ -32,7 +32,10 @@ export function VehicleCard({ vehicle, onSelect }) {
         </div>
 
         {/* Badge de Categoria ou Destaque */}
-        <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+        <div className="absolute top-3 right-3 z-10 flex gap-1.5 items-center">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-600 text-white shadow-sm backdrop-blur-md">
+            360°
+          </span>
           {vehicle.destaque && (
             <Badge variant="amber" size="xs" icon={Sparkles}>
               Destaque
