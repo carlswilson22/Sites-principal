@@ -1,0 +1,19 @@
+{
+  "name": "sites-modelos-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "sites/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace=portal run dev",
+    "dev:portal": "npm --workspace=portal run dev",
+    "dev:dealership": "npm --workspace=auto-dealership run dev",
+    "dev:luxury": "npm --workspace=luxury-dealership run dev",
+    "dev:popular": "npm --workspace=popular-dealership run dev",
+    "build": "node scripts/build-all.mjs",
+    "build:portal": "npm --workspace=portal run build",
+    "preview": "npm --workspace=portal run preview"
+  }
+}
