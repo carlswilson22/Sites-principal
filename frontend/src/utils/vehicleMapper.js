@@ -160,7 +160,7 @@ export function mapVehicleToViewModel(raw) {
     laudoFeedback: raw.laudo_feedback || raw.laudoFeedback || null,
     videoUrl: raw.video_url || raw.videoUrl || null,
     description: raw.description || raw.descricao || 'Veículo com laudo cautelar aprovado e procedência garantida.',
-    fullDescription: raw.full_description || raw.fullDescription || raw.description || 'Veículo inspecionado e auditado com laudo cautelar 100% aprovado pela plataforma Automatch.',
+    fullDescription: raw.full_description || raw.fullDescription || raw.description || 'Veículo inspecionado e auditado com laudo cautelar 100% aprovado pela plataforma Auto-Dealership.',
     tags: Array.isArray(raw.tags) 
       ? raw.tags 
       : (typeof raw.tags === 'string' && !raw.tags.startsWith('[') ? raw.tags.split(',').map(t => t.trim()).filter(Boolean) : [raw.transmission || 'Automático', 'Certificado']),
@@ -176,7 +176,7 @@ export function mapVehicleToViewModel(raw) {
       tracao: 'Dianteira'
     },
     seller: raw.seller || {
-      name: 'Automatch Certified',
+      name: 'Auto-Dealership Certified',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Automatch',
       rating: 5.0,
       ads: 12,

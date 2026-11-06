@@ -67,7 +67,7 @@ const CheckoutPage = () => {
   });
 
   // Pix Code
-  const pixCopyPasteCode = `00020126580014br.gov.bcb.pix0136${Math.random().toString(36).substring(2, 15)}520400005303986540${totalPrice}.005802BR5920AUTOMATCH TECNOLOGIA6009SAO PAULO62070503***6304`;
+  const pixCopyPasteCode = `00020126580014br.gov.bcb.pix0136${Math.random().toString(36).substring(2, 15)}520400005303986540${totalPrice}.005802BR5920AUTO-DEALERSHIP TECNOLOGIA6009SAO PAULO62070503***6304`;
 
   // Countdown timer
   useEffect(() => {
@@ -107,7 +107,7 @@ const CheckoutPage = () => {
     setIsProcessing(true);
 
     const itemDesc = isVehicle ? `Reserva de Veículo: ${selectedVehicle.name}` : `Assinatura Plano ${selectedPlan.name}`;
-    const customer = cardData.name || user?.name || 'Cliente Automatch';
+    const customer = cardData.name || user?.name || 'Cliente Auto-Dealership';
 
     try {
       const token = user?.token || JSON.parse(localStorage.getItem('automatch_user') || '{}')?.token;
@@ -119,7 +119,7 @@ const CheckoutPage = () => {
         },
         body: JSON.stringify({
           customer_name: customer,
-          customer_email: user?.email || 'cliente@automatch.com',
+          customer_email: user?.email || 'cliente@autodealership.com',
           item_description: itemDesc,
           amount: totalPrice,
           payment_method: paymentMethod
@@ -325,7 +325,7 @@ const CheckoutPage = () => {
                       <div className="w-full aspect-[1.8/1] max-w-sm mx-auto rounded-3xl p-6 bg-gradient-to-tr from-slate-950 via-blue-900 to-indigo-800 border border-white/20 shadow-2xl flex flex-col justify-between mb-6 relative overflow-hidden">
                         <div className="flex justify-between items-start">
                           <div className="w-10 h-7 bg-amber-400/80 rounded-md border border-amber-300 shadow-inner" />
-                          <span className="text-[11px] font-black tracking-widest text-white/70 uppercase">AUTOMATCH CARD</span>
+                          <span className="text-[11px] font-black tracking-widest text-white/70 uppercase">AUTO-DEALERSHIP CARD</span>
                         </div>
                         <div className="font-mono text-base sm:text-lg font-bold tracking-widest text-white">
                           {cardData.number || '•••• •••• •••• ••••'}

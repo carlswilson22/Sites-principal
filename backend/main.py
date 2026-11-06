@@ -1,5 +1,5 @@
 """
-main.py — Ponto de entrada principal da API REST do Automatch.
+main.py — Ponto de entrada principal da API REST da Auto-Dealership.
 
 Objetivo e Motivo da Criação:
   - Criado como ponto central de inicialização da API RESTful FastAPI do Automatch, unificando
@@ -14,7 +14,7 @@ Responsabilidades:
     inicialização do scheduler de tarefas e startup do APScheduler.
   - Serve arquivos estáticos (uploads de imagens/vídeos periciais).
 
-Criado como parte do projeto integrador Automatch — marketplace inteligente
+Criado como parte do projeto Auto-Dealership — marketplace inteligente
 de veículos seminovos com perícia por IA, rede B2B de repasse e consultor
 automotivo alimentado por Gemini.
 """
@@ -35,7 +35,7 @@ from database import engine, get_db, SessionLocal
 from routers import auth, cars, detran, ai_vision, uploads, alerts, integrations, laudos_export, partnerships, vehicle_lookup
 import security
 
-logger = logging.getLogger("automatch")
+logger = logging.getLogger("auto_dealership")
 
 # Diretório de uploads de laudos e vídeos
 def _resolve_uploads_dir() -> Path:
@@ -92,7 +92,7 @@ async def lifespan(app: FastAPI):
                 "[ERRO DE CONEXÃO AO BANCO DE DADOS]\n"
                 "O backend tentou conectar ao PostgreSQL no host 'db:5432' (rede interna do Docker Compose).\n"
                 "Se você estiver executando o backend LOCALMENTE fora do Docker:\n"
-                "  Opção 1 (PostgreSQL via Docker exposto): Defina DATABASE_URL=postgresql://postgres:postgres@localhost:5433/automatch\n"
+                "  Opção 1 (PostgreSQL via Docker exposto): Defina DATABASE_URL=postgresql://postgres:postgres@localhost:5433/autodealership\n"
                 "  Opção 2 (SQLite para desenvolvimento rápido): Defina DATABASE_MODE=sqlite\n"
                 "="*80 + "\n"
             )
@@ -214,7 +214,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Automatch API",
+    title="Auto-Dealership API",
     description="API de Gestão Automotiva, Laudos Cautelares, Integração FIPE e Consulta DETRAN",
     version="2.2.0",
     lifespan=lifespan,

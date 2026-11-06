@@ -1,8 +1,8 @@
 """
-database.py — Configuração da conexão com o banco de dados do Automatch.
+database.py — Configuração da conexão com o banco de dados da Auto-Dealership.
 
 Objetivo e Motivo da Criação:
-  - Criado para abstrair a persistência relacional do Automatch, configurando o engine SQLAlchemy,
+  - Abstrai a persistência relacional da Auto-Dealership, configurando o engine SQLAlchemy,
     a SessionLocal e fornecendo o gerador get_db() para injeção de dependência nas rotas FastAPI.
   - Alterna dinamicamente entre SQLite (desenvolvimento local) e PostgreSQL (produção).
 
@@ -30,11 +30,11 @@ if DATABASE_MODE == "sqlite":
             "[SEGURANÇA CRÍTICA] DATABASE_MODE=sqlite não é permitido em ambiente de produção (ENVIRONMENT=production). "
             "Configure um banco PostgreSQL resiliente através da variável DATABASE_URL."
         )
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./automatch_dev.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./autodealership_dev.db")
 else:
     DATABASE_URL = os.getenv(
         "DATABASE_URL", 
-        "postgresql://postgres:postgres@db:5432/automatch"
+        "postgresql://postgres:postgres@db:5432/autodealership"
     )
     # Fail-fast: se nenhuma DATABASE_URL foi explicitamente definida e o hostname 'db'
     # não resolve (estamos fora da rede Docker), aborta com instruções claras
@@ -48,7 +48,7 @@ else:
                 "[CONFIGURAÇÃO AUSENTE] Backend executando fora do Docker sem DATABASE_URL.\n"
                 "O hostname 'db' (rede interna do Docker Compose) não é acessível.\n\n"
                 "  Opção 1 (PostgreSQL via Docker exposto na porta 5433):\n"
-                "    export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/automatch\n\n"
+                "    export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/autodealership\n\n"
                 "  Opção 2 (SQLite para desenvolvimento rápido):\n"
                 "    export DATABASE_MODE=sqlite\n"
                 + "="*80 + "\n"

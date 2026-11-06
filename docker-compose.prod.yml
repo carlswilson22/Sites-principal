@@ -2,15 +2,15 @@
 # docker-compose.prod.yml — Orquestração de containers para ambiente de produção.
 #
 # Objetivo e Motivo da Criação:
-#   - Executa a stack de produção com volumes persistentes, Nginx gateway e backend otimizado.
+#   - Executa a stack de produção com volumes persistentes, Nginx gateway e backend otimizado para a Auto-Dealership.
 # ==============================================================================
-name: automatch-prod
+name: auto-dealership-prod
 
 services:
   # Database Service (PostgreSQL 15 - Producao)
   db:
     image: postgres:15-alpine
-    container_name: automatch-prod-db
+    container_name: auto-dealership-prod-db
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -25,15 +25,15 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - automatch-prod-network
+      - auto-dealership-prod-network
 
   # Backend Service (FastAPI / Python 3.11 - Producao com 4 Workers)
   backend:
-    image: automatch-backend-prod:latest
+    image: auto-dealership-backend-prod:latest
     build:
       context: "./backend"
       dockerfile: Dockerfile
-    container_name: automatch-prod-backend
+    container_name: auto-dealership-prod-backend
     restart: always
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -57,29 +57,29 @@ services:
       db:
         condition: service_healthy
     networks:
-      - automatch-prod-network
+      - auto-dealership-prod-network
 
   # Frontend Service (Build Estatico SPA servido via Nginx Alpine)
   frontend:
-    image: automatch-frontend-prod:latest
+    image: auto-dealership-frontend-prod:latest
     build:
       context: "./frontend"
       dockerfile: Dockerfile.prod
-    container_name: automatch-prod-frontend
+    container_name: auto-dealership-prod-frontend
     restart: always
     # Sem portas expostas no host
     depends_on:
       - backend
     networks:
-      - automatch-prod-network
+      - auto-dealership-prod-network
 
   # API Gateway (Nginx Reverse Proxy - Ponto Unico de Entrada Publica)
   gateway:
-    image: automatch-gateway-prod:latest
+    image: auto-dealership-gateway-prod:latest
     build:
       context: "./gateway"
       dockerfile: Dockerfile
-    container_name: automatch-prod-gateway
+    container_name: auto-dealership-prod-gateway
     restart: always
     ports:
       - "80:80"
@@ -92,10 +92,10 @@ services:
       frontend:
         condition: service_started
     networks:
-      - automatch-prod-network
+      - auto-dealership-prod-network
 
 networks:
-  automatch-prod-network:
+  auto-dealership-prod-network:
     driver: bridge
 
 volumes:

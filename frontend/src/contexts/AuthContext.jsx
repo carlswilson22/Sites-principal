@@ -128,10 +128,10 @@ export const AuthProvider = ({ children }) => {
 
     } catch (error) {
       // Fallback demo — APENAS em ambiente de desenvolvimento com VITE_ENABLE_DEMO_DATA=true
-      if (isDemoModeEnabled() && cleanEmail === 'admin@automatch.com' && password === 'admin123') {
+      if (isDemoModeEnabled() && (cleanEmail === 'admin@autodealership.com' || cleanEmail === 'admin@automatch.com') && password === 'admin123') {
         const demoAdmin = {
           id: 1,
-          name: 'Administrador Automatch',
+          name: 'Administrador Auto-Dealership',
           email: 'admin@automatch.com',
           accountType: 'store',
           role: 'admin',

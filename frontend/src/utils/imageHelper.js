@@ -37,7 +37,7 @@ const DEFAULT_CAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80
   <circle cx="250" cy="330" r="20" fill="#0f172a" stroke="#6366f1" stroke-width="2" />
   <circle cx="570" cy="330" r="42" fill="url(#wheelGrad)" stroke="#38bdf8" stroke-width="4" />
   <circle cx="570" cy="330" r="20" fill="#0f172a" stroke="#6366f1" stroke-width="2" />
-  <text x="400" y="410" fill="#94a3b8" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" text-anchor="middle" letter-spacing="2">AUTOMATCH</text>
+  <text x="400" y="410" fill="#94a3b8" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" text-anchor="middle" letter-spacing="2">AUTO-DEALERSHIP</text>
   <text x="400" y="435" fill="#64748b" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">Foto do Veículo</text>
 </svg>`;
 

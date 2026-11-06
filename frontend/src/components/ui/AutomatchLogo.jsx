@@ -1,17 +1,17 @@
 /**
- * AutomatchLogo.jsx — Logotipo vetorial oficial da marca Automatch.
+ * AutomatchLogo.jsx — Logotipo vetorial oficial da marca Auto-Dealership.
  * 
  * Objetivo e Motivo da Criação:
- *   - Criado para centralizar a representação visual da marca com suporte a proporções responsivas,
+ *   - Centraliza a representação visual da marca Auto-Dealership com suporte a proporções responsivas,
  *     variações com símbolo isolado e tipografia integrada.
  */
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 
 /**
- * AutomatchLogo
- * Logotipo canônico oficial da marca Automatch.
- * Regra estrita: "AUTO" em tom escuro (ou claro em fundos escuros) e "MATCH" em azul (#2563eb).
+ * AutomatchLogo / AutoDealershipLogo
+ * Logotipo canônico oficial da marca Auto-Dealership.
+ * Regra: "AUTO" em tom neutro e "DEALERSHIP" em azul (#2563eb).
  * Inclui o símbolo registrado oficial ™ e ícone com microinteração sutil.
  */
 export default function AutomatchLogo({
@@ -57,7 +57,7 @@ export default function AutomatchLogo({
     <div
       onClick={onClick}
       className={`inline-flex items-center ${sizeClasses.gap} font-sans select-none group ${onClick ? 'cursor-pointer' : ''} ${className}`}
-      aria-label="Automatch - Marketplace Inteligente de Veículos"
+      aria-label="Auto-Dealership - Concessionária Inteligente de Veículos"
     >
       {showIcon && (
         <div className="relative flex items-center justify-center">
@@ -69,9 +69,12 @@ export default function AutomatchLogo({
       )}
       <span className={`${sizeClasses.text} font-black tracking-tight uppercase italic leading-none inline-flex items-center`}>
         <span className={autoColor}>AUTO</span>
-        <span className="text-blue-600 group-hover:text-blue-500 transition-colors duration-200">MATCH</span>
+        <span className="text-blue-600 group-hover:text-blue-500 transition-colors duration-200 ml-1">DEALERSHIP</span>
         <sup className={`text-blue-500 font-bold ${sizeClasses.tm} ml-0.5 relative`}>™</sup>
       </span>
     </div>
   );
 }
+
+// Alias de exportação para nova nomenclatura sem quebra de imports
+export { AutomatchLogo as AutoDealershipLogo };

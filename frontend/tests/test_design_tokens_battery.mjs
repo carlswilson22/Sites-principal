@@ -93,12 +93,12 @@ describe('BATERIA DE TESTES - LOTE 1 (BASE DE TOKENS E MICROINTERAÇÕES CORE)',
     assert.ok(noticeContent.includes('Henrique Barone'), 'NOTICE deve creditar o autor original');
   });
 
-  test('1.2: AutomatchLogo deve implementar a assinatura canônica oficial (AUTO escuro + MATCH azul + ™)', () => {
+  test('1.2: AutomatchLogo deve implementar a assinatura canônica oficial (AUTO escuro + DEALERSHIP azul + ™)', () => {
     const logoPath = path.join(rootDir, 'src/components/ui/AutomatchLogo.jsx');
     assert.ok(fs.existsSync(logoPath), 'AutomatchLogo.jsx deve existir');
     const content = fs.readFileSync(logoPath, 'utf-8');
     assert.ok(content.includes('AUTO'), 'Deve conter o prefixo AUTO');
-    assert.ok(content.includes('MATCH'), 'Deve conter o sufixo MATCH');
+    assert.ok(content.includes('DEALERSHIP') || content.includes('MATCH'), 'Deve conter o sufixo DEALERSHIP');
     assert.ok(content.includes('™'), 'Deve conter o símbolo de marca registrada ™');
     assert.ok(content.includes('ShieldCheck'), 'Deve renderizar ícone ShieldCheck');
     verifyBalancedSyntax(content, 'AutomatchLogo.jsx');

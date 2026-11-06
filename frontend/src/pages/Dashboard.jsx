@@ -825,19 +825,19 @@ export default function Dashboard() {
           </DashboardErrorBoundary>
         )}
 
-        {/* Banner Informativo Rede B2B Automatch */}
+        {/* Banner Informativo Rede B2B Auto-Dealership */}
         <div data-tour="dashboard-rede-parceiros" className="mt-10 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl border border-slate-800">
           <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-blue-500/10 to-transparent pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl">
               <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/20">
-                Rede B2B Automatch
+                Rede B2B Auto-Dealership
               </span>
               <h3 className="text-xl sm:text-2xl font-black tracking-tight">
                 Estoque Compartilhado & Concessionárias Parceiras
               </h3>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Conheça a <strong>Rede B2B Automatch</strong>: tenha acesso a estoque compartilhado de concessionárias parceiras, radar de repasse com piso inviolável e gestão multi-lojas.
+                Conheça a <strong>Rede B2B Auto-Dealership</strong>: tenha acesso a estoque compartilhado de concessionárias parceiras, radar de repasse com piso inviolável e gestão multi-lojas.
               </p>
             </div>
             <button onClick={() => navigate('/como-funciona')}

@@ -14,7 +14,7 @@ export const showcaseCars = [
     priceHistory: [
       { date: '15/08/2026', price: 194000, label: 'Preço Inicial' },
       { date: '02/09/2026', price: 189000, label: 'Ajuste de Mercado' },
-      { date: '18/09/2026', price: 185000, label: 'Super Desconto Automatch' }
+      { date: '18/09/2026', price: 185000, label: 'Super Desconto Auto-Dealership' }
     ],
     color: 'Branco Pérola',
     mileage: 12000, image: '/images/FotoCorollaCross.jpg',
@@ -177,7 +177,7 @@ Carro de único proprietário, revisado em concessionária, Laudo pericial atest
         type: 'Pequeno Risco Superficial',
         severity: 'Estético Leve (Superficial)',
         desc: 'Pequeno risco superficial de 1.8cm na carcaça plástica do retrovisor. Mecanismo elétrico de rebatimento e lente sem danos.',
-        inspector: 'Perito Cautelar Automatch',
+        inspector: 'Perito Cautelar Auto-Dealership',
         macroImage: '/images/FotoChevroletTracker.jpg'
       }
     ],
@@ -218,7 +218,7 @@ Veículo com apenas 3.200 km, impecável, sem detalhes. Laudo cautelar com confo
         type: 'Ralado Superficial de Guia',
         severity: 'Estético Leve (Superficial)',
         desc: 'Pequeno raspado superficial de 3cm no acabamento plástico inferior do spoiler dianteiro, proveniente de guia de calçada. Estrutura e sensores 100% íntegros.',
-        inspector: 'Perito Cautelar Automatch',
+        inspector: 'Perito Cautelar Auto-Dealership',
         macroImage: '/images/FotoFiatPulse.jpg'
       }
     ],

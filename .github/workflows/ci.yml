@@ -85,4 +85,4 @@ jobs:
 
       - name: Validar Build da Imagem Backend
         run: |
-          docker build -t automatch-backend:ci ./backend
+          docker build -t auto-dealership-backend:ci ./backend

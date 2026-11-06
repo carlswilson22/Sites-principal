@@ -52,7 +52,7 @@ function translateErrorMessage(status, fallbackDetail = '') {
     case 409: return 'Conflito de dados no sistema.';
     case 422: return 'Dados informados não puderam ser processados.';
     case 429: return 'Muitas requisições. Aguarde alguns instantes.';
-    case 500: return 'Erro interno nos servidores da Automatch.';
+    case 500: return 'Erro interno nos servidores da Auto-Dealership.';
     case 502:
     case 503:
     case 504: return 'Serviço temporariamente indisponível. Tente novamente em instantes.';

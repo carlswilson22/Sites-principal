@@ -1,5 +1,5 @@
 /**
- * Home.jsx — Página principal (Landing Page) da plataforma Automatch.
+ * Home.jsx — Página principal (Landing Page) da plataforma Auto-Dealership.
  * 
  * Objetivo e Motivo da Criação:
  *   - Criado como a porta de entrada da plataforma, apresentando o hero interativo, busca rápida por placa/marca,
@@ -209,7 +209,7 @@ const Home = () => {
               O Match Perfeito,<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Sem Surpresas.</span>
             </motion.h1>
             <motion.p variants={fadeUp} className="text-xl text-slate-300 md:w-4/5 mb-10 leading-relaxed font-light">
-              Esqueca o medo de comprar carro usado. A Automatch utiliza inteligencia artificial e transparencia radical para garantir que seu proximo carro seja exatamente o que voce espera.
+              Esqueca o medo de comprar carro usado. A Auto-Dealership utiliza inteligencia artificial e transparencia radical para garantir que seu proximo carro seja exatamente o que voce espera.
             </motion.p>
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
               <GlowButton onClick={() => navigate('/encontrar')} size="lg" icon={Search} className="shadow-xl shadow-blue-900/40">
@@ -239,7 +239,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-blue-200">
-              <Zap className="w-3.5 h-3.5" />Vitrine Digital Automatch
+              <Zap className="w-3.5 h-3.5" />Vitrine Digital Auto-Dealership
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight">Novos Anuncios e Destaques</h2>
             <p className="text-slate-500 max-w-2xl mx-auto text-lg font-light">Anuncios verificados com transparencia total. Cada veiculo possui dossie completo de procedencia.</p>
@@ -254,7 +254,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
             <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-slate-200">
-              <Sparkles className="w-3.5 h-3.5" />Por que Automatch?
+              <Sparkles className="w-3.5 h-3.5" />Por que Auto-Dealership?
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Tecnologia a seu favor</h2>
           </motion.div>

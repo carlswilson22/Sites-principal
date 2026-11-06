@@ -166,7 +166,7 @@ export function generateVehicleConsultantAnswer(userMsg, car, history = []) {
 
   // Se a mensagem for apenas uma saudação inicial simples sem perguntas
   if (['ola', 'oi', 'bom dia', 'boa tarde', 'boa noite', 'e ai', 'opa'].includes(rawNormalized)) {
-    return `Olá! Sou o consultor IA da Automatch especializado no ${carName}. Estou pronto para tirar dúvidas sobre motor, direção, freios, quilometragem, laudo pericial, documentação no DETRAN e financiamento. O que deseja saber?`;
+    return `Olá! Sou o consultor IA da Auto-Dealership especializado no ${carName}. Estou pronto para tirar dúvidas sobre motor, direção, freios, quilometragem, laudo pericial, documentação no DETRAN e financiamento. O que deseja saber?`;
   }
 
   // Se nenhum tópico foi identificado por palavras-chave
@@ -321,7 +321,7 @@ export function generateVehicleConsultantAnswer(userMsg, car, history = []) {
 
   // Tópico: FINANCIAMENTO
   if (topics.includes('financiamento')) {
-    answers.push(`A Automatch disponibiliza simulação de financiamento com taxas competitivas a partir de 1,29% ao mês com os maiores bancos parceiros, podendo parcelar a entrada e financiar o saldo em até 60x`);
+    answers.push(`A Auto-Dealership disponibiliza simulação de financiamento com taxas competitivas a partir de 1,29% ao mês com os maiores bancos parceiros, podendo parcelar a entrada e financiar o saldo em até 60x`);
   }
 
   // Tópico: TROCA
@@ -332,7 +332,7 @@ export function generateVehicleConsultantAnswer(userMsg, car, history = []) {
   // Tópico: GARANTIA
   if (topics.includes('garantia')) {
     const garSnippet = searchInDescription(car, ['garantia', 'revisao', 'revisoes', 'concessionaria']);
-    const descGar = garSnippet || 'Garantia técnica de procedência e conformidade pericial Automatch';
+    const descGar = garSnippet || 'Garantia técnica de procedência e conformidade pericial Auto-Dealership';
     answers.push(`Oferece **${descGar}**`);
   }
 
@@ -370,7 +370,7 @@ export function generateGeneralSupportAnswer(userMsg, availableCars = []) {
   }
 
   if (topics.includes('laudo') || norm.includes('vistoria') || norm.includes('cautelar')) {
-    return 'Na Automatch, 100% dos veículos possuem **Laudo Cautelar Aprovado** e Dossiê de Transparência auditado. Cobrimos chassi, integridade de longarinas, espessura de pintura em micras, histórico de leilão/sinistro e certidão no DETRAN.';
+    return 'Na Auto-Dealership, 100% dos veículos possuem **Laudo Cautelar Aprovado** e Dossiê de Transparência auditado. Cobrimos chassi, integridade de longarinas, espessura de pintura em micras, histórico de leilão/sinistro e certidão no DETRAN.';
   }
 
   if (topics.includes('financiamento') || norm.includes('parcela') || norm.includes('banco') || norm.includes('juros')) {
@@ -394,5 +394,5 @@ export function generateGeneralSupportAnswer(userMsg, availableCars = []) {
   }
 
   // Resposta padrão orientadora para a Home (sem repetir saudação se já foi iniciada)
-  return 'Sou o assistente virtual Automatch! Posso esclarecer dúvidas sobre Laudo Cautelar, simulação de financiamento, Tabela FIPE ou ajudá-lo a encontrar veículos certificados na Vitrine Digital.';
+  return 'Sou o assistente virtual Auto-Dealership! Posso esclarecer dúvidas sobre Laudo Cautelar, simulação de financiamento, Tabela FIPE ou ajudá-lo a encontrar veículos certificados na Vitrine Digital.';
 }
