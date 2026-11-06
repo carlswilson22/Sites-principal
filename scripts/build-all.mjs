@@ -25,16 +25,21 @@ fs.mkdirSync(outputDist, { recursive: true });
 // 2. Compilar Portal Hub (Vitrine / sites/portal) para a raiz de dist/
 if (fs.existsSync(portalPath)) {
   console.log(`📦 1/2 Compilando Portal Hub com base [${baseRoot}] em [sites/portal]...`);
-  execSync(`npm run build -- --base ${baseRoot}`, {
-    stdio: 'inherit',
-    cwd: portalPath,
-    env: { ...process.env, BASE_PATH: baseRoot }
-  });
+  try {
+    execSync(`npm run build --workspace=portal -- --base ${baseRoot}`, {
+      stdio: 'inherit',
+      cwd: rootDir,
+      env: { ...process.env, BASE_PATH: baseRoot }
+    });
 
-  const portalDist = path.join(portalPath, 'dist');
-  if (fs.existsSync(portalDist)) {
-    console.log('📂 Copiando arquivos do Portal Hub para a raiz de dist/...');
-    fs.cpSync(portalDist, outputDist, { recursive: true });
+    const portalDist = path.join(portalPath, 'dist');
+    if (fs.existsSync(portalDist)) {
+      console.log('📂 Copiando arquivos do Portal Hub para a raiz de dist/...');
+      fs.cpSync(portalDist, outputDist, { recursive: true });
+    }
+  } catch (err) {
+    console.error(`❌ Erro ao compilar Portal Hub:`, err.message);
+    process.exit(1);
   }
 }
 
@@ -43,36 +48,31 @@ fs.writeFileSync(path.join(outputDist, '.nojekyll'), '', 'utf8');
 
 // 4. Compilar cada modelo de site (exceto portal)
 console.log('\n📦 2/2 Compilando modelos de sites em [sites/]...');
-if (fs.existsSync(sitesDir)) {
-  const entries = fs.readdirSync(sitesDir, { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.isDirectory() && entry.name !== 'portal') {
-      const sitePath = path.join(sitesDir, entry.name);
-      const pkgPath = path.join(sitePath, 'package.json');
+const models = ['auto-dealership', 'luxury-dealership', 'popular-dealership'];
 
-      if (fs.existsSync(pkgPath)) {
-        const modelBase = `${baseRoot}${entry.name}/`;
-        console.log(`\n➡️  Construindo modelo: [${entry.name}] com base [${modelBase}]...`);
-        try {
-          execSync(`npm run build -- --base ${modelBase}`, {
-            stdio: 'inherit',
-            cwd: sitePath,
-            env: { ...process.env, BASE_PATH: modelBase }
-          });
+for (const modelName of models) {
+  const sitePath = path.join(sitesDir, modelName);
+  if (fs.existsSync(sitePath)) {
+    const modelBase = `${baseRoot}${modelName}/`;
+    console.log(`\n➡️  Construindo modelo: [${modelName}] com base [${modelBase}]...`);
+    try {
+      execSync(`npm run build --workspace=${modelName} -- --base ${modelBase}`, {
+        stdio: 'inherit',
+        cwd: rootDir,
+        env: { ...process.env, BASE_PATH: modelBase }
+      });
 
-          const subDist = path.join(sitePath, 'dist');
-          const destDist = path.join(outputDist, entry.name);
+      const subDist = path.join(sitePath, 'dist');
+      const destDist = path.join(outputDist, modelName);
 
-          if (fs.existsSync(subDist)) {
-            console.log(`📂 Copiando artefatos de [${entry.name}] para dist/${entry.name}...`);
-            fs.cpSync(subDist, destDist, { recursive: true });
-            console.log(`✅ [${entry.name}] integrado com sucesso!`);
-          }
-        } catch (err) {
-          console.error(`❌ Erro ao compilar [${entry.name}]:`, err.message);
-          process.exit(1);
-        }
+      if (fs.existsSync(subDist)) {
+        console.log(`📂 Copiando artefatos de [${modelName}] para dist/${modelName}...`);
+        fs.cpSync(subDist, destDist, { recursive: true });
+        console.log(`✅ [${modelName}] integrado com sucesso!`);
       }
+    } catch (err) {
+      console.error(`❌ Erro ao compilar [${modelName}]:`, err.message);
+      process.exit(1);
     }
   }
 }
