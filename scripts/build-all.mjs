@@ -38,7 +38,10 @@ if (fs.existsSync(portalPath)) {
       fs.cpSync(portalDist, outputDist, { recursive: true });
     }
   } catch (err) {
-    console.error(`❌ Erro ao compilar Portal Hub:`, err.message);
+    console.error(`❌ Erro ao compilar Portal Hub:`);
+    if (err.stdout) console.error(err.stdout.toString());
+    if (err.stderr) console.error(err.stderr.toString());
+    console.error(err.message);
     process.exit(1);
   }
 }
@@ -71,7 +74,10 @@ for (const modelName of models) {
         console.log(`✅ [${modelName}] integrado com sucesso!`);
       }
     } catch (err) {
-      console.error(`❌ Erro ao compilar [${modelName}]:`, err.message);
+      console.error(`❌ Erro ao compilar [${modelName}]:`);
+      if (err.stdout) console.error(err.stdout.toString());
+      if (err.stderr) console.error(err.stderr.toString());
+      console.error(err.message);
       process.exit(1);
     }
   }

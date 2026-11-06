@@ -27,10 +27,17 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install --include=optional
+        run: |
+          npm install --include=optional
+          npm install -D @rollup/rollup-linux-x64-gnu || true
 
       - name: Build
-        run: npm run build
+        run: |
+          node scripts/build-all.mjs 2>&1 | tee build.log || {
+            ERR=$(tail -n 25 build.log | tr '\n' ' ')
+            echo "::error title=Build Failure::$ERR"
+            exit 1
+          }
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
