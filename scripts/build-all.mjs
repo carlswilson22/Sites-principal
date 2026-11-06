@@ -10,7 +10,11 @@ const sitesDir = path.join(rootDir, 'sites');
 const outputDist = path.join(rootDir, 'dist');
 const portalPath = path.join(sitesDir, 'portal');
 
-console.log('🚀 [Build Monorepo] Iniciando pipeline multi-sites 100% modular...\n');
+// Determina base path baseado no repositório GitHub Pages
+const repoName = process.env.GITHUB_REPOSITORY ? process.env.GITHUB_REPOSITORY.split('/')[1] : 'Sites-principal';
+const baseRoot = `/${repoName}/`;
+
+console.log(`🚀 [Build Monorepo] Iniciando pipeline multi-sites para [${repoName}] (base: ${baseRoot})...\n`);
 
 // 1. Limpar dist anterior
 if (fs.existsSync(outputDist)) {
@@ -20,8 +24,12 @@ fs.mkdirSync(outputDist, { recursive: true });
 
 // 2. Compilar Portal Hub (Vitrine / sites/portal) para a raiz de dist/
 if (fs.existsSync(portalPath)) {
-  console.log('📦 1/2 Compilando Portal Hub em [sites/portal]...');
-  execSync('npm run build', { stdio: 'inherit', cwd: portalPath });
+  console.log(`📦 1/2 Compilando Portal Hub com base [${baseRoot}] em [sites/portal]...`);
+  execSync(`npx vite build --base ${baseRoot}`, {
+    stdio: 'inherit',
+    cwd: portalPath,
+    env: { ...process.env, BASE_PATH: baseRoot }
+  });
 
   const portalDist = path.join(portalPath, 'dist');
   if (fs.existsSync(portalDist)) {
@@ -43,9 +51,14 @@ if (fs.existsSync(sitesDir)) {
       const pkgPath = path.join(sitePath, 'package.json');
 
       if (fs.existsSync(pkgPath)) {
-        console.log(`\n➡️  Construindo modelo: [${entry.name}]...`);
+        const modelBase = `${baseRoot}${entry.name}/`;
+        console.log(`\n➡️  Construindo modelo: [${entry.name}] com base [${modelBase}]...`);
         try {
-          execSync('npm run build', { stdio: 'inherit', cwd: sitePath });
+          execSync(`npx vite build --base ${modelBase}`, {
+            stdio: 'inherit',
+            cwd: sitePath,
+            env: { ...process.env, BASE_PATH: modelBase }
+          });
 
           const subDist = path.join(sitePath, 'dist');
           const destDist = path.join(outputDist, entry.name);

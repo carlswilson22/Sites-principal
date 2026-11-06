@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Car, ShieldCheck, MessageCircle, Menu, X, 
   Home, Grid, Sparkles, Building2, ArrowLeft
@@ -46,7 +46,7 @@ export function Navbar({ currentPage = 'home', onNavigate }) {
           {/* Voltar ao Hub & Logotipo */}
           <div className="flex items-center gap-3">
             <a 
-              href="/sites-modelos/"
+              href="../"
               className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors mr-1 sm:mr-3 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20"
               title="Voltar ao Showcase de Modelos"
             >

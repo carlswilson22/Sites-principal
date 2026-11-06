@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { 
   Crown, Shield, MapPin, Phone, MessageCircle, Clock, 
   ArrowUp, ChevronRight, ArrowLeft 
@@ -64,7 +64,7 @@ export function Footer({ onNavigate }) {
               ))}
               <li className="pt-2 border-t border-white/5">
                 <a
-                  href="/sites-modelos/"
+                  href="../"
                   className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
