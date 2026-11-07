@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { MessageCircle, Bot } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -20,6 +20,72 @@ import { vehiclesData } from './data/vehicles';
 import { useFavorites } from './hooks/useFavorites';
 import { useComparator } from './hooks/useComparator';
 import { buildGeneralWhatsappLink } from './utils/whatsapp';
+import { 
+  AuthProvider, 
+  TierProvider, 
+  MerchantShell, 
+  DashboardView, 
+  InventoryView, 
+  LeadsView, 
+  ClientsView, 
+  FipePricingView, 
+  ContractsView, 
+  FinancialView,
+  ConsignmentsView,
+  AdvancedContractsView,
+  FullFinancialView,
+  MarketPricingView,
+  SalesFunnelView,
+  StoryStudioView,
+  AuditLgpdView,
+  LoginView, 
+  useAuth 
+} from '../../../packages/merchant-core/src';
+
+function EnterpriseMerchantPanelContainer({ onExitToSite }) {
+  const { isAuthenticated } = useAuth();
+  const [merchantTab, setMerchantTab] = useState('dashboard');
+
+  if (!isAuthenticated) {
+    return (
+      <LoginView
+        onLoginSuccess={() => setMerchantTab('dashboard')}
+        onCancel={onExitToSite}
+      />
+    );
+  }
+
+  return (
+    <MerchantShell
+      storeName="Auto-Dealership Enterprise"
+      activeTab={merchantTab}
+      onSelectTab={setMerchantTab}
+      onExitToSite={onExitToSite}
+    >
+      {/* Nível 1 (E1 a E6) */}
+      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} />}
+      {merchantTab === 'inventory' && <InventoryView />}
+      {merchantTab === 'leads' && <LeadsView />}
+
+      {/* Nível 2 (I1 a I8) */}
+      {merchantTab === 'clients' && <ClientsView onOpenContractWithClient={() => setMerchantTab('contracts_adv')} />}
+      {merchantTab === 'financing' && <FipePricingView />}
+      {merchantTab === 'fipe' && <FipePricingView />}
+      {merchantTab === 'contracts' && <ContractsView />}
+      {merchantTab === 'financial' && <FinancialView />}
+      {merchantTab === 'analytics' && <DashboardView onNavigateTo={setMerchantTab} />}
+
+      {/* Nível 3 Enterprise (A1 a A8) */}
+      {merchantTab === 'consignments' && <ConsignmentsView />}
+      {merchantTab === 'contracts_adv' && <AdvancedContractsView />}
+      {merchantTab === 'financial_full' && <FullFinancialView />}
+      {merchantTab === 'market_pricing' && <MarketPricingView />}
+      {merchantTab === 'funnel' && <SalesFunnelView />}
+      {merchantTab === 'stories' && <StoryStudioView />}
+      {merchantTab === 'audit_lgpd' && <AuditLgpdView />}
+    </MerchantShell>
+  );
+}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -62,6 +128,17 @@ export default function App() {
   };
 
   const floatingWhatsappUrl = buildGeneralWhatsappLink();
+
+  // Renderização Dedicada da Área Restrita do Lojista (Tier 3 Enterprise)
+  if (currentPage === 'painel-lojista') {
+    return (
+      <AuthProvider>
+        <TierProvider tier={3}>
+          <EnterpriseMerchantPanelContainer onExitToSite={() => navigateTo('home')} />
+        </TierProvider>
+      </AuthProvider>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black relative">

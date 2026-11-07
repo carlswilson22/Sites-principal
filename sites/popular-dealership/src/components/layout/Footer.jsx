@@ -65,7 +65,17 @@ export function Footer({ onNavigate }) {
                   </button>
                 </li>
               ))}
-              <li className="pt-2 border-t border-slate-900">
+              <li className="pt-2 border-t border-slate-900 flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    if (onNavigate) onNavigate('painel-lojista');
+                    scrollToTop();
+                  }}
+                  className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-semibold transition-colors text-left"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Área do Lojista (Painel Enterprise)</span>
+                </button>
                 <a
                   href="../"
                   className="inline-flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"

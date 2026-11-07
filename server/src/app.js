@@ -10,6 +10,7 @@ import { handleDashboardRoutes } from './routes/dashboardRoutes.js';
 import { handleInventoryRoutes } from './routes/inventoryRoutes.js';
 import { handleLeadRoutes } from './routes/leadRoutes.js';
 import { handleTier2Routes } from './routes/tier2Routes.js';
+import { handleTier3Routes } from './routes/tier3Routes.js';
 import { getStoreTier } from './middlewares/tierGate.js';
 
 export function createServer() {
@@ -78,7 +79,11 @@ export function createServer() {
       const tier2Handled = await handleTier2Routes(req, res, pathname, body);
       if (tier2Handled) return;
 
-      // 9. Rota não encontrada
+      // 9. Roteamento de Recursos Exclusivos do Nível 3 (A1 a A8)
+      const tier3Handled = await handleTier3Routes(req, res, pathname, body);
+      if (tier3Handled) return;
+
+      // 10. Rota não encontrada
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Endpoint não encontrado ou não disponível neste modelo.' }));
     } catch (err) {

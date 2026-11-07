@@ -113,18 +113,39 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
           roles: ['proprietario', 'gerente']
         },
         {
+          id: 'contracts_adv',
+          label: 'Contratos Avançados & Troca',
+          icon: FileText,
+          minTier: 3,
+          roles: ['proprietario', 'gerente']
+        },
+        {
+          id: 'financial_full',
+          label: 'DRE & Comissões Vendedores',
+          icon: DollarSign,
+          minTier: 3,
+          roles: ['proprietario', 'gerente']
+        },
+        {
+          id: 'market_pricing',
+          label: 'Precificador Mercado & Leilão',
+          icon: Tag,
+          minTier: 3,
+          roles: ['proprietario', 'gerente', 'atendente']
+        },
+        {
+          id: 'funnel',
+          label: 'Funil de Vendas & Giro',
+          icon: TrendingUp,
+          minTier: 3,
+          roles: ['proprietario', 'gerente']
+        },
+        {
           id: 'stories',
           label: 'Estúdio de Stories 1080p',
           icon: Sparkles,
           minTier: 3,
           roles: ['proprietario', 'gerente', 'atendente']
-        },
-        {
-          id: 'instagram',
-          label: 'Publicação Instagram',
-          icon: Share2,
-          minTier: 3,
-          roles: ['proprietario', 'gerente']
         },
         {
           id: 'audit_lgpd',

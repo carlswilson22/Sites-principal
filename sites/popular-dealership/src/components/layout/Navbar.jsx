@@ -103,8 +103,15 @@ export function Navbar({
             })}
           </nav>
 
-          {/* Ações / WhatsApp Direto */}
+          {/* Ações / WhatsApp Direto & Painel Enterprise */}
           <div className="hidden sm:flex items-center gap-2">
+            <button
+              onClick={() => handleNavClick('painel-lojista')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10 cursor-pointer"
+              title="Acessar o Painel do Lojista Enterprise"
+            >
+              <span>Painel Enterprise</span>
+            </button>
             <Button
               variant="whatsapp"
               size="sm"
@@ -162,7 +169,13 @@ export function Navbar({
             })}
           </nav>
 
-          <div className="pt-2 border-t border-slate-800">
+          <div className="pt-2 border-t border-slate-800 space-y-2">
+            <button
+              onClick={() => handleNavClick('painel-lojista')}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-center"
+            >
+              Acessar Painel Enterprise (Lojista)
+            </button>
             <Button
               variant="whatsapp"
               size="md"
