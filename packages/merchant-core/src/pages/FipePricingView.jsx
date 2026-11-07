@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { Tag, Search, Calculator, DollarSign, TrendingUp, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { calculatePricing } from '../../../../server/src/services/fipeAdapter';
+import { calculatePricing } from '../utils/pricing';
 
 export function FipePricingView() {
   const [fipeForm, setFipeForm] = useState({

@@ -6,13 +6,25 @@ import crypto from 'node:crypto';
 import { getDb } from '../database/db.js';
 import { verifyPassword, hashPassword } from '../security/crypto.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
+import { checkRateLimit, resetRateLimit } from '../security/rateLimiter.js';
 
 export async function handleAuthRoutes(req, res, pathname, body) {
   const db = getDb();
 
   // POST /api/auth/login
   if (pathname === '/api/auth/login' && req.method === 'POST') {
+    const ip = req.socket.remoteAddress || '127.0.0.1';
     const { email, password } = body || {};
+
+    // Rate Limiting (Máx 5 tentativas por janela de 15 minutos)
+    const rateCheck = checkRateLimit(`login_${ip}_${email || ''}`, 5, 15 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      return sendJson(res, 429, {
+        error: `Muitas tentativas de login consecutivas. Por segurança, tente novamente em ${rateCheck.retryAfterSeconds} segundos.`,
+        retryAfterSeconds: rateCheck.retryAfterSeconds
+      });
+    }
+
     if (!email || !password) {
       return sendJson(res, 400, { error: 'E-mail e senha são obrigatórios.' });
     }
@@ -26,6 +38,9 @@ export async function handleAuthRoutes(req, res, pathname, body) {
     if (!isValid) {
       return sendJson(res, 401, { error: 'Credenciais inválidas.' });
     }
+
+    // Login bem-sucedido: reseta o contador de taxa
+    resetRateLimit(`login_${ip}_${email || ''}`);
 
     // Cria sessão segura de 24 horas
     const sessionId = crypto.randomBytes(32).toString('hex');

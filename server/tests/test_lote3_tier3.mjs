@@ -170,3 +170,4 @@ test('Lote 3 - Barreira de Níveis: Endpoints de Nível 3 retornam 404 em Tier 1
   const checkOnTier3 = assertTier(3, 3);
   assert.strictEqual(checkOnTier3.allowed, true);
 });
+

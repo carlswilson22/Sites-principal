@@ -110,7 +110,7 @@ export function maskBankData(accountNumber) {
  */
 export function sanitizeLogData(obj) {
   if (!obj || typeof obj !== 'object') return obj;
-  const sensitiveKeys = ['password', 'senha', 'cpf', 'token', 'authTag', 'creditCard', 'banco'];
+  const sensitiveKeys = ['password', 'senha', 'cpf', 'token', 'authtag', 'creditcard', 'banco', 'bank', 'conta'];
   const sanitized = Array.isArray(obj) ? [] : {};
 
   for (const [key, value] of Object.entries(obj)) {

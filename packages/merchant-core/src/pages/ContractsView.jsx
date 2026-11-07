@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Printer, Share2, CheckCircle2, AlertTriangle, Eye, X, ShieldAlert } from 'lucide-react';
-import { generateContractDocument } from '../../../../server/src/services/contractGenerator';
+import { generateContractDocument } from '../utils/contracts';
 
 export function ContractsView() {
   const [contracts, setContracts] = useState([]);
