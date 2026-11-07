@@ -1,8 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Calculator, ArrowRight, ShieldCheck, Sparkles, Building2, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { buildFinancingWhatsappLink } from '../../utils/whatsapp';
+import { apiClient } from '../../../../../packages/merchant-core/src';
 
 export function FinancingSimulator({ vehicles = [], preselectedVehicle = null }) {
   const defaultPrice = preselectedVehicle ? preselectedVehicle.preco : (vehicles[0]?.preco || 2500000);
@@ -167,17 +168,38 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
             </div>
           </div>
 
-          <Button
-            variant="gold"
-            size="lg"
-            icon={ArrowRight}
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-4 text-center justify-center"
-          >
-            Solicitar Pré-Aprovação VIP
-          </Button>
+          <div>
+            <Button
+              variant="gold"
+              size="lg"
+              icon={ArrowRight}
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={async () => {
+                try {
+                  await apiClient.captureLead({
+                    vehicle_id: selectedVehicle?.id,
+                    name: 'Interessado em Financiamento (Simulador)',
+                    phone: '(11) 99999-9999',
+                    source: 'simulador_financiamento',
+                    simulation_data: {
+                      valorVeiculo: vehicleValue,
+                      entrada: downPayment,
+                      parcelas: term,
+                      valorParcela: monthlyPayment
+                    }
+                  });
+                } catch {}
+              }}
+              className="w-full py-4 text-center justify-center"
+            >
+              Solicitar Pré-Aprovação VIP
+            </Button>
+            <p className="text-[10px] text-slate-500 text-center leading-tight mt-2.5">
+              * Simulação preliminar com juros compostos (Tabela Price), sujeita à análise de crédito pelas instituições bancárias parceiras.
+            </p>
+          </div>
         </div>
       </div>
     </section>

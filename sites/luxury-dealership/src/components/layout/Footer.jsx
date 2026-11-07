@@ -63,6 +63,18 @@ export function Footer({ onNavigate }) {
                   </button>
                 </li>
               ))}
+              <li>
+                <button
+                  onClick={() => {
+                    if (onNavigate) onNavigate('painel-lojista');
+                    scrollToTop();
+                  }}
+                  className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-semibold transition-colors text-left"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Área do Lojista (Painel Pro)</span>
+                </button>
+              </li>
               <li className="pt-2 border-t border-white/5">
                 <a
                   href="../"

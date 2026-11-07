@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -12,6 +12,53 @@ import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { buildGeneralWhatsappLink } from './utils/whatsapp';
+import { 
+  AuthProvider, 
+  TierProvider, 
+  MerchantShell, 
+  DashboardView, 
+  InventoryView, 
+  LeadsView, 
+  ClientsView, 
+  FipePricingView, 
+  ContractsView, 
+  FinancialView, 
+  LoginView, 
+  useAuth 
+} from '../../../packages/merchant-core/src';
+
+function LuxuryMerchantPanelContainer({ onExitToSite }) {
+  const { isAuthenticated } = useAuth();
+  const [merchantTab, setMerchantTab] = useState('dashboard');
+
+  if (!isAuthenticated) {
+    return (
+      <LoginView
+        onLoginSuccess={() => setMerchantTab('dashboard')}
+        onCancel={onExitToSite}
+      />
+    );
+  }
+
+  return (
+    <MerchantShell
+      storeName="Auto-Dealership Pro"
+      activeTab={merchantTab}
+      onSelectTab={setMerchantTab}
+      onExitToSite={onExitToSite}
+    >
+      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} />}
+      {merchantTab === 'inventory' && <InventoryView />}
+      {merchantTab === 'leads' && <LeadsView />}
+      {merchantTab === 'clients' && <ClientsView onOpenContractWithClient={() => setMerchantTab('contracts')} />}
+      {merchantTab === 'financing' && <FipePricingView />}
+      {merchantTab === 'fipe' && <FipePricingView />}
+      {merchantTab === 'contracts' && <ContractsView />}
+      {merchantTab === 'financial' && <FinancialView />}
+      {merchantTab === 'analytics' && <DashboardView onNavigateTo={setMerchantTab} />}
+    </MerchantShell>
+  );
+}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -34,6 +81,17 @@ export default function App() {
   };
 
   const floatingWhatsappUrl = buildGeneralWhatsappLink();
+
+  // Renderização Dedicada da Área Restrita do Lojista (Tier 2 Pro)
+  if (currentPage === 'painel-lojista') {
+    return (
+      <AuthProvider>
+        <TierProvider tier={2}>
+          <LuxuryMerchantPanelContainer onExitToSite={() => navigateTo('home')} />
+        </TierProvider>
+      </AuthProvider>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050508] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black relative">

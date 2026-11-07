@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Car, Shield, Sparkles, Calculator, ArrowLeftRight, 
-  Crown, Building2, Menu, X, ArrowLeft, MessageCircle 
+  Crown, Building2, Menu, X, ArrowLeft, MessageCircle, KeyRound
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import AutomatchLogo from '../ui/AutomatchLogo';
@@ -87,7 +87,20 @@ export function Navbar({ currentPage = 'home', onNavigate }) {
           </nav>
 
           {/* Ações / Atendimento VIP */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2.5">
+            <button
+              onClick={() => handleNavClick('painel-lojista')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                currentPage === 'painel-lojista'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/30'
+                  : 'bg-black/60 text-amber-400 hover:text-white hover:bg-white/10 border border-amber-500/30'
+              }`}
+              title="Acessar Área Restrita do Lojista"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Painel Pro</span>
+            </button>
+
             <Button
               variant="gold"
               size="sm"
@@ -133,6 +146,18 @@ export function Navbar({ currentPage = 'home', onNavigate }) {
                 </button>
               );
             })}
+
+            <button
+              onClick={() => handleNavClick('painel-lojista')}
+              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left text-sm font-semibold transition-colors ${
+                currentPage === 'painel-lojista'
+                  ? 'bg-amber-500 text-slate-950 font-bold'
+                  : 'bg-black/60 text-amber-400 border border-amber-500/40 hover:bg-white/5'
+              }`}
+            >
+              <KeyRound className="w-4 h-4 shrink-0" />
+              <span>Acessar Painel do Lojista (Tier 2 Pro)</span>
+            </button>
           </nav>
 
           <div className="pt-2 border-t border-white/10">
