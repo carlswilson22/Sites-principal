@@ -1,0 +1,11 @@
+{
+  "name": "@autodealership/merchant-core",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.577.0"
+  }
+}
