@@ -47,3 +47,4 @@ export function authenticate(req) {
     sessionId: session.id
   };
 }
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Car, ShieldCheck, MessageCircle, Menu, X, 
-  Home, Grid, Sparkles, Building2, ArrowLeft
+  Home, Grid, Sparkles, Building2, ArrowLeft, KeyRound
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import AutomatchLogo from '../ui/AutomatchLogo';
@@ -93,6 +93,19 @@ export function Navbar({ currentPage = 'home', onNavigate }) {
               </span>
             </div>
 
+            <button
+              onClick={() => handleNavClick('painel-lojista')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                currentPage === 'painel-lojista'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/60'
+              }`}
+              title="Acessar Área Restrita do Lojista"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden lg:inline">Área do Lojista</span>
+            </button>
+
             <Button
               variant="whatsapp"
               size="sm"
@@ -141,6 +154,18 @@ export function Navbar({ currentPage = 'home', onNavigate }) {
                 </button>
               );
             })}
+
+            <button
+              onClick={() => handleNavClick('painel-lojista')}
+              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left text-sm font-semibold transition-colors ${
+                currentPage === 'painel-lojista'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-900 text-blue-400 border border-blue-500/30 hover:bg-slate-800'
+              }`}
+            >
+              <KeyRound className="w-4 h-4 shrink-0" />
+              <span>Acessar Painel do Lojista</span>
+            </button>
           </nav>
 
           <div className="pt-2 border-t border-slate-900">

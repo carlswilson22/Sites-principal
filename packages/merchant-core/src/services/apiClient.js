@@ -60,5 +60,35 @@ export const apiClient = {
       }
       throw err;
     }
+  },
+
+  // E6: Registro de Contato (Leads do site)
+  async captureLead(leadData) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadData)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback para persistência em LocalStorage no GitHub Pages
+    }
+
+    try {
+      const stored = JSON.parse(localStorage.getItem('merchant_leads') || '[]');
+      const newLead = {
+        id: Date.now(),
+        ...leadData,
+        status: 'novo',
+        temperature: 'quente',
+        created_at: new Date().toISOString()
+      };
+      stored.unshift(newLead);
+      localStorage.setItem('merchant_leads', JSON.stringify(stored));
+      return { success: true, lead: newLead };
+    } catch {
+      return { success: true };
+    }
   }
 };

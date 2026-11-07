@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -9,6 +9,43 @@ import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { buildGeneralWhatsappLink } from './utils/whatsapp';
+import { 
+  AuthProvider, 
+  TierProvider, 
+  MerchantShell, 
+  DashboardView, 
+  InventoryView, 
+  LeadsView, 
+  LoginView, 
+  useAuth 
+} from '../../../packages/merchant-core/src';
+
+function MerchantPanelContainer({ onExitToSite }) {
+  const { isAuthenticated } = useAuth();
+  const [merchantTab, setMerchantTab] = useState('dashboard');
+
+  if (!isAuthenticated) {
+    return (
+      <LoginView
+        onLoginSuccess={() => setMerchantTab('dashboard')}
+        onCancel={onExitToSite}
+      />
+    );
+  }
+
+  return (
+    <MerchantShell
+      storeName="Auto-Dealership Essential"
+      activeTab={merchantTab}
+      onSelectTab={setMerchantTab}
+      onExitToSite={onExitToSite}
+    >
+      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} />}
+      {merchantTab === 'inventory' && <InventoryView />}
+      {merchantTab === 'leads' && <LeadsView />}
+    </MerchantShell>
+  );
+}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -34,6 +71,17 @@ export default function App() {
   };
 
   const floatingWhatsappUrl = buildGeneralWhatsappLink();
+
+  // Renderização Dedicada da Área Restrita do Lojista (Tier 1 Essential)
+  if (currentPage === 'painel-lojista') {
+    return (
+      <AuthProvider>
+        <TierProvider tier={1}>
+          <MerchantPanelContainer onExitToSite={() => navigateTo('home')} />
+        </TierProvider>
+      </AuthProvider>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#080c14] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative">

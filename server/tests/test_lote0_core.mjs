@@ -101,3 +101,4 @@ test('Lote 0 - Banco de Dados: SQLite inicializa tabelas e carrega seed demonstr
   const leads = db.prepare('SELECT COUNT(*) as count FROM leads').get();
   assert.ok(leads.count >= 2, 'Deve haver contatos de teste');
 });
+

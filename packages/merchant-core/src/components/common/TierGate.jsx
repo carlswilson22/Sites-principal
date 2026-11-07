@@ -14,3 +14,4 @@ export function TierGate({ requiredTier, children, fallback = null }) {
 
   return <>{children}</>;
 }
+

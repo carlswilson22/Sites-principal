@@ -203,3 +203,4 @@ CREATE INDEX IF NOT EXISTS idx_leads_temperature ON leads(temperature);
 CREATE INDEX IF NOT EXISTS idx_contracts_code ON contracts(code);
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
 `;
+

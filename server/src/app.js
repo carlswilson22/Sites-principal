@@ -7,6 +7,8 @@ import http from 'node:http';
 import { parse as parseUrl } from 'node:url';
 import { handleAuthRoutes } from './routes/authRoutes.js';
 import { handleDashboardRoutes } from './routes/dashboardRoutes.js';
+import { handleInventoryRoutes } from './routes/inventoryRoutes.js';
+import { handleLeadRoutes } from './routes/leadRoutes.js';
 import { getStoreTier } from './middlewares/tierGate.js';
 
 export function createServer() {
@@ -55,15 +57,23 @@ export function createServer() {
         }));
       }
 
-      // 4. Roteamento de Autenticação
+      // 4. Roteamento de Autenticação (E1)
       const authHandled = await handleAuthRoutes(req, res, pathname, body);
       if (authHandled) return;
 
-      // 5. Roteamento de Dashboard e Métricas
+      // 5. Roteamento de Dashboard e Métricas (E2)
       const dashboardHandled = await handleDashboardRoutes(req, res, pathname);
       if (dashboardHandled) return;
 
-      // 6. Rota não encontrada
+      // 6. Roteamento de Estoque e Fotos (E3, E4, E5)
+      const inventoryHandled = await handleInventoryRoutes(req, res, pathname, body);
+      if (inventoryHandled) return;
+
+      // 7. Roteamento de Contatos e Leads (E6)
+      const leadHandled = await handleLeadRoutes(req, res, pathname, body);
+      if (leadHandled) return;
+
+      // 8. Rota não encontrada
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Endpoint não encontrado.' }));
     } catch (err) {

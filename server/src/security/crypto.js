@@ -124,3 +124,4 @@ export function sanitizeLogData(obj) {
   }
   return sanitized;
 }
+

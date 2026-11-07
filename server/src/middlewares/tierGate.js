@@ -34,3 +34,4 @@ export function assertTier(requiredTier, currentTier = getStoreTier()) {
     error: `Recurso não encontrado neste modelo (Requer Nível ${requiredTier}, Loja configurada no Nível ${currentTier}).`
   };
 }
+

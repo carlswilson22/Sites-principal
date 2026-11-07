@@ -21,3 +21,4 @@ export function checkRole(user, allowedRoles = []) {
     error: `Acesso negado: Perfil '${user.role}' não possui permissão para esta operação.`
   };
 }
+

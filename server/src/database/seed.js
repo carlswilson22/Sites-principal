@@ -145,3 +145,4 @@ export async function runSeed(tier = 1) {
 
   return { message: 'Seed de demonstração fictícia inserido com sucesso!' };
 }
+

@@ -6,6 +6,7 @@ import {
 import { Button } from '../components/ui/Button';
 import { dealershipInfo } from '../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../utils/whatsapp';
+import { apiClient } from '../../../../packages/merchant-core/src';
 
 export function AboutContactPage() {
   const [contactForm, setContactForm] = useState({
@@ -23,10 +24,24 @@ export function AboutContactPage() {
     setContactForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
+
+    // E6: Captura automática do lead para o Painel do Lojista
+    try {
+      await apiClient.captureLead({
+        name: contactForm.nome,
+        phone: contactForm.telefone,
+        email: contactForm.email,
+        source: 'site_formulario',
+        notes: `Assunto: ${contactForm.assunto} - Mensagem: ${contactForm.mensagem}`
+      });
+    } catch {
+      // Continua mesmo em modo offline
+    }
+
     const text = 
-      `📩 *Nova Mensagem via Site - AutoElite Motors*\n\n` +
+      `📩 *Nova Mensagem via Site - Auto-Dealership Essential*\n\n` +
       `• *Nome:* ${contactForm.nome}\n` +
       `• *Telefone:* ${contactForm.telefone}\n` +
       `• *E-mail:* ${contactForm.email}\n` +

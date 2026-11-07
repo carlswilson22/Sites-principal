@@ -22,3 +22,4 @@ const server = createServer();
 server.listen(PORT, () => {
   console.log(`🚀 [Merchant Server] Painel do Lojista API ativo na porta ${PORT} (Nível ${TIER})`);
 });
+

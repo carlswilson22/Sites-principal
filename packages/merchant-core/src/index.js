@@ -10,4 +10,7 @@ export { MerchantShell } from './components/layout/MerchantShell';
 export { MerchantNavbar } from './components/layout/MerchantNavbar';
 export { MerchantSidebar } from './components/layout/MerchantSidebar';
 export { DashboardView } from './pages/DashboardView';
+export { InventoryView } from './pages/InventoryView';
+export { LeadsView } from './pages/LeadsView';
+export { LoginView } from './pages/LoginView';
 export { apiClient } from './services/apiClient';

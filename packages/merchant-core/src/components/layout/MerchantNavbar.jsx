@@ -98,3 +98,4 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
     </header>
   );
 }
+

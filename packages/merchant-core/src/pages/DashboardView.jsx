@@ -253,3 +253,4 @@ export function DashboardView({ onNavigateTo }) {
     </div>
   );
 }
+

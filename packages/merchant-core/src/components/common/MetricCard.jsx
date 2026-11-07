@@ -62,3 +62,4 @@ export function MetricCard({ title, value, icon: Icon, description, trend, color
     </div>
   );
 }
+
