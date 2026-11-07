@@ -64,3 +64,4 @@ O controle de recursos superiores **não é apenas cosmético**:
 1. Se uma requisição HTTP for enviada a `/api/tier2/*` em uma instalação configurada como `MERCHANT_TIER=1`, o servidor intercepta a requisição via middleware `tierGate(2)` e retorna **status 404 (Not Found)**.
 2. Se uma requisição for enviada a `/api/tier3/*` em instalações configuradas como `MERCHANT_TIER=1` ou `MERCHANT_TIER=2`, o middleware `tierGate(3)` retorna **status 404 (Not Found)**.
 3. Se um usuário autenticado com perfil `atendente` tentar acessar endpoints de DRE financeiro ou auditoria restrita, o middleware `requireRole` retorna **status 403 (Forbidden)**.
+

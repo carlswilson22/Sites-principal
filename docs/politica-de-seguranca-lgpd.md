@@ -65,3 +65,4 @@ O sistema disponibiliza ferramentas operacionais no módulo de Governança para 
 
 > [!WARNING]
 > **REVISÃO JURÍDICA OBRIGATÓRIA**: As minutas de contratos, recibos de sinal, termos de vistoria e termos aditivos gerados pela plataforma são instrumentos referenciais padronizados. Antes de qualquer utilização comercial definitiva ou coleta de assinaturas, a loja deve submetê-las à análise, revisão e validação formal de um advogado ou departamento jurídico habilitado.
+

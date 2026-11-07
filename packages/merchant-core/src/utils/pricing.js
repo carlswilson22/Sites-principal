@@ -22,3 +22,4 @@ export function calculatePricing({ fipePrice, prepCost = 2000, targetMarginPct =
     purchaseToFipePct: fipe > 0 ? Math.round((maxPurchasePrice / fipe) * 1000) / 10 : 0
   };
 }
+

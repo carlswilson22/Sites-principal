@@ -88,3 +88,4 @@ O sistema disponibiliza o adaptador padronizado que gera os dados em dois format
    * Exporta arquivo `.csv` codificado em UTF-8 com separador `;` pronto para upload em planilhas de carga de portais.
 2. **Endpoint JSON Estruturado**: `GET /api/tier3/portals/export?format=json`
    * Exporta a carga completa com metadados, links de fotos, quilometragem, histórico FIPE e atributos técnicos.
+
