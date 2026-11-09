@@ -11,23 +11,12 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Inicializa sessão do armazenamento local para demonstração/persistência
+  // Inicializa sessão do armazenamento local
   useEffect(() => {
     try {
       const stored = localStorage.getItem('merchant_user');
       if (stored) {
         setUser(JSON.parse(stored));
-      } else {
-        // Usuário padrão inicial de demonstração
-        const demoUser = {
-          id: 1,
-          name: 'Carlos Silva (Proprietário)',
-          email: 'proprietario@autodealership.com.br',
-          role: 'proprietario',
-          tier: 1
-        };
-        setUser(demoUser);
-        localStorage.setItem('merchant_user', JSON.stringify(demoUser));
       }
     } catch {
       // Ignora erro de acesso ao localStorage
@@ -48,6 +37,22 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('merchant_user');
   };
 
+  const switchRole = (newRole) => {
+    if (!user) return;
+    const names = {
+      proprietario: 'Carlos Silva (Proprietário)',
+      gerente: 'Fernanda Lima (Gerente)',
+      atendente: 'Lucas Mendes (Atendente)'
+    };
+    const updated = {
+      ...user,
+      role: newRole,
+      name: names[newRole] || user.name
+    };
+    setUser(updated);
+    localStorage.setItem('merchant_user', JSON.stringify(updated));
+  };
+
   const hasRole = (allowedRoles = []) => {
     if (!user) return false;
     if (user.role === 'proprietario') return true;
@@ -61,6 +66,7 @@ export function AuthProvider({ children }) {
     hasRole,
     login,
     logout,
+    switchRole,
     loading
   }), [user, loading]);
 

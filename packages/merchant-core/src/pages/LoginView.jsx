@@ -113,6 +113,72 @@ export function LoginView({ onLoginSuccess, onCancel }) {
               <span>{loading ? 'Entrando...' : 'Acessar Painel'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            {/* Acesso Rápido de Demonstração */}
+            <div className="pt-4 border-t border-slate-800/80">
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block text-center mb-2">
+                Acesso de Teste / Demonstração:
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setEmail('proprietario@autodealership.com.br');
+                    setPassword('Admin@123456');
+                    try {
+                      setLoading(true);
+                      await login('proprietario@autodealership.com.br', 'Admin@123456');
+                      if (onLoginSuccess) onLoginSuccess();
+                    } catch (e) {
+                      setError(e.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-semibold text-amber-400 text-center transition-colors"
+                >
+                  Proprietário
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setEmail('gerente@autodealership.com.br');
+                    setPassword('Admin@123456');
+                    try {
+                      setLoading(true);
+                      await login('gerente@autodealership.com.br', 'Admin@123456');
+                      if (onLoginSuccess) onLoginSuccess();
+                    } catch (e) {
+                      setError(e.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-semibold text-blue-400 text-center transition-colors"
+                >
+                  Gerente
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setEmail('atendente@autodealership.com.br');
+                    setPassword('Admin@123456');
+                    try {
+                      setLoading(true);
+                      await login('atendente@autodealership.com.br', 'Admin@123456');
+                      if (onLoginSuccess) onLoginSuccess();
+                    } catch (e) {
+                      setError(e.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-semibold text-emerald-400 text-center transition-colors"
+                >
+                  Atendente
+                </button>
+              </div>
+            </div>
           </form>
         ) : (
           <form onSubmit={handleRecover} className="space-y-4">

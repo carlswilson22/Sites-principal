@@ -25,3 +25,4 @@ export { SalesFunnelView } from './pages/SalesFunnelView';
 export { StoryStudioView } from './pages/StoryStudioView';
 export { AuditLgpdView } from './pages/AuditLgpdView';
 export { apiClient } from './services/apiClient';
+export { storeSync } from './services/storeSync';

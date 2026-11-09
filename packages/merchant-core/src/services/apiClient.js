@@ -46,13 +46,23 @@ export const apiClient = {
       throw new Error(err.error || 'Credenciais inválidas.');
     } catch (err) {
       if (email && password) {
+        let role = 'proprietario';
+        let name = 'Carlos Silva (Proprietário)';
+        if (email.includes('gerente')) {
+          role = 'gerente';
+          name = 'Fernanda Lima (Gerente)';
+        } else if (email.includes('atendente')) {
+          role = 'atendente';
+          name = 'Lucas Mendes (Atendente)';
+        }
+
         return {
           token: 'demo-session-token',
           user: {
-            id: 1,
-            name: 'Carlos Silva (Proprietário)',
+            id: role === 'proprietario' ? 1 : role === 'gerente' ? 2 : 3,
+            name,
             email,
-            role: 'proprietario',
+            role,
             tier: 3
           }
         };
