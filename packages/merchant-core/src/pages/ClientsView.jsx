@@ -1,12 +1,16 @@
 /**
  * packages/merchant-core/src/pages/ClientsView.jsx
- * Gestão de Clientes e CRM com Criptografia LGPD (I2 - Nível 2)
+ * Gestão local de clientes com CPF mascarado (I2 - Nível 2).
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Plus, Search, Phone, Mail, FileText, Lock, X, CheckCircle2 } from 'lucide-react';
+import { storeSync } from '../services/storeSync';
+import { useAuth } from '../context/AuthContext';
 import { maskCPF } from '../utils/masking';
 
-export function ClientsView({ onOpenContractWithClient }) {
+export function ClientsView({ onOpenContractWithClient, storeKey = 'autoelite' }) {
+  const { hasRole } = useAuth();
+  const [error, setError] = useState('');
   const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,29 +24,13 @@ export function ClientsView({ onOpenContractWithClient }) {
   });
 
   useEffect(() => {
-    setClients([
-      {
-        id: 1,
-        name: 'Juliana Mendes (Fictícia)',
-        cpfMasked: '***.456.789-**',
-        phone: '(11) 96666-0003',
-        email: 'juliana.ficticia@exemplo.com',
-        address: 'Rua das Amostras, 100 - São Paulo/SP',
-        notes: 'Cliente interessada em sedan automático, pré-aprovada para crédito bancário.',
-        created_at: new Date(Date.now() - 48 * 3600 * 1000).toISOString()
-      },
-      {
-        id: 2,
-        name: 'Roberto Alves (Fictício)',
-        cpfMasked: '***.888.999-**',
-        phone: '(11) 98888-0001',
-        email: 'roberto.ficticio@exemplo.com',
-        address: 'Av. Paulista, 1500 - São Paulo/SP',
-        notes: 'Lead do formulário do site convertido para cliente.',
-        created_at: new Date(Date.now() - 12 * 3600 * 1000).toISOString()
-      }
-    ]);
-  }, []);
+    setError('');
+    try { setClients(storeSync.getRecords(storeKey, 'clients')); }
+    catch { setClients([]); setError('Não foi possível carregar os clientes deste navegador.'); }
+    return storeSync.subscribe(storeKey, detail => {
+      if (detail.type === 'CLIENTS_UPDATED') setClients(detail.clients);
+    });
+  }, [storeKey]);
 
   const filteredClients = useMemo(() => {
     return clients.filter(c =>
@@ -57,9 +45,8 @@ export function ClientsView({ onOpenContractWithClient }) {
     if (!formData.name || !formData.phone) return;
 
     const newClient = {
-      id: Date.now(),
       name: formData.name,
-      cpfMasked: '***.' + (formData.cpf.slice(4, 7) || '000') + '.' + (formData.cpf.slice(8, 11) || '000') + '-**',
+      cpfMasked: maskCPF(formData.cpf),
       phone: formData.phone,
       email: formData.email,
       address: formData.address,
@@ -67,13 +54,20 @@ export function ClientsView({ onOpenContractWithClient }) {
       created_at: new Date().toISOString()
     };
 
-    setClients(prev => [newClient, ...prev]);
+    try {
+      setClients(storeSync.saveRecord(storeKey, 'clients', newClient));
+      setError('');
+    } catch {
+      setError('Não foi possível salvar. Verifique o armazenamento do navegador.');
+      return;
+    }
     setIsModalOpen(false);
     setFormData({ name: '', cpf: '', phone: '', email: '', address: '', notes: '' });
   };
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      {error && <p role="alert" className="text-sm text-rose-400">{error}</p>}
       {/* 1. Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
@@ -87,7 +81,7 @@ export function ClientsView({ onOpenContractWithClient }) {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Cadastro protegido com criptografia em repouso e reaproveitável na emissão de contratos.
+            Cadastro salvo neste navegador por loja. Apenas a versão mascarada do CPF é armazenada.
           </p>
         </div>
 
@@ -113,6 +107,7 @@ export function ClientsView({ onOpenContractWithClient }) {
         />
       </div>
 
+      {filteredClients.length === 0 && <p className="text-sm text-slate-400">Nenhum cliente encontrado. Cadastre um cliente para começar.</p>}
       {/* 3. Lista de Clientes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredClients.map(client => (
@@ -155,6 +150,7 @@ export function ClientsView({ onOpenContractWithClient }) {
             <div className="pt-2 border-t border-slate-800/80 flex items-center justify-end gap-2">
               <button
                 type="button"
+                disabled={!hasRole(['gerente']) || !onOpenContractWithClient}
                 onClick={() => onOpenContractWithClient && onOpenContractWithClient(client)}
                 className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
@@ -198,7 +194,7 @@ export function ClientsView({ onOpenContractWithClient }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">CPF (Criptografado) *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">CPF (armazenado mascarado) *</label>
                   <input
                     type="text"
                     required

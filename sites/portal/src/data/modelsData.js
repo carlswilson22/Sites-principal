@@ -21,7 +21,7 @@ export const modelsList = [
   },
   {
     id: 'luxury-dealership',
-    title: 'Auto-Dealership Pro',
+    title: 'DriveNow Multimarcas (Modelo 2)',
     tagline: 'Experiência Interativa Avançada com Negociação e Simulação Online',
     tier: 'Intermediário',
     category: 'Tier 2 • Intermediário',

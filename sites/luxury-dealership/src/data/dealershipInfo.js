@@ -1,5 +1,5 @@
 export const dealershipInfo = {
-  nome: "Auto-Dealership Pro",
+  nome: "DriveNow Multimarcas",
   slogan: "Experiência Digital Avançada, Financiamento e Trade-In Online",
   cnpj: "42.880.192/0001-90",
   telefone: "(61) 3344-9000",

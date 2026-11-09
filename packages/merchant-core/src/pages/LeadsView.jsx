@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { storeSync } from '../services/storeSync';
+import { useTier } from '../context/TierContext';
 import {
   MessageSquare,
   Search,
@@ -20,12 +21,32 @@ import {
 } from 'lucide-react';
 
 export function LeadsView({ storeKey = 'autoelite' }) {
+  const { tier } = useTier();
+  const [feedback, setFeedback] = useState('');
   const [leads, setLeads] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos'); // todos, novo, em_atendimento, ganho, perdido
   const [selectedLead, setSelectedLead] = useState(null);
   const [newStatus, setNewStatus] = useState('em_atendimento');
   const [statusNote, setStatusNote] = useState('');
+
+  const handleCreateClient = lead => {
+    try {
+      const phone = value => String(value || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+      const clients = storeSync.getRecords(storeKey, 'clients');
+      if (clients.some(client => client.sourceLeadId === lead.id || (phone(lead.phone) && phone(client.phone) === phone(lead.phone)))) {
+        setFeedback('Este contato já está cadastrado na carteira de clientes.');
+        return;
+      }
+      storeSync.saveRecord(storeKey, 'clients', {
+        name: lead.name, phone: lead.phone, email: lead.email || '',
+        cpfMasked: '', notes: lead.message || '', sourceLeadId: lead.id
+      });
+      setFeedback('Cliente cadastrado no CRM desta loja.');
+    } catch {
+      setFeedback('Não foi possível cadastrar o cliente. Verifique o armazenamento do navegador.');
+    }
+  };
 
   // Carga reativa de leads via storeSync
   useEffect(() => {
@@ -87,6 +108,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      {feedback && <p role="status" className="text-sm text-amber-300">{feedback}</p>}
       {/* 1. Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
@@ -142,7 +164,8 @@ export function LeadsView({ storeKey = 'autoelite' }) {
       <div className="space-y-3">
         {filteredLeads.map(lead => {
           const rawPhone = lead.phone.replace(/\D/g, '');
-          const whatsappUrl = `https://wa.me/55${rawPhone}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20concession%C3%A1ria%20e%20vi%20seu%20interesse%20no%20${encodeURIComponent(lead.vehicle_title || 'veículo')}!%20Como%20posso%20te%20ajudar?`;
+          const phoneWithCountry = rawPhone.length <= 11 ? `55${rawPhone}` : rawPhone;
+          const whatsappUrl = `https://wa.me/${phoneWithCountry}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20concession%C3%A1ria%20e%20vi%20seu%20interesse%20no%20${encodeURIComponent(lead.vehicle_title || lead.vehicleName || 'veículo')}!%20Como%20posso%20te%20ajudar?`;
 
           return (
             <div
@@ -170,10 +193,12 @@ export function LeadsView({ storeKey = 'autoelite' }) {
                   {lead.vehicle_title && (
                     <div className="flex items-center gap-1.5 text-xs text-blue-400 mt-1.5 font-medium">
                       <Car className="w-3.5 h-3.5" />
-                      Interesse em: <strong>{lead.vehicle_title}</strong> (R$ {lead.vehicle_price?.toLocaleString('pt-BR')})
+                      Interesse em: <strong>{lead.vehicle_title}</strong>
+                      {lead.vehicle_price != null && <span>(R$ {lead.vehicle_price.toLocaleString('pt-BR')})</span>}
                     </div>
                   )}
 
+                  {lead.message && <p className="text-xs text-slate-300 mt-2 whitespace-pre-wrap">{lead.message}</p>}
                   {lead.simulation_data && (
                     <div className="text-[11px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 inline-block mt-1.5">
                       Simulação: Entrada R$ {lead.simulation_data.entrada?.toLocaleString('pt-BR')} + {lead.simulation_data.parcelas}x de R$ {lead.simulation_data.valorParcela?.toLocaleString('pt-BR')}
@@ -184,6 +209,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
 
               {/* Ações Rápidas (E6) */}
               <div className="flex items-center gap-2 self-end md:self-center">
+                {tier >= 2 && <button type="button" onClick={() => handleCreateClient(lead)} className="px-3 py-2 rounded-xl bg-amber-500/10 text-amber-300 text-xs font-semibold">Cadastrar cliente</button>}
                 {/* Botão de Abertura do WhatsApp */}
                 <a
                   href={whatsappUrl}

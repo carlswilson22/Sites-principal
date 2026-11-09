@@ -3,7 +3,7 @@ import { Calculator, ArrowRight, ShieldCheck, Sparkles, Building2, CheckCircle2 
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { buildFinancingWhatsappLink } from '../../utils/whatsapp';
-import { apiClient } from '../../../../../packages/merchant-core/src';
+import { storeSync } from '../../../../../packages/merchant-core/src';
 
 export function FinancingSimulator({ vehicles = [], preselectedVehicle = null }) {
   const defaultPrice = preselectedVehicle ? preselectedVehicle.preco : (vehicles[0]?.preco || 2500000);
@@ -13,6 +13,22 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
   const [vehicleValue, setVehicleValue] = useState(defaultPrice);
   const [downPayment, setDownPayment] = useState(Math.round(defaultPrice * 0.3));
   const [term, setTerm] = useState(48);
+  const [contact, setContact] = useState({ name: '', phone: '' });
+
+  const handleRequest = (event) => {
+    event.preventDefault();
+    const lead = {
+      name: contact.name.trim(),
+      phone: contact.phone.trim(),
+      vehicle_id: selectedVehicle?.id,
+      vehicle_title: selectedVehicle?.nome,
+      vehicle_price: vehicleValue,
+      source: 'simulador_financiamento',
+      simulation_data: { valorVeiculo: vehicleValue, entrada: downPayment, parcelas: term, valorParcela: monthlyPayment }
+    };
+    storeSync.addLead('drivenow', lead);
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const handleVehicleSelect = (e) => {
     const vId = Number(e.target.value);
@@ -168,30 +184,20 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
             </div>
           </div>
 
-          <div>
+          <form onSubmit={handleRequest} className="space-y-3">
+            <label className="block text-xs text-slate-300">
+              Nome completo
+              <input required minLength={2} autoComplete="name" value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} className="mt-1 w-full p-3 rounded-xl bg-black border border-white/20 text-white" />
+            </label>
+            <label className="block text-xs text-slate-300">
+              Telefone / WhatsApp
+              <input required type="tel" autoComplete="tel" pattern="[+0-9\(\) .\-]{10,20}" value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} className="mt-1 w-full p-3 rounded-xl bg-black border border-white/20 text-white" />
+            </label>
             <Button
               variant="gold"
               size="lg"
               icon={ArrowRight}
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={async () => {
-                try {
-                  await apiClient.captureLead({
-                    vehicle_id: selectedVehicle?.id,
-                    name: 'Interessado em Financiamento (Simulador)',
-                    phone: '(11) 99999-9999',
-                    source: 'simulador_financiamento',
-                    simulation_data: {
-                      valorVeiculo: vehicleValue,
-                      entrada: downPayment,
-                      parcelas: term,
-                      valorParcela: monthlyPayment
-                    }
-                  });
-                } catch {}
-              }}
+              type="submit"
               className="w-full py-4 text-center justify-center"
             >
               Solicitar Pré-Aprovação VIP
@@ -199,7 +205,7 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
             <p className="text-[10px] text-slate-500 text-center leading-tight mt-2.5">
               * Simulação preliminar com juros compostos (Tabela Price), sujeita à análise de crédito pelas instituições bancárias parceiras.
             </p>
-          </div>
+          </form>
         </div>
       </div>
     </section>

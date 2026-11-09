@@ -1,10 +1,13 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowLeftRight, Shield, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { buildTradeInWhatsappLink } from '../../utils/whatsapp';
+import { storeSync } from '../../../../../packages/merchant-core/src';
 
 export function TradeInEvaluation({ vehicles = [] }) {
   const [formData, setFormData] = useState({
+    nome: '',
+    telefone: '',
     marca: '',
     modelo: '',
     ano: '2022',
@@ -24,6 +27,15 @@ export function TradeInEvaluation({ vehicles = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    try {
+      storeSync.addLead('drivenow', {
+        name: formData.nome.trim(),
+        phone: formData.telefone.trim(),
+        vehicle_title: formData.interesse,
+        source: 'avaliacao_troca',
+        message: `Veículo na troca: ${formData.marca} ${formData.modelo} ${formData.ano} (${formData.km} km) - Blindado: ${formData.blindado ? 'Sim' : 'Não'}. Interesse: ${formData.interesse || 'Em aberto'}. Observações: ${formData.observacoes || 'Nenhuma'}`
+      });
+    } catch {}
     const url = buildTradeInWhatsappLink(formData);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -45,6 +57,14 @@ export function TradeInEvaluation({ vehicles = [] }) {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+          <label className="text-xs text-slate-300">
+            Nome completo *
+            <input name="nome" required minLength={2} autoComplete="name" value={formData.nome} onChange={handleChange} className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-sm text-white" />
+          </label>
+          <label className="text-xs text-slate-300">
+            Telefone / WhatsApp *
+            <input name="telefone" required type="tel" autoComplete="tel" pattern="[+0-9\(\) .\-]{10,20}" value={formData.telefone} onChange={handleChange} className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-sm text-white" />
+          </label>
           <div>
             <label className="text-xs text-slate-300 block mb-1">Marca do Veículo *</label>
             <input
@@ -107,6 +127,10 @@ export function TradeInEvaluation({ vehicles = [] }) {
             />
           </div>
 
+          <label className="sm:col-span-2 text-xs text-slate-300">
+            Observações
+            <textarea name="observacoes" rows={3} value={formData.observacoes} onChange={handleChange} className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-sm text-white" />
+          </label>
           <div className="sm:col-span-2 flex items-center gap-3 p-3 rounded-xl bg-black/40 border border-white/10">
             <input
               type="checkbox"

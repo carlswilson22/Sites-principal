@@ -11,7 +11,12 @@ export function generateContractDocument({
   vehicle,
   terms
 }) {
-  const code = contractCode || `CTR-${Date.now().toString().slice(-6)}`;
+  const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+  const escapeFields = object => Object.fromEntries(Object.entries(object || {}).map(([key, value]) => [key, typeof value === 'string' ? escape(value) : value]));
+  dealership = escapeFields(dealership);
+  client = escapeFields(client);
+  vehicle = escapeFields(vehicle);
+  const code = contractCode ? escape(contractCode) : `CTR-${globalThis.crypto.randomUUID()}`;
 
   const disclaimer = `⚠️ AVISO LEGAL: Este documento foi gerado pelo sistema como modelo referencial genérico. Deve ser submetido à revisão e validação de um advogado ou departamento jurídico antes do uso comercial definitivo.`;
 
@@ -78,7 +83,7 @@ export function generateContractDocument({
 
           <h2 style="font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 20px;">RECIBO DE RESERVA E SINAL</h2>
 
-          <p>Recebemos de <strong>${client.name}</strong>, portador(a) do CPF nº <strong>${client.cpfMasked || '***.***.***-**'}</strong>, a importância de <strong>R$ ${(terms?.sinalAmount || 2000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong> a título de sinal e princípio de pagamento para a reserva do veículo:</p>
+          <p>Recebemos de <strong>${client.name}</strong>, portador(a) do CPF nº <strong>${client.cpfMasked || '***.***.***-**'}</strong>, a importância de <strong>R$ ${(terms?.signalValue ?? terms?.sinalAmount ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong> a título de sinal e princípio de pagamento para a reserva do veículo:</p>
 
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; margin: 16px 0; border-radius: 6px;">
             <p style="margin: 0;"><strong>${vehicle.title} ${vehicle.version || ''}</strong> - Ano: ${vehicle.year} - Preço Total: R$ ${vehicle.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>

@@ -10,6 +10,15 @@ const sitesDir = path.join(rootDir, 'sites');
 const outputDist = path.join(rootDir, 'dist');
 const portalPath = path.join(sitesDir, 'portal');
 
+function removeIntermediateBuild(directory) {
+  const resolved = path.resolve(directory);
+  const relative = path.relative(sitesDir, resolved);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative) || path.basename(resolved) !== 'dist') {
+    throw new Error(`Diretório intermediário inválido: ${resolved}`);
+  }
+  fs.rmSync(resolved, { recursive: true, force: true });
+}
+
 // Determina base path baseado no repositório GitHub Pages
 const repoName = process.env.GITHUB_REPOSITORY ? process.env.GITHUB_REPOSITORY.split('/')[1] : 'Sites-principal';
 const baseRoot = `/${repoName}/`;
@@ -36,6 +45,7 @@ if (fs.existsSync(portalPath)) {
     if (fs.existsSync(portalDist)) {
       console.log('📂 Copiando arquivos do Portal Hub para a raiz de dist/...');
       fs.cpSync(portalDist, outputDist, { recursive: true });
+      removeIntermediateBuild(portalDist);
     }
   } catch (err) {
     console.error(`❌ Erro ao compilar Portal Hub:`);
@@ -71,6 +81,7 @@ for (const modelName of models) {
       if (fs.existsSync(subDist)) {
         console.log(`📂 Copiando artefatos de [${modelName}] para dist/${modelName}...`);
         fs.cpSync(subDist, destDist, { recursive: true });
+        removeIntermediateBuild(subDist);
         console.log(`✅ [${modelName}] integrado com sucesso!`);
       }
     } catch (err) {

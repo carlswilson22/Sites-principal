@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, Shield, Award, MapPin, Phone, Mail, Clock, 
   MessageCircle, Send, CheckCircle2, Crown, Eye 
@@ -6,6 +6,7 @@ import {
 import { Button } from '../components/ui/Button';
 import { dealershipInfo } from '../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../utils/whatsapp';
+import { storeSync } from '../../../../packages/merchant-core/src';
 
 export function AboutContactPage() {
   const [contactForm, setContactForm] = useState({
@@ -25,6 +26,15 @@ export function AboutContactPage() {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    try {
+      storeSync.addLead('drivenow', {
+        name: contactForm.nome,
+        phone: contactForm.telefone,
+        email: contactForm.email,
+        source: 'formulario_site',
+        message: `Assunto: ${contactForm.assunto} - Mensagem: ${contactForm.mensagem}`
+      });
+    } catch {}
     const text = 
       `🏛️ *Atendimento VIP - ${dealershipInfo.nome}*\n\n` +
       `• *Nome:* ${contactForm.nome}\n` +

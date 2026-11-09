@@ -11,6 +11,7 @@ import { ConciergePage } from './pages/ConciergePage';
 import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
+import { dealershipInfo } from './data/dealershipInfo';
 import { buildGeneralWhatsappLink } from './utils/whatsapp';
 import { 
   AuthProvider, 
@@ -24,12 +25,22 @@ import {
   ContractsView, 
   FinancialView, 
   LoginView, 
-  useAuth 
+  useAuth,
+  storeSync
 } from '../../../packages/merchant-core/src';
 
-function LuxuryMerchantPanelContainer({ onExitToSite }) {
-  const { isAuthenticated } = useAuth();
+function LuxuryMerchantPanelContainer({ onExitToSite, vehicles }) {
+  const { isAuthenticated, hasRole, role } = useAuth();
   const [merchantTab, setMerchantTab] = useState('dashboard');
+  const [contractClient, setContractClient] = useState(null);
+  const restrictedRoles = {
+    financing: ['gerente'], contracts: ['gerente'], financial: [], analytics: ['gerente']
+  };
+  const allowed = !(merchantTab in restrictedRoles) || hasRole(restrictedRoles[merchantTab]);
+
+  React.useEffect(() => {
+    if (!allowed) setMerchantTab('dashboard');
+  }, [role, allowed]);
 
   if (!isAuthenticated) {
     return (
@@ -42,20 +53,20 @@ function LuxuryMerchantPanelContainer({ onExitToSite }) {
 
   return (
     <MerchantShell
-      storeName="Auto-Dealership Pro"
+      storeName="DriveNow Multimarcas"
       activeTab={merchantTab}
       onSelectTab={setMerchantTab}
       onExitToSite={onExitToSite}
     >
-      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} />}
-      {merchantTab === 'inventory' && <InventoryView />}
-      {merchantTab === 'leads' && <LeadsView />}
-      {merchantTab === 'clients' && <ClientsView onOpenContractWithClient={() => setMerchantTab('contracts')} />}
-      {merchantTab === 'financing' && <FipePricingView />}
-      {merchantTab === 'fipe' && <FipePricingView />}
-      {merchantTab === 'contracts' && <ContractsView />}
-      {merchantTab === 'financial' && <FinancialView />}
-      {merchantTab === 'analytics' && <DashboardView onNavigateTo={setMerchantTab} />}
+      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} storeKey="drivenow" />}
+      {merchantTab === 'inventory' && <InventoryView storeKey="drivenow" defaultVehicles={vehiclesData} />}
+      {merchantTab === 'leads' && <LeadsView storeKey="drivenow" />}
+      {merchantTab === 'clients' && <ClientsView onOpenContractWithClient={client => { setContractClient(client); setMerchantTab('contracts'); }} storeKey="drivenow" />}
+      {merchantTab === 'financing' && allowed && <FinancingPage vehicles={vehicles} />}
+      {merchantTab === 'fipe' && <FipePricingView storeKey="drivenow" />}
+      {merchantTab === 'contracts' && allowed && <ContractsView storeKey="drivenow" selectedClient={contractClient} vehicles={vehicles} dealership={{ ...dealershipInfo, ...dealershipInfo.endereco }} />}
+      {merchantTab === 'financial' && allowed && <FinancialView storeKey="drivenow" />}
+      {merchantTab === 'analytics' && allowed && <DashboardView onNavigateTo={setMerchantTab} storeKey="drivenow" />}
     </MerchantShell>
   );
 }
@@ -64,6 +75,19 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
+  const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('drivenow', vehiclesData));
+  const publishedVehicles = vehicles.filter(vehicle =>
+    ![0, false, '0'].includes(vehicle.is_published) && vehicle.status !== 'vendido'
+  );
+
+  React.useEffect(() => {
+    const unsub = storeSync.subscribe('drivenow', (detail) => {
+      if (detail.type === 'VEHICLES_UPDATED') {
+        setVehicles(detail.vehicles);
+      }
+    });
+    return unsub;
+  }, []);
 
   const navigateTo = (page, params = {}) => {
     setCurrentPage(page);
@@ -87,7 +111,7 @@ export default function App() {
     return (
       <AuthProvider>
         <TierProvider tier={2}>
-          <LuxuryMerchantPanelContainer onExitToSite={() => navigateTo('home')} />
+          <LuxuryMerchantPanelContainer vehicles={vehicles} onExitToSite={() => navigateTo('home')} />
         </TierProvider>
       </AuthProvider>
     );
@@ -102,7 +126,7 @@ export default function App() {
       <main className="flex-1">
         {currentPage === 'home' && (
           <HomePage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />
@@ -110,14 +134,14 @@ export default function App() {
 
         {currentPage === 'estoque' && (
           <InventoryPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />
         )}
 
         {currentPage === 'destaques' && (
           <FeaturedPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />
@@ -125,13 +149,13 @@ export default function App() {
 
         {currentPage === 'simulador' && (
           <FinancingPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             preselectedVehicle={financingPreselectedVehicle}
           />
         )}
 
         {currentPage === 'troca' && (
-          <TradeInPage vehicles={vehiclesData} />
+          <TradeInPage vehicles={publishedVehicles} />
         )}
 
         {currentPage === 'concierge' && (

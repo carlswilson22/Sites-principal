@@ -11,6 +11,31 @@
 const EVENT_PREFIX = 'merchant_store_update_';
 
 export const storeSync = {
+  getRecords(storeKey, collection, fallback = []) {
+    if (!['clients', 'contracts'].includes(collection)) throw new Error('Coleção inválida.');
+    if (typeof window === 'undefined') return fallback;
+    const raw = localStorage.getItem(`store_${collection}_${storeKey}`);
+    if (raw === null) return fallback;
+    const records = JSON.parse(raw);
+    if (!Array.isArray(records)) throw new Error('Dados locais inválidos.');
+    return records;
+  },
+
+  saveRecord(storeKey, collection, record) {
+    const records = this.getRecords(storeKey, collection);
+    const saved = {
+      ...record,
+      id: record.id || globalThis.crypto.randomUUID(),
+      created_at: record.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    const updated = [saved, ...records.filter(item => item.id !== saved.id)];
+    localStorage.setItem(`store_${collection}_${storeKey}`, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
+      detail: { type: `${collection.toUpperCase()}_UPDATED`, [collection]: updated }
+    }));
+    return updated;
+  },
   /**
    * Obtém os veículos da loja
    */
@@ -18,7 +43,10 @@ export const storeSync = {
     if (typeof window === 'undefined') return fallbackData;
     try {
       const raw = localStorage.getItem(`store_vehicles_${storeKey}`);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
       // Inicializa com os dados iniciais do modelo se ainda não existir
       if (fallbackData && fallbackData.length > 0) {
         localStorage.setItem(`store_vehicles_${storeKey}`, JSON.stringify(fallbackData));
@@ -88,7 +116,11 @@ export const storeSync = {
     if (typeof window === 'undefined') return [];
     try {
       const raw = localStorage.getItem(`store_leads_${storeKey}`);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        return [];
+      }
 
       // Seed inicial de demonstração fictício
       const initialLeads = [
@@ -136,7 +168,9 @@ export const storeSync = {
     const list = this.getLeads(storeKey);
     const newLead = {
       ...lead,
-      id: Date.now(),
+      vehicle_id: lead.vehicle_id ?? lead.vehicleId,
+      vehicle_title: lead.vehicle_title ?? lead.vehicleName,
+      id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       status: lead.status || 'novo',
       temperature: lead.temperature || 'quente',
       created_at: new Date().toISOString()
@@ -183,7 +217,26 @@ export const storeSync = {
       if (event.detail) callback(event.detail);
     };
     window.addEventListener(`${EVENT_PREFIX}${storeKey}`, handler);
-    return () => window.removeEventListener(`${EVENT_PREFIX}${storeKey}`, handler);
+    const storageHandler = (event) => {
+      if (event.storageArea && event.storageArea !== window.localStorage) return;
+      const collections = ['vehicles', 'leads', 'clients', 'contracts'];
+      const collection = collections.find(name => event.key === `store_${name}_${storeKey}`);
+      if (event.key !== null && !collection) return;
+      try {
+        const data = event.newValue === null ? [] : JSON.parse(event.newValue);
+        if (!Array.isArray(data)) return;
+        for (const name of event.key === null ? collections : [collection]) {
+          callback({ type: `${name.toUpperCase()}_UPDATED`, [name]: data });
+        }
+      } catch {
+        // Ignora dados externos inválidos e preserva o estado atual.
+      }
+    };
+    window.addEventListener('storage', storageHandler);
+    return () => {
+      window.removeEventListener(`${EVENT_PREFIX}${storeKey}`, handler);
+      window.removeEventListener('storage', storageHandler);
+    };
   }
 };
 

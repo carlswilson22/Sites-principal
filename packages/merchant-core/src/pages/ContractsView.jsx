@@ -4,112 +4,112 @@
  */
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Printer, Share2, CheckCircle2, AlertTriangle, Eye, X, ShieldAlert } from 'lucide-react';
+import { storeSync } from '../services/storeSync';
 import { generateContractDocument } from '../utils/contracts';
 
-export function ContractsView() {
+export function ContractsView({ storeKey = 'autoelite', selectedClient = null, vehicles = [], dealership = { nome: 'Concessionária' } }) {
+  const [error, setError] = useState('');
   const [contracts, setContracts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
 
   const [formData, setFormData] = useState({
     type: 'compra_venda',
-    clientName: 'Juliana Mendes (Fictícia)',
-    clientCpf: '***.456.789-**',
-    clientPhone: '5511966660003',
-    vehicleTitle: 'Toyota Corolla Cross 2.0 XRE',
-    vehiclePrice: 139900,
-    vehicleYear: '2022/2023',
+    clientName: '',
+    clientCpf: '',
+    clientPhone: '',
+    vehicleTitle: '',
+    vehiclePrice: 0,
+    vehicleYear: '',
     signalValue: 10000
   });
 
   useEffect(() => {
-    // Exemplo inicial de demonstração
-    const sampleDoc = generateContractDocument({
-      type: 'compra_venda',
-      contractCode: 'CTR-2026-0084',
-      dealership: { nome: 'Auto-Dealership Pro', cnpj: '42.880.192/0001-90', cidade: 'Brasília', uf: 'DF' },
-      client: { name: 'Juliana Mendes (Fictícia)', cpfMasked: '***.456.789-**', address: 'Brasília/DF' },
-      vehicle: { title: 'Toyota Corolla Cross', version: '2.0 XRE Direct Shift', year: '2022/2023', color: 'Prata', km: 35000, price: 139900, transmission: 'Automático', fuel: 'Flex' }
+    setError('');
+    try { setContracts(storeSync.getRecords(storeKey, 'contracts')); }
+    catch { setContracts([]); setError('Não foi possível carregar os documentos deste navegador.'); }
+    return storeSync.subscribe(storeKey, detail => {
+      if (detail.type === 'CONTRACTS_UPDATED') setContracts(detail.contracts);
     });
+  }, [storeKey]);
 
-    setContracts([
-      {
-        id: 1,
-        code: 'CTR-2026-0084',
-        type: 'compra_venda',
-        typeLabel: 'Compra e Venda',
-        clientName: 'Juliana Mendes (Fictícia)',
-        vehicleTitle: 'Toyota Corolla Cross 2023',
-        value: 139900,
-        status: 'emitido',
-        date: 'Hoje',
-        doc: sampleDoc
-      },
-      {
-        id: 2,
-        code: 'CTR-2026-0081',
-        type: 'recibo_sinal',
-        typeLabel: 'Recibo de Sinal',
-        clientName: 'Roberto Alves (Fictício)',
-        vehicleTitle: 'Chevrolet Tracker 2023',
-        value: 10000,
-        status: 'assinado',
-        date: 'Ontem',
-        doc: null
-      }
-    ]);
-  }, []);
+  useEffect(() => {
+    if (!selectedClient) return;
+    setFormData(previous => ({ ...previous, clientName: selectedClient.name, clientCpf: selectedClient.cpfMasked || '', clientPhone: selectedClient.phone || '', clientAddress: selectedClient.address || '' }));
+    setIsModalOpen(true);
+  }, [selectedClient]);
 
   const handleGenerate = (e) => {
     e.preventDefault();
 
     const doc = generateContractDocument({
       type: formData.type,
-      dealership: { nome: 'Auto-Dealership Pro', cnpj: '42.880.192/0001-90', cidade: 'Brasília', uf: 'DF' },
-      client: { name: formData.clientName, cpfMasked: formData.clientCpf, address: 'Brasília/DF' },
+      dealership,
+      client: { name: formData.clientName, cpfMasked: formData.clientCpf, address: formData.clientAddress || '' },
       vehicle: {
         title: formData.vehicleTitle,
         version: '',
         year: formData.vehicleYear,
-        color: 'Prata',
-        km: 30000,
+        color: formData.vehicleColor || '',
+        km: formData.vehicleKm || 0,
         price: formData.vehiclePrice,
-        transmission: 'Automático',
-        fuel: 'Flex'
+        transmission: formData.vehicleTransmission || '',
+        fuel: formData.vehicleFuel || ''
       },
       terms: { signalValue: formData.signalValue }
     });
 
     const newContract = {
-      id: Date.now(),
       code: doc.code,
       type: formData.type,
       typeLabel: formData.type === 'compra_venda' ? 'Compra e Venda' : formData.type === 'recibo_sinal' ? 'Recibo de Sinal' : 'Termo de Vistoria',
       clientName: formData.clientName,
+      clientPhone: formData.clientPhone,
+      clientId: selectedClient?.id,
       vehicleTitle: formData.vehicleTitle,
       value: formData.type === 'recibo_sinal' ? formData.signalValue : formData.vehiclePrice,
       status: 'emitido',
-      date: 'Agora',
+      date: new Date().toLocaleDateString('pt-BR'),
       doc
     };
 
-    setContracts(prev => [newContract, ...prev]);
+    try {
+      setContracts(storeSync.saveRecord(storeKey, 'contracts', newContract));
+      setError('');
+    } catch {
+      setError('Não foi possível salvar o documento. Verifique o armazenamento do navegador.');
+      return;
+    }
     setIsModalOpen(false);
     setPreviewDoc(doc);
   };
 
   const handlePrint = () => {
-    window.print();
+    if (!previewDoc) return;
+    const frame = document.createElement('iframe');
+    frame.title = 'Impressão do documento';
+    frame.style.cssText = 'position:fixed;width:0;height:0;border:0;';
+    frame.onload = () => {
+      const printWindow = frame.contentWindow;
+      printWindow.addEventListener('afterprint', () => frame.remove(), { once: true });
+      printWindow.focus();
+      printWindow.print();
+    };
+    frame.srcdoc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Documento</title></head><body>${previewDoc.html}</body></html>`;
+    document.body.appendChild(frame);
   };
 
   const handleShareWhatsApp = (contract) => {
     const text = `Olá ${contract.clientName}! Segue a via digital do seu documento (${contract.typeLabel} - Código: ${contract.code}) emitido pela concessionária.`;
-    const url = `https://wa.me/${formData.clientPhone}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    const phone = (contract.clientPhone || '').replace(/\D/g, '');
+    if (!phone) return;
+    const url = `https://wa.me/${phone.length <= 11 ? '55' + phone : phone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      {error && <p role="alert" className="text-sm text-rose-400">{error}</p>}
       {/* 1. Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
@@ -148,6 +148,7 @@ export function ContractsView() {
       {/* 2. Tabela de Contratos Emitidos */}
       <div className="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden">
         <div className="divide-y divide-slate-800/80">
+          {contracts.length === 0 && <p className="p-5 text-sm text-slate-400">Nenhum documento emitido para esta loja.</p>}
           {contracts.map(contract => (
             <div key={contract.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-800/40 transition-colors">
               <div>
@@ -181,6 +182,7 @@ export function ContractsView() {
 
                 <button
                   type="button"
+                  disabled={!contract.clientPhone}
                   onClick={() => handleShareWhatsApp(contract)}
                   className="p-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   title="Enviar via WhatsApp"
@@ -213,6 +215,17 @@ export function ContractsView() {
             </div>
 
             <form onSubmit={handleGenerate} className="space-y-3.5">
+              {vehicles.length > 0 && <label className="block text-xs text-slate-300">
+                Selecionar veículo cadastrado
+                <select defaultValue="" onChange={event => {
+                  const vehicle = vehicles.find(item => String(item.id) === event.target.value);
+                  if (vehicle) setFormData(previous => ({ ...previous, vehicleTitle: vehicle.nome || vehicle.title, vehiclePrice: vehicle.preco ?? vehicle.price, vehicleYear: String(vehicle.ano ?? vehicle.year ?? ''), vehicleColor: vehicle.cor || vehicle.color, vehicleKm: vehicle.km, vehicleTransmission: vehicle.cambio || vehicle.transmission, vehicleFuel: vehicle.combustivel || vehicle.fuel }));
+                }} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700">
+                  <option value="">Selecione um veículo</option>
+                  {vehicles.map(vehicle => <option key={vehicle.id} value={vehicle.id}>{vehicle.nome || vehicle.title}</option>)}
+                </select>
+              </label>}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo de Documento (I7)</label>
                 <select
@@ -237,6 +250,11 @@ export function ContractsView() {
                 />
               </div>
 
+              <label className="block text-xs text-slate-300">
+                Telefone do cliente
+                <input type="tel" value={formData.clientPhone} onChange={event => setFormData({ ...formData, clientPhone: event.target.value })} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700" />
+              </label>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Veículo do Estoque</label>
                 <input
@@ -253,6 +271,7 @@ export function ContractsView() {
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Valor do Sinal (R$)</label>
                   <input
                     type="number"
+                    required min="0" step="0.01"
                     value={formData.signalValue}
                     onChange={(e) => setFormData({ ...formData, signalValue: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:border-amber-500 focus:outline-none"
