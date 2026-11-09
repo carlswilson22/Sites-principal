@@ -1,8 +1,0 @@
-# ==============================================================================
-# gateway/.dockerignore — Padrões de exclusão para o build do container Nginx Gateway.
-#
-# Objetivo e Motivo da Criação:
-#   - Garante que apenas os arquivos de configuração necessários do Nginx sejam incorporados.
-# ==============================================================================
-.git
-.gitignore
