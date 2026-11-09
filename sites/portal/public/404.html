@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecionando - Auto-Dealership Hub</title>
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+
+        // Se for um modelo sem a barra final (ex: /Sites-principal/auto-dealership)
+        if (!path.endsWith('/') && !path.includes('.')) {
+          window.location.replace(path + '/' + search + hash);
+          return;
+        }
+
+        // Se a rota cair fora do base, redireciona para o hub principal
+        var repoName = 'Sites-principal';
+        if (!path.includes(repoName)) {
+          window.location.replace('/' + repoName + '/');
+        } else {
+          window.location.replace('/' + repoName + '/');
+        }
+      })();
+    </script>
+  </head>
+  <body style="font-family: sans-serif; text-align: center; padding: 40px; background: #f8fafc; color: #334155;">
+    <h2>Redirecionando para a demonstração...</h2>
+    <p>Aguarde um instante ou <a href="/Sites-principal/" style="color: #2563eb; font-weight: bold;">clique aqui para acessar o Hub Principal</a>.</p>
+  </body>
+</html>
+

@@ -8,7 +8,7 @@ export const modelsList = [
     badge: 'Tier 1 • Básico',
     status: 'available',
     path: 'auto-dealership/',
-    previewImage: 'auto-dealership/images/FotoChevroletTracker.jpg',
+    previewImage: 'images/tracker.jpg',
     description: 'Interface limpa, rápida e objetiva focada na captação de leads. Conta com vitrine de ofertas da semana, catálogo completo de seminovos periciados, modal de ficha técnica com galeria expandida, botão direto de WhatsApp e Visualizador 360° Orbital Interativo.',
     features: [
       'Visualizador 360° Orbital Interativo do Veículo (Novo)',
@@ -28,7 +28,7 @@ export const modelsList = [
     badge: 'Tier 2 • Intermediário',
     status: 'available',
     path: 'luxury-dealership/',
-    previewImage: 'luxury-dealership/images/FotoCorollaCross.jpg',
+    previewImage: 'images/corolla.jpg',
     description: 'Edição expandida para concessionárias consolidadas. Agrega ferramentas completas de fechamento online: simulador de financiamento com cálculo de parcelas em tempo real, avaliação de seminovo na troca (Trade-In), vídeo pericial de 20s e agendamento de Concierge / Test Drive.',
     features: [
       'Tudo do Tier Essential +',
@@ -48,7 +48,7 @@ export const modelsList = [
     badge: 'Tier 3 • Mais Completo',
     status: 'available',
     path: 'popular-dealership/',
-    previewImage: 'popular-dealership/images/FotoFiatPulse.jpg',
+    previewImage: 'images/pulse.jpg',
     description: 'A suíte definitiva com a inteligência máxima da plataforma. Consultor Virtual com Inteligência Artificial para recomendações personalizadas, Comparador Técnico lado a lado de até 3 veículos com barra flutuante, Dossiê Cautelar IA com verificação de leilão/sinistros, Calculadora TCO anual e alertas de preço.',
     features: [
       'Tudo dos Tiers Essential e Pro +',

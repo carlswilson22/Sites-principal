@@ -19,7 +19,7 @@ export const ModelCard = ({ model }) => {
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100 border-b border-slate-200/80">
         {model.previewImage ? (
           <img
-            src={model.previewImage}
+            src={import.meta.env.BASE_URL + model.previewImage}
             alt={model.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -76,24 +76,13 @@ export const ModelCard = ({ model }) => {
             ))}
           </div>
 
-          {/* Tech Stack Tags */}
-          <div className="flex flex-wrap gap-1.5 mb-6">
-            {model.techStack.map((tech, idx) => (
-              <span
-                key={idx}
-                className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* Action Button */}
         <div className="pt-4 border-t border-slate-100">
           {isAvailable ? (
             <a
-              href={model.path}
+              href={import.meta.env.BASE_URL + model.path}
               className="w-full py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm inline-flex items-center justify-center gap-2 transition-all duration-200 shadow-md shadow-blue-500/20 group/btn active:scale-[0.98]"
             >
               <span>Acessar Demonstração Ao Vivo</span>

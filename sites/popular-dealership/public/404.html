@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <title>Auto-Dealership Enterprise</title>
+    <script>
+      // GitHub Pages SPA redirect: preserva a rota para o React Router
+      (function() {
+        var l = window.location;
+        var base = '/Sites-principal/popular-dealership/';
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          base + '?p=' + encodeURIComponent(l.pathname.slice(base.length) + l.search) + (l.hash || '')
+        );
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
+
