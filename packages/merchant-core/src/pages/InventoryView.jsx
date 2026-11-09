@@ -3,6 +3,7 @@
  * Gestão de Estoque, Fotos e Ficha Técnica do Anúncio (E3, E4, E5 - Nível 1)
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { storeSync } from '../services/storeSync';
 import {
   Car,
   Plus,
@@ -43,7 +44,7 @@ const STANDARD_FEATURES = [
   'Piloto Automático Adaptativo / Cruise Control'
 ];
 
-export function InventoryView() {
+export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) {
   const { hasRole } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,95 +79,18 @@ export function InventoryView() {
   // Estado do gestor de fotos (E4: até 20 fotos, capa, ordem, remoção)
   const [photosList, setPhotosList] = useState([]);
 
-  // Mock inicial de demonstração
+  // Carga reativa de veículos com storeSync
   useEffect(() => {
-    setVehicles([
-      {
-        id: 1,
-        title: 'Chevrolet Tracker',
-        version: '1.2 Turbo Premier AT',
-        category: 'suv',
-        year: '2023/2023',
-        km: 22400,
-        transmission: 'Automático',
-        fuel: 'Flex',
-        color: 'Branco Summit',
-        price: 119900,
-        status: 'disponivel',
-        ownership_type: 'proprio',
-        is_published: 1,
-        days_in_stock: 14,
-        cover_photo: '/images/FotoChevroletTracker.jpg',
-        photos: ['/images/FotoChevroletTracker.jpg', '/images/FotoPoloTSI.jpg'],
-        notes: 'Top de linha, teto solar panorâmico e pacote ADAS completo.',
-        features: ['Ar-condicionado Digital', 'Faróis e Lanternas Full LED', 'Câmera de Ré com Linhas Guias'],
-        tags: ['Garantia de Fábrica', 'Teto Panorâmico']
-      },
-      {
-        id: 2,
-        title: 'Toyota Corolla Cross',
-        version: '2.0 XRE Direct Shift',
-        category: 'suv',
-        year: '2022/2023',
-        km: 35000,
-        transmission: 'Automático',
-        fuel: 'Flex',
-        color: 'Prata Lua',
-        price: 139900,
-        status: 'disponivel',
-        ownership_type: 'proprio',
-        is_published: 1,
-        days_in_stock: 68, // Alerta: parado > 60 dias!
-        cover_photo: '/images/FotoCorollaCross.jpg',
-        photos: ['/images/FotoCorollaCross.jpg'],
-        notes: 'Revisões na concessionária, veículo impecável.',
-        features: ['Airbags Frontais, Laterais e de Cortina', 'Piloto Automático Adaptativo / Cruise Control'],
-        tags: ['Único Dono', 'Revisado']
-      },
-      {
-        id: 3,
-        title: 'Fiat Pulse',
-        version: '1.0 Turbo Impetus AT',
-        category: 'suv',
-        year: '2023/2024',
-        km: 18200,
-        transmission: 'Automático',
-        fuel: 'Flex',
-        color: 'Cinza Strato',
-        price: 98500,
-        status: 'disponivel',
-        ownership_type: 'consignado',
-        is_published: 1,
-        days_in_stock: 22,
-        cover_photo: '/images/FotoFiatPulse.jpg',
-        photos: ['/images/FotoFiatPulse.jpg'],
-        notes: 'Carro em consignação, pintura bicolor e multimídia 10 pol.',
-        features: ['Central Multimídia com Apple CarPlay / Android Auto', 'Chave Presencial com Partida por Botão (Start/Stop)'],
-        tags: ['Consignado', 'Garantia']
-      },
-      {
-        id: 4,
-        title: 'Volkswagen Polo',
-        version: '1.0 170 TSI Comfortline',
-        category: 'hatch',
-        year: '2023/2023',
-        km: 29000,
-        transmission: 'Automático',
-        fuel: 'Flex',
-        color: 'Vermelho Sunset',
-        price: 84900,
-        status: 'vendido',
-        ownership_type: 'proprio',
-        is_published: 0,
-        days_in_stock: 45,
-        cover_photo: '/images/FotoPoloTSI.jpg',
-        photos: ['/images/FotoPoloTSI.jpg'],
-        notes: 'Vendido com financiamento aprovado.',
-        features: ['Direção Elétrica Progressiva', 'Controle Eletrônico de Estabilidade (ESP)'],
-        tags: ['Vendido']
+    const list = storeSync.getVehicles(storeKey, defaultVehicles);
+    setVehicles(list);
+
+    const unsub = storeSync.subscribe(storeKey, (detail) => {
+      if (detail.type === 'VEHICLES_UPDATED') {
+        setVehicles(detail.vehicles);
       }
-    ]);
-  }, []);
+    });
+    return unsub;
+  }, [storeKey]);
 
   // Filtragem dinâmica
   const filteredVehicles = useMemo(() => {
@@ -239,36 +163,44 @@ export function InventoryView() {
     setIsModalOpen(true);
   };
 
-  // Salvar veículo (E3, E5)
+  // Salvar veículo (E3, E5) com storeSync
   const handleSaveVehicle = (e) => {
     e.preventDefault();
     if (!formData.title || !formData.price) return;
 
     if (selectedVehicle) {
       // Editar
-      setVehicles(prev => prev.map(v => v.id === selectedVehicle.id ? { ...v, ...formData } : v));
+      const updatedItem = { ...selectedVehicle, ...formData };
+      const updatedList = storeSync.saveVehicle(storeKey, updatedItem, defaultVehicles);
+      setVehicles(updatedList);
     } else {
       // Criar
       const newVehicle = {
-        id: Date.now(),
         ...formData,
-        cover_photo: '/images/placeholder-carro.jpg',
-        photos: ['/images/placeholder-carro.jpg']
+        cover_photo: '/images/FotoChevroletTracker.jpg',
+        photos: ['/images/FotoChevroletTracker.jpg']
       };
-      setVehicles(prev => [newVehicle, ...prev]);
+      const updatedList = storeSync.saveVehicle(storeKey, newVehicle, defaultVehicles);
+      setVehicles(updatedList);
     }
     setIsModalOpen(false);
   };
 
   // Alternar visibilidade no site (Publicado / Oculto)
   const handleTogglePublish = (id) => {
-    setVehicles(prev => prev.map(v => v.id === id ? { ...v, is_published: v.is_published ? 0 : 1 } : v));
+    const v = vehicles.find(item => item.id === id);
+    if (v) {
+      const updatedItem = { ...v, is_published: v.is_published ? 0 : 1 };
+      const updatedList = storeSync.saveVehicle(storeKey, updatedItem, defaultVehicles);
+      setVehicles(updatedList);
+    }
   };
 
   // Excluir veículo (E3)
   const handleDeleteVehicle = (id) => {
     if (window.confirm('Tem certeza de que deseja remover este veículo do estoque?')) {
-      setVehicles(prev => prev.filter(v => v.id !== id));
+      const updatedList = storeSync.deleteVehicle(storeKey, id, defaultVehicles);
+      setVehicles(updatedList);
     }
   };
 
@@ -333,14 +265,16 @@ export function InventoryView() {
     setPhotosList(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Salvar fotos no veículo
+  // Salvar fotos no veículo (E4) com storeSync
   const handleSavePhotos = () => {
     if (selectedVehicle) {
-      setVehicles(prev => prev.map(v => v.id === selectedVehicle.id ? {
-        ...v,
-        cover_photo: photosList[0],
+      const updatedVehicle = {
+        ...selectedVehicle,
+        cover_photo: photosList[0] || selectedVehicle.cover_photo,
         photos: photosList
-      } : v));
+      };
+      const updatedList = storeSync.saveVehicle(storeKey, updatedVehicle, defaultVehicles);
+      setVehicles(updatedList);
     }
     setIsPhotosModalOpen(false);
   };

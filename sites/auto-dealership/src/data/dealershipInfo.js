@@ -1,5 +1,5 @@
 export const dealershipInfo = {
-  nome: "Auto-Dealership Essential",
+  nome: "AutoElite Seminovos",
   slogan: "Seminovos Selecionados com Perícia Cautelar 100% Aprovada e Visão 360°",
   cnpj: "12.345.678/0001-90",
   whatsapp: "5561999998888",

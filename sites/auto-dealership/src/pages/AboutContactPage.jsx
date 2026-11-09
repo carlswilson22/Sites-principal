@@ -6,7 +6,7 @@ import {
 import { Button } from '../components/ui/Button';
 import { dealershipInfo } from '../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../utils/whatsapp';
-import { apiClient } from '../../../../packages/merchant-core/src';
+import { apiClient, storeSync } from '../../../../packages/merchant-core/src';
 
 export function AboutContactPage() {
   const [contactForm, setContactForm] = useState({
@@ -29,6 +29,13 @@ export function AboutContactPage() {
 
     // E6: Captura automática do lead para o Painel do Lojista
     try {
+      storeSync.addLead('autoelite', {
+        name: contactForm.nome,
+        phone: contactForm.telefone,
+        email: contactForm.email,
+        source: 'formulario_site',
+        message: `Assunto: ${contactForm.assunto} - Mensagem: ${contactForm.mensagem}`
+      });
       await apiClient.captureLead({
         name: contactForm.nome,
         phone: contactForm.telefone,

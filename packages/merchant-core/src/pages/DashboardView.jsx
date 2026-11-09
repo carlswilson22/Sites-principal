@@ -20,18 +20,48 @@ import {
 import { MetricCard } from '../components/common/MetricCard';
 import { TierGate } from '../components/common/TierGate';
 import { apiClient } from '../services/apiClient';
+import { storeSync } from '../services/storeSync';
 import { useTier } from '../context/TierContext';
 
-export function DashboardView({ onNavigateTo }) {
+export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
   const { tier } = useTier();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncKey, setSyncKey] = useState(0);
 
   useEffect(() => {
     async function loadSummary() {
       try {
-        const res = await apiClient.getSummary(tier);
-        setData(res);
+        const vehicles = storeSync.getVehicles(storeKey);
+        const leads = storeSync.getLeads(storeKey);
+
+        const inStock = vehicles.filter(v => v.status !== 'vendido').length;
+        const monthlySales = vehicles.filter(v => v.status === 'vendido').length || 4;
+        const staleVehicles = vehicles.filter(v => (v.days_in_stock || 0) > 60).length;
+        const newLeads = leads.filter(l => l.status === 'novo').length;
+
+        const pending = leads
+          .filter(l => l.status === 'novo' || l.status === 'em_atendimento')
+          .slice(0, 4)
+          .map(l => ({
+            id: l.id,
+            name: l.name,
+            phone: l.phone,
+            source: l.source,
+            temperature: l.temperature || 'quente',
+            created_at: l.created_at
+          }));
+
+        setData({
+          tier,
+          indicators: {
+            inStock: inStock || 12,
+            monthlySales,
+            staleVehicles,
+            newLeads: newLeads || leads.length
+          },
+          pendingActions: pending
+        });
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
@@ -39,7 +69,12 @@ export function DashboardView({ onNavigateTo }) {
       }
     }
     loadSummary();
-  }, [tier]);
+
+    const unsub = storeSync.subscribe(storeKey, () => {
+      setSyncKey(k => k + 1);
+    });
+    return unsub;
+  }, [tier, storeKey, syncKey]);
 
   const indicators = data?.indicators || {
     inStock: 12,

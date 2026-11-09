@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -17,7 +17,8 @@ import {
   InventoryView, 
   LeadsView, 
   LoginView, 
-  useAuth 
+  useAuth,
+  storeSync
 } from '../../../packages/merchant-core/src';
 
 function MerchantPanelContainer({ onExitToSite }) {
@@ -35,14 +36,14 @@ function MerchantPanelContainer({ onExitToSite }) {
 
   return (
     <MerchantShell
-      storeName="Auto-Dealership Essential"
+      storeName="AutoElite Seminovos"
       activeTab={merchantTab}
       onSelectTab={setMerchantTab}
       onExitToSite={onExitToSite}
     >
-      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} />}
-      {merchantTab === 'inventory' && <InventoryView />}
-      {merchantTab === 'leads' && <LeadsView />}
+      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} storeKey="autoelite" />}
+      {merchantTab === 'inventory' && <InventoryView storeKey="autoelite" defaultVehicles={vehiclesData} />}
+      {merchantTab === 'leads' && <LeadsView storeKey="autoelite" />}
     </MerchantShell>
   );
 }
@@ -51,6 +52,16 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [searchFilter, setSearchFilter] = useState({ term: '', category: 'todos' });
+  const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('autoelite', vehiclesData));
+
+  useEffect(() => {
+    const unsub = storeSync.subscribe('autoelite', (detail) => {
+      if (detail.type === 'VEHICLES_UPDATED') {
+        setVehicles(detail.vehicles);
+      }
+    });
+    return unsub;
+  }, []);
 
   const navigateTo = (page, params = {}) => {
     setCurrentPage(page);
@@ -92,7 +103,7 @@ export default function App() {
       <main className="flex-1">
         {currentPage === 'home' && (
           <HomePage
-            vehicles={vehiclesData}
+            vehicles={vehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />
@@ -100,7 +111,7 @@ export default function App() {
 
         {currentPage === 'estoque' && (
           <InventoryPage
-            vehicles={vehiclesData}
+            vehicles={vehicles}
             searchFilter={searchFilter}
             onClearFilter={() => setSearchFilter({ term: '', category: 'todos' })}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
@@ -109,7 +120,7 @@ export default function App() {
 
         {currentPage === 'destaques' && (
           <FeaturedPage
-            vehicles={vehiclesData}
+            vehicles={vehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />

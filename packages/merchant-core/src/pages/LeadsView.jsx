@@ -3,6 +3,7 @@
  * Gestão de Contatos, Leads e WhatsApp (E6 - Nível 1)
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { storeSync } from '../services/storeSync';
 import {
   MessageSquare,
   Search,
@@ -18,7 +19,7 @@ import {
   Car
 } from 'lucide-react';
 
-export function LeadsView() {
+export function LeadsView({ storeKey = 'autoelite' }) {
   const [leads, setLeads] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos'); // todos, novo, em_atendimento, ganho, perdido
@@ -26,63 +27,18 @@ export function LeadsView() {
   const [newStatus, setNewStatus] = useState('em_atendimento');
   const [statusNote, setStatusNote] = useState('');
 
-  // Carga inicial de demonstração
+  // Carga reativa de leads via storeSync
   useEffect(() => {
-    setLeads([
-      {
-        id: 1,
-        name: 'Roberto Alves (Fictício)',
-        phone: '(11) 98888-0001',
-        email: 'roberto.ficticio@exemplo.com',
-        vehicle_title: 'Chevrolet Tracker 1.2 Turbo Premier',
-        vehicle_price: 119900,
-        source: 'site_formulario',
-        temperature: 'quente',
-        status: 'novo',
-        created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-        simulation_data: { entrada: 35000, parcelas: 48, valorParcela: 2490 }
-      },
-      {
-        id: 2,
-        name: 'Mariana Costa (Fictício)',
-        phone: '(11) 97777-0002',
-        email: 'mariana.ficticia@exemplo.com',
-        vehicle_title: 'Toyota Corolla Cross 2.0 XRE',
-        vehicle_price: 139900,
-        source: 'site_whatsapp',
-        temperature: 'morno',
-        status: 'em_atendimento',
-        created_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-        simulation_data: null
-      },
-      {
-        id: 3,
-        name: 'Juliana Mendes (Fictícia)',
-        phone: '(11) 96666-0003',
-        email: 'juliana.ficticia@exemplo.com',
-        vehicle_title: 'Volkswagen Polo 1.0 170 TSI',
-        vehicle_price: 84900,
-        source: 'simulador_financiamento',
-        temperature: 'quente',
-        status: 'ganho',
-        created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-        simulation_data: { entrada: 20000, parcelas: 36, valorParcela: 2150 }
-      },
-      {
-        id: 4,
-        name: 'Felipe Santos (Fictício)',
-        phone: '(11) 95555-0004',
-        email: 'felipe.ficticio@exemplo.com',
-        vehicle_title: 'Fiat Pulse 1.0 Turbo Impetus',
-        vehicle_price: 98500,
-        source: 'site_formulario',
-        temperature: 'frio',
-        status: 'perdido',
-        created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
-        simulation_data: null
+    const list = storeSync.getLeads(storeKey);
+    setLeads(list);
+
+    const unsub = storeSync.subscribe(storeKey, (detail) => {
+      if (detail.type === 'LEADS_UPDATED') {
+        setLeads(detail.leads);
       }
-    ]);
-  }, []);
+    });
+    return unsub;
+  }, [storeKey]);
 
   // Filtragem
   const filteredLeads = useMemo(() => {
@@ -100,11 +56,16 @@ export function LeadsView() {
     });
   }, [leads, searchTerm, statusFilter]);
 
-  // Atualizar situação do lead
+  // Atualizar situação do lead com storeSync
   const handleUpdateStatus = () => {
     if (!selectedLead) return;
-    setLeads(prev => prev.map(l => l.id === selectedLead.id ? { ...l, status: newStatus } : l));
+    const updated = storeSync.updateLead(storeKey, selectedLead.id, {
+      status: newStatus,
+      statusNote: statusNote || undefined
+    });
+    setLeads(updated);
     setSelectedLead(null);
+    setStatusNote('');
   };
 
   const getStatusBadge = (status) => {

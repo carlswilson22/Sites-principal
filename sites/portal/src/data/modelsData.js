@@ -1,7 +1,7 @@
 export const modelsList = [
   {
     id: 'auto-dealership',
-    title: 'Auto-Dealership Essential',
+    title: 'AutoElite Seminovos (Modelo 1)',
     tagline: 'Edição Ágil de Alta Conversão para Concessionárias e Revendas',
     tier: 'Básico',
     category: 'Tier 1 • Básico',
