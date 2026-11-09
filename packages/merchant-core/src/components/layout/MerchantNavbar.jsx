@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTier } from '../../context/TierContext';
 
 export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealership', onExitToSite }) {
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout, switchRole, isDemoMode } = useAuth();
   const { tier, tierName } = useTier();
 
   const getTierColor = () => {
@@ -71,7 +71,7 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
             <span className="text-xs font-semibold text-slate-200">{user?.name || 'Lojista'}</span>
             <span className="text-[10px] text-slate-400 capitalize">{getRoleLabel(user?.role)}</span>
           </div>
-          <select
+          {isDemoMode && <select aria-label="Perfil da demonstracao"
             value={user?.role || 'atendente'}
             onChange={(e) => switchRole && switchRole(e.target.value)}
             className="bg-slate-800 text-slate-200 text-[11px] font-semibold py-1 px-1.5 rounded-lg border border-slate-600 focus:outline-none cursor-pointer"
@@ -80,7 +80,7 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
             <option value="proprietario">👑 Proprietário</option>
             <option value="gerente">👔 Gerente</option>
             <option value="atendente">💼 Atendente</option>
-          </select>
+          </select>}
         </div>
 
         {/* Botão de Retornar ao Site Público */}

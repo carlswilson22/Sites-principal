@@ -1,3 +1,4 @@
+import { isDemoMode } from '../services/demoConfig';
 /**
  * packages/merchant-core/src/pages/LoginView.jsx
  * Tela de Autenticação Segura e Recuperação de Senha (E1 - Nível 1)
@@ -10,8 +11,8 @@ import { useTier } from '../context/TierContext';
 export function LoginView({ onLoginSuccess, onCancel }) {
   const { login } = useAuth();
   const { tierName } = useTier();
-  const [email, setEmail] = useState('proprietario@autodealership.com.br');
-  const [password, setPassword] = useState('Admin@123456');
+  const [email, setEmail] = useState(isDemoMode ? 'proprietario@demo.invalid' : '');
+  const [password, setPassword] = useState(isDemoMode ? 'Demonstracao@2026' : '');
   const [isRecovering, setIsRecovering] = useState(false);
   const [recoverEmail, setRecoverEmail] = useState('');
   const [recoverSent, setRecoverSent] = useState(false);
@@ -53,7 +54,7 @@ export function LoginView({ onLoginSuccess, onCancel }) {
             Painel do Lojista
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Área de Gestão Restrita • <span className="text-blue-400 font-semibold">{tierName}</span>
+            {isDemoMode ? 'Demonstração do painel' : 'Área de Gestão Restrita'} • <span className="text-blue-400 font-semibold">{tierName}</span>
           </p>
         </div>
 
@@ -115,7 +116,7 @@ export function LoginView({ onLoginSuccess, onCancel }) {
             </button>
 
             {/* Acesso Rápido de Demonstração */}
-            <div className="pt-4 border-t border-slate-800/80">
+            {isDemoMode && <div className="pt-4 border-t border-slate-800/80">
               <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block text-center mb-2">
                 Acesso de Teste / Demonstração:
               </span>
@@ -123,11 +124,11 @@ export function LoginView({ onLoginSuccess, onCancel }) {
                 <button
                   type="button"
                   onClick={async () => {
-                    setEmail('proprietario@autodealership.com.br');
-                    setPassword('Admin@123456');
+                    setEmail('proprietario@demo.invalid');
+                    setPassword('Demonstracao@2026');
                     try {
                       setLoading(true);
-                      await login('proprietario@autodealership.com.br', 'Admin@123456');
+                      await login('proprietario@demo.invalid', 'Demonstracao@2026');
                       if (onLoginSuccess) onLoginSuccess();
                     } catch (e) {
                       setError(e.message);
@@ -142,11 +143,11 @@ export function LoginView({ onLoginSuccess, onCancel }) {
                 <button
                   type="button"
                   onClick={async () => {
-                    setEmail('gerente@autodealership.com.br');
-                    setPassword('Admin@123456');
+                    setEmail('gerente@demo.invalid');
+                    setPassword('Demonstracao@2026');
                     try {
                       setLoading(true);
-                      await login('gerente@autodealership.com.br', 'Admin@123456');
+                      await login('gerente@demo.invalid', 'Demonstracao@2026');
                       if (onLoginSuccess) onLoginSuccess();
                     } catch (e) {
                       setError(e.message);
@@ -161,11 +162,11 @@ export function LoginView({ onLoginSuccess, onCancel }) {
                 <button
                   type="button"
                   onClick={async () => {
-                    setEmail('atendente@autodealership.com.br');
-                    setPassword('Admin@123456');
+                    setEmail('atendente@demo.invalid');
+                    setPassword('Demonstracao@2026');
                     try {
                       setLoading(true);
-                      await login('atendente@autodealership.com.br', 'Admin@123456');
+                      await login('atendente@demo.invalid', 'Demonstracao@2026');
                       if (onLoginSuccess) onLoginSuccess();
                     } catch (e) {
                       setError(e.message);
@@ -178,16 +179,16 @@ export function LoginView({ onLoginSuccess, onCancel }) {
                   Atendente
                 </button>
               </div>
-            </div>
+            </div>}
           </form>
         ) : (
           <form onSubmit={handleRecover} className="space-y-4">
             {recoverSent ? (
               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-                <h3 className="text-sm font-bold text-white">Instruções Enviadas!</h3>
+                <h3 className="text-sm font-bold text-white">Recuperação não configurada</h3>
                 <p className="text-xs text-slate-300">
-                  Verifique a caixa de entrada do e-mail informado para redefinir sua credencial.
+                  Nenhum e-mail foi enviado. Na demonstração, retorne e escolha um dos perfis de teste. O envio real exige configuração de serviço.
                 </p>
                 <button
                   type="button"

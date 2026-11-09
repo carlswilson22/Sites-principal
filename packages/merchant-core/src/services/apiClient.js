@@ -1,3 +1,4 @@
+import { isDemoMode, createDemoUser } from './demoConfig';
 /**
  * packages/merchant-core/src/services/apiClient.js
  * Adaptador de dados híbrido:
@@ -34,41 +35,24 @@ export const apiClient = {
   },
 
   async login(email, password) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.error || 'Credenciais inválidas.');
-    } catch (err) {
-      if (email && password) {
-        let role = 'proprietario';
-        let name = 'Carlos Silva (Proprietário)';
-        if (email.includes('gerente')) {
-          role = 'gerente';
-          name = 'Fernanda Lima (Gerente)';
-        } else if (email.includes('atendente')) {
-          role = 'atendente';
-          name = 'Lucas Mendes (Atendente)';
-        }
-
-        return {
-          token: 'demo-session-token',
-          user: {
-            id: role === 'proprietario' ? 1 : role === 'gerente' ? 2 : 3,
-            name,
-            email,
-            role,
-            tier: 3
-          }
-        };
-      }
-      throw err;
-    }
+    if (isDemoMode) return { user: createDemoUser(email, password) };
+    const res = await fetch(API_BASE_URL + '/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }), credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Falha ao autenticar.');
+    return data;
+  },
+  async getSession() {
+    const res = await fetch(API_BASE_URL + '/auth/me', { credentials: 'include' });
+    if (!res.ok) return null;
+    return (await res.json()).user;
+  },
+  async logout() {
+    if (isDemoMode) return;
+    const res = await fetch(API_BASE_URL + '/auth/logout', { method: 'POST', credentials: 'include' });
+    if (!res.ok) throw new Error('Nao foi possivel encerrar a sessao. Tente novamente.');
   },
 
   // E6: Registro de Contato (Leads do site)

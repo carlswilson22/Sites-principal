@@ -2,6 +2,7 @@
 export default {
   content: [
     "./index.html",
+    "../../packages/merchant-core/src/**/*.{js,jsx}",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',

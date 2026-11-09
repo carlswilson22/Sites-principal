@@ -1,3 +1,4 @@
+import { isDemoMode, demoRoles } from '../services/demoConfig';
 /**
  * packages/merchant-core/src/context/AuthContext.jsx
  * Contexto de autenticação, perfis de acesso (RBAC) e controle de sessão.
@@ -14,8 +15,8 @@ export function AuthProvider({ children }) {
   // Inicializa sessão do armazenamento local
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('merchant_user');
-      if (stored) {
+      const stored = isDemoMode ? sessionStorage.getItem('merchant_demo_user') : null;
+      if (stored && JSON.parse(stored).demo === true && demoRoles.includes(JSON.parse(stored).role)) {
         setUser(JSON.parse(stored));
       }
     } catch {
@@ -25,20 +26,29 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (!isDemoMode) {
+      setLoading(true);
+      apiClient.getSession().then(setUser).catch(() => setUser(null)).finally(() => setLoading(false));
+    }
+  }, []);
+
   const login = async (email, password) => {
     const res = await apiClient.login(email, password);
     setUser(res.user);
-    localStorage.setItem('merchant_user', JSON.stringify(res.user));
+    if (isDemoMode) sessionStorage.setItem('merchant_demo_user', JSON.stringify(res.user));
     return res.user;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try { await apiClient.logout(); } catch (error) { window.alert(error.message); return; }
     setUser(null);
+    sessionStorage.removeItem('merchant_demo_user');
     localStorage.removeItem('merchant_user');
   };
 
   const switchRole = (newRole) => {
-    if (!user) return;
+    if (!isDemoMode || !user || !demoRoles.includes(newRole)) return;
     const names = {
       proprietario: 'Carlos Silva (Proprietário)',
       gerente: 'Fernanda Lima (Gerente)',
@@ -50,7 +60,7 @@ export function AuthProvider({ children }) {
       name: names[newRole] || user.name
     };
     setUser(updated);
-    localStorage.setItem('merchant_user', JSON.stringify(updated));
+    sessionStorage.setItem('merchant_demo_user', JSON.stringify(updated));
   };
 
   const hasRole = (allowedRoles = []) => {
@@ -67,6 +77,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     switchRole,
+    isDemoMode,
     loading
   }), [user, loading]);
 
