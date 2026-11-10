@@ -1,3 +1,4 @@
+import { dealershipInfo } from './data/dealershipInfo';
 import React, { useState } from 'react';
 import { MessageCircle, Bot } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
@@ -13,87 +14,26 @@ import { ComparatorPage } from './pages/ComparatorPage';
 import { AIConsultantPage } from './pages/AIConsultantPage';
 import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
-import { VehicleComparatorModal } from './components/vehicles/VehicleComparatorModal';
 import { OfficialDossierModal } from './components/vehicles/OfficialDossierModal';
 import { PriceAlertModal } from './components/vehicles/PriceAlertModal';
 import { vehiclesData } from './data/vehicles';
 import { useFavorites } from './hooks/useFavorites';
 import { useComparator } from './hooks/useComparator';
 import { buildGeneralWhatsappLink } from './utils/whatsapp';
-import { 
-  AuthProvider, 
-  TierProvider, 
-  MerchantShell, 
-  DashboardView, 
-  InventoryView, 
-  LeadsView, 
-  ClientsView, 
-  FipePricingView, 
-  ContractsView, 
-  FinancialView,
-  ConsignmentsView,
-  AdvancedContractsView,
-  FullFinancialView,
-  MarketPricingView,
-  SalesFunnelView,
-  StoryStudioView,
-  AuditLgpdView,
-  LoginView, 
-  useAuth 
-} from '../../../packages/merchant-core/src';
+import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchant-core/src';
+import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
+import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 
-function EnterpriseMerchantPanelContainer({ onExitToSite }) {
-  const { isAuthenticated } = useAuth();
-  const [merchantTab, setMerchantTab] = useState('dashboard');
-
-  if (!isAuthenticated) {
-    return (
-      <LoginView
-        onLoginSuccess={() => setMerchantTab('dashboard')}
-        onCancel={onExitToSite}
-      />
-    );
-  }
-
-  return (
-    <MerchantShell
-      storeName="Auto-Dealership Enterprise"
-      activeTab={merchantTab}
-      onSelectTab={setMerchantTab}
-      onExitToSite={onExitToSite}
-    >
-      {/* Nível 1 (E1 a E6) */}
-      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} />}
-      {merchantTab === 'inventory' && <InventoryView />}
-      {merchantTab === 'leads' && <LeadsView />}
-
-      {/* Nível 2 (I1 a I8) */}
-      {merchantTab === 'clients' && <ClientsView onOpenContractWithClient={() => setMerchantTab('contracts_adv')} />}
-      {merchantTab === 'financing' && <FipePricingView />}
-      {merchantTab === 'fipe' && <FipePricingView />}
-      {merchantTab === 'contracts' && <ContractsView />}
-      {merchantTab === 'financial' && <FinancialView />}
-      {merchantTab === 'analytics' && <DashboardView onNavigateTo={setMerchantTab} />}
-
-      {/* Nível 3 Enterprise (A1 a A8) */}
-      {merchantTab === 'consignments' && <ConsignmentsView />}
-      {merchantTab === 'contracts_adv' && <AdvancedContractsView />}
-      {merchantTab === 'financial_full' && <FullFinancialView />}
-      {merchantTab === 'market_pricing' && <MarketPricingView />}
-      {merchantTab === 'funnel' && <SalesFunnelView />}
-      {merchantTab === 'stories' && <StoryStudioView />}
-      {merchantTab === 'audit_lgpd' && <AuditLgpdView />}
-    </MerchantShell>
-  );
-}
 
 export default function App() {
+  const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('apexluxury', vehiclesData));
+  React.useEffect(() => storeSync.subscribe('apexluxury', detail => { if (detail.type === 'VEHICLES_UPDATED') setVehicles(detail.vehicles); }), []);
+  const publishedVehicles = vehicles.filter(isPublishedVehicle);
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
   const [dossierVehicle, setDossierVehicle] = useState(null);
   const [priceAlertVehicle, setPriceAlertVehicle] = useState(null);
-  const [comparatorModalOpen, setComparatorModalOpen] = useState(false);
 
   const { 
     favoriteIds, 
@@ -101,7 +41,7 @@ export default function App() {
     isFavorite, 
     favoritesCount, 
     favoriteVehicles 
-  } = useFavorites(vehiclesData);
+  } = useFavorites(publishedVehicles);
 
   const { 
     comparedIds, 
@@ -110,7 +50,7 @@ export default function App() {
     clearCompared, 
     comparedCount, 
     comparedVehicles 
-  } = useComparator(vehiclesData);
+  } = useComparator(publishedVehicles);
 
   const navigateTo = (page, params = {}) => {
     setCurrentPage(page);
@@ -134,7 +74,7 @@ export default function App() {
     return (
       <AuthProvider>
         <TierProvider tier={3}>
-          <EnterpriseMerchantPanelContainer onExitToSite={() => navigateTo('home')} />
+          <MerchantPanel storeKey="apexluxury" dealership={dealershipInfo} defaultVehicles={vehiclesData} FinancingComponent={FinancingPage} onExitToSite={() => navigateTo('home')} />
         </TierProvider>
       </AuthProvider>
     );
@@ -154,20 +94,20 @@ export default function App() {
       <main className="flex-1">
         {currentPage === 'home' && (
           <HomePage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
             onToggleCompare={toggleCompare}
-            onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
+            onOpenPriceAlert={(v) => { setSelectedVehicleForModal(null); setPriceAlertVehicle(v); }}
           />
         )}
 
         {currentPage === 'estoque' && (
           <InventoryPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
@@ -179,7 +119,7 @@ export default function App() {
 
         {currentPage === 'destaques' && (
           <FeaturedPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
             isFavorite={isFavorite}
@@ -192,20 +132,20 @@ export default function App() {
 
         {currentPage === 'consultor-ia' && (
           <AIConsultantPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />
         )}
 
         {currentPage === 'simulador' && (
           <FinancingPage
-            vehicles={vehiclesData}
+            vehicles={publishedVehicles}
             preselectedVehicle={financingPreselectedVehicle}
           />
         )}
 
         {currentPage === 'troca' && (
-          <TradeInPage vehicles={vehiclesData} />
+          <TradeInPage vehicles={publishedVehicles} />
         )}
 
         {currentPage === 'comparador' && (
@@ -242,7 +182,7 @@ export default function App() {
       {currentPage !== 'comparador' && (
         <ComparisonFloatingBar
           comparedVehicles={comparedVehicles}
-          onOpenComparator={() => setComparatorModalOpen(true)}
+          onOpenComparator={() => navigateTo('comparador')}
           onClear={clearCompared}
         />
       )}
@@ -253,7 +193,7 @@ export default function App() {
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
           onOpenFinancing={handleOpenFinancingFromModal}
-          onOpenDossier={(v) => setDossierVehicle(v)}
+          onOpenDossier={(v) => { setSelectedVehicleForModal(null); setDossierVehicle(v); }}
           onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
           isFavorite={isFavorite(selectedVehicleForModal.id)}
           onToggleFavorite={toggleFavorite}
@@ -261,13 +201,7 @@ export default function App() {
       )}
 
       {/* Modal de Comparação Lado a Lado */}
-      {comparatorModalOpen && (
-        <VehicleComparatorModal
-          vehicles={comparedVehicles}
-          onClose={() => setComparatorModalOpen(false)}
-          onOpenFinancing={handleOpenFinancingFromModal}
-        />
-      )}
+
 
       {/* Modal de Dossiê Oficial de Procedência */}
       {dossierVehicle && (

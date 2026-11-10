@@ -65,8 +65,8 @@ export function LeadsView({ storeKey = 'autoelite' }) {
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
       const matchSearch =
-        l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        l.phone.includes(searchTerm) ||
+        String(l.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(l.phone || '').includes(searchTerm) ||
         (l.email && l.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (l.vehicle_title && l.vehicle_title.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -163,7 +163,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
       {/* 3. Lista de Contatos */}
       <div className="space-y-3">
         {filteredLeads.map(lead => {
-          const rawPhone = lead.phone.replace(/\D/g, '');
+          const rawPhone = String(lead.phone || '').replace(/\D/g, '');
           const phoneWithCountry = rawPhone.length <= 11 ? `55${rawPhone}` : rawPhone;
           const whatsappUrl = `https://wa.me/${phoneWithCountry}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20concession%C3%A1ria%20e%20vi%20seu%20interesse%20no%20${encodeURIComponent(lead.vehicle_title || lead.vehicleName || 'veículo')}!%20Como%20posso%20te%20ajudar?`;
 
@@ -187,7 +187,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
                   <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-2">
                     <span>{lead.phone}</span>
                     {lead.email && <span>• {lead.email}</span>}
-                    <span>• Origem: <strong className="text-slate-300 capitalize">{lead.source.replace('_', ' ')}</strong></span>
+                    <span>• Origem: <strong className="text-slate-300 capitalize">{String(lead.source || 'site').replaceAll('_', ' ')}</strong></span>
                   </div>
 
                   {lead.vehicle_title && (

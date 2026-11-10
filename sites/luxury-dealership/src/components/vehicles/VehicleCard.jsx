@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
 import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, MessageCircle } from 'lucide-react';
 import { formatCurrency, formatKm } from '../../utils/formatters';
@@ -10,7 +11,7 @@ export function VehicleCard({ vehicle, onSelect }) {
     <div className="group rounded-3xl bg-[#0c0d14]/90 border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-950/20">
       {/* Imagem com Overlay */}
       <div className="relative aspect-[16/10] overflow-hidden bg-black cursor-pointer" onClick={() => onSelect(vehicle)}>
-        <img
+        <VehicleImage
           src={vehicle.imagemPrincipal}
           alt={vehicle.nome}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

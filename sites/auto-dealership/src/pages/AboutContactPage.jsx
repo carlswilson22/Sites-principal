@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState } from 'react';
 import { 
   Building2, ShieldCheck, Award, MapPin, Phone, Mail, Clock, 
@@ -129,7 +130,7 @@ export function AboutContactPage() {
           {/* Imagem Showroom / Estrutura */}
           <div className="lg:col-span-5 relative">
             <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl bg-slate-950">
-              <img
+              <VehicleImage
                 src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80"
                 alt="Showroom AutoElite Motors"
                 className="w-full h-full object-cover"

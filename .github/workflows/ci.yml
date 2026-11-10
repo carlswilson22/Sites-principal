@@ -31,6 +31,12 @@ jobs:
       - name: Install Rollup Linux binary
         run: npm install -D @rollup/rollup-linux-x64-gnu || true
 
+      - name: Test merchant data and persistence
+        run: npm run test:merchant
+
+      - name: Check site and panel rendering
+        run: npm run check:ui
+
       - name: Build all sites
         run: node scripts/build-all.mjs
 

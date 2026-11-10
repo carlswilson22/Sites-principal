@@ -36,8 +36,9 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         const leads = storeSync.getLeads(storeKey);
 
         const inStock = vehicles.filter(v => v.status !== 'vendido').length;
-        const monthlySales = vehicles.filter(v => v.status === 'vendido').length || 4;
-        const staleVehicles = vehicles.filter(v => (v.days_in_stock || 0) > 60).length;
+        const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const monthlySales = vehicles.filter(v => v.status === 'vendido' && Date.parse(v.soldAt || v.sold_at || v.updatedAt) >= monthAgo).length;
+        const staleVehicles = vehicles.filter(v => v.status !== 'vendido' && (v.days_in_stock || 0) > 60).length;
         const newLeads = leads.filter(l => l.status === 'novo').length;
 
         const pending = leads
@@ -55,10 +56,10 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         setData({
           tier,
           indicators: {
-            inStock: inStock || 12,
+            inStock,
             monthlySales,
             staleVehicles,
-            newLeads: newLeads || leads.length
+            newLeads
           },
           pendingActions: pending
         });
@@ -77,10 +78,10 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
   }, [tier, storeKey, syncKey]);
 
   const indicators = data?.indicators || {
-    inStock: 12,
-    monthlySales: 4,
-    staleVehicles: 2,
-    newLeads: 5
+    inStock: 0,
+    monthlySales: 0,
+    staleVehicles: 0,
+    newLeads: 0
   };
 
   const pendingActions = data?.pendingActions || [];
@@ -105,7 +106,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
           title="Carros em Estoque"
           value={indicators.inStock}
           icon={Car}
-          description="Veículos anunciados na vitrine"
+          description="Veículos ainda não vendidos"
           color="blue"
         />
         <MetricCard
@@ -168,13 +169,13 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
                       Novo
                     </span>
                   </div>
-                  <span className="text-xs text-slate-400">{lead.phone} • Origem: {lead.source.replace('_', ' ')}</span>
+                  <span className="text-xs text-slate-400">{lead.phone} • Origem: {String(lead.source || 'site').replaceAll('_', ' ')}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <a
-                  href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20concession%C3%A1ria%20e%20recebi%20seu%20contato!`}
+                  href={`https://wa.me/${String(lead.phone || '').replace(/\D/g, '').replace(/^(\d{10,11})$/, '55$1')}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20concession%C3%A1ria%20e%20recebi%20seu%20contato!`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all"

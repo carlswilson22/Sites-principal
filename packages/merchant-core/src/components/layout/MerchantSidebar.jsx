@@ -124,7 +124,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
           label: 'DRE & Comissões Vendedores',
           icon: DollarSign,
           minTier: 3,
-          roles: ['proprietario', 'gerente']
+          roles: ['proprietario']
         },
         {
           id: 'market_pricing',

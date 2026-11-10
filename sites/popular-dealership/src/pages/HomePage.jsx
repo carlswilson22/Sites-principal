@@ -31,7 +31,6 @@ export function HomePage({
       <HeroSection onSearch={handleHeroSearch} onNavigate={onNavigate} />
 
       {/* Régua de Estatísticas */}
-      <StatsSection />
 
       {/* Vitrine de Destaques Rápidos */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -168,6 +167,7 @@ export function HomePage({
 
       {/* Por que escolher a DriveNow */}
       <WhyUsSection />
+      <StatsSection />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState } from 'react';
 import { Calendar, Gauge, Fuel, Cog, MessageCircle, Eye, Sparkles } from 'lucide-react';
 import { InspectionBadge } from './InspectionBadge';
@@ -15,7 +16,7 @@ export function VehicleCard({ vehicle, onSelect }) {
     <div className="group rounded-2xl bg-slate-900/70 border border-slate-800/80 hover:border-blue-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-950/20 flex flex-col overflow-hidden backdrop-blur-md">
       {/* Container de Imagem */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
-        <img
+        <VehicleImage
           src={imgSrc}
           alt={`${vehicle.nome} ${vehicle.versao}`}
           onError={() => setImgSrc('/images/placeholder-carro.jpg')}

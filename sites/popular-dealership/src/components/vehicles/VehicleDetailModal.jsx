@@ -1,3 +1,5 @@
+import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React, { useState, useEffect } from 'react';
 import { 
   X, ShieldCheck, CheckCircle2, MessageCircle, Calendar, 
@@ -20,14 +22,15 @@ export function VehicleDetailModal({
   isFavorite,
   onToggleFavorite 
 }) {
+  const dialogRef = useDialog();
   const images = vehicle?.imagens && vehicle.imagens.length > 0 ? vehicle.imagens : [vehicle?.imagemPrincipal || ''];
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState('tco'); // 'tco' | '360' | 'galeria' | 'laudo' | 'ficha'
+  const [activeTab, setActiveTab] = useState('galeria'); // 'tco' | '360' | 'galeria' | 'laudo' | 'ficha'
 
   useEffect(() => {
     if (vehicle) {
       setCurrentIndex(0);
-      setActiveTab('tco');
+      setActiveTab('galeria');
     }
   }, [vehicle]);
 
@@ -56,7 +59,7 @@ export function VehicleDetailModal({
   const fipe = calculateFipeDiff(vehicle.preco, vehicle.fipeReferencia);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
       <div 
         className="relative w-full max-w-4xl bg-slate-900 border border-cyan-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto"
         onClick={(e) => e.stopPropagation()}
@@ -190,7 +193,7 @@ export function VehicleDetailModal({
             {activeTab === 'galeria' && (
               <div className="space-y-3">
                 <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
-                  <img
+                  <VehicleImage
                     src={currentImage}
                     alt={`${vehicle.nome} - Foto ${currentIndex + 1}`}
                     className="w-full h-full object-cover transition-all duration-300"
@@ -233,7 +236,7 @@ export function VehicleDetailModal({
                             : 'border-slate-800 opacity-60 hover:opacity-100'
                         }`}
                       >
-                        <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                        <VehicleImage src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>

@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -100,7 +101,7 @@ export const HeroVideoScrub = ({ children }) => {
     return (
       <section className="relative min-h-[90vh] overflow-hidden bg-[#050508] flex flex-col justify-center">
         <div className="absolute inset-0 z-0">
-          <img
+          <VehicleImage
             src={posterSrc}
             alt=""
             aria-hidden="true"
@@ -128,7 +129,7 @@ export const HeroVideoScrub = ({ children }) => {
         className="w-full h-screen relative overflow-hidden flex flex-col justify-center"
       >
         <div className="absolute inset-0 z-0 overflow-hidden bg-[#050508]">
-          <img
+          <VehicleImage
             src={posterSrc}
             alt=""
             aria-hidden="true"

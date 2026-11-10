@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState, useRef, useEffect } from 'react';
 import { RotateCw, MoveHorizontal, Compass, Play, Pause } from 'lucide-react';
 
@@ -83,7 +84,7 @@ export function Vehicle360Viewer({ images, autoRotate = false }) {
         className="relative aspect-[16/9] w-full rounded-2xl bg-slate-900 border border-slate-200/80 overflow-hidden select-none cursor-grab active:cursor-grabbing group shadow-card"
       >
         {/* Imagem do Frame Atual */}
-        <img
+        <VehicleImage
           src={frameList[currentFrame]}
           alt={`Visualização 360° - Ângulo ${angleDegree}°`}
           className="w-full h-full object-cover pointer-events-none transition-opacity duration-150"

@@ -2,8 +2,9 @@
  * packages/merchant-core/src/pages/InventoryView.jsx
  * Gestão de Estoque, Fotos e Ficha Técnica do Anúncio (E3, E4, E5 - Nível 1)
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { storeSync } from '../services/storeSync';
+import { VehicleImage } from '../components/common/VehicleImage';
 import {
   Car,
   Plus,
@@ -52,6 +53,10 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPhotosModalOpen, setIsPhotosModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [error, setError] = useState('');
+  const [isReadingPhotos, setIsReadingPhotos] = useState(false);
+  const photoSession = useRef(0);
+  const readingPhotos = useRef(false);
 
   // Estado do formulário de veículo (E3, E5)
   const [formData, setFormData] = useState({
@@ -78,6 +83,26 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   // Estado do gestor de fotos (E4: até 20 fotos, capa, ordem, remoção)
   const [photosList, setPhotosList] = useState([]);
+
+  useEffect(() => () => { photoSession.current += 1; }, []);
+
+  const saveVehicle = vehicle => {
+    try {
+      setVehicles(storeSync.saveVehicle(storeKey, vehicle, defaultVehicles));
+      setError('');
+      return true;
+    } catch (failure) {
+      setError(failure.message || 'Não foi possível salvar o estoque. Seus dados foram preservados.');
+      return false;
+    }
+  };
+
+  const closePhotos = () => {
+    photoSession.current += 1;
+    readingPhotos.current = false;
+    setIsReadingPhotos(false);
+    setIsPhotosModalOpen(false);
+  };
 
   // Carga reativa de veículos com storeSync
   useEffect(() => {
@@ -113,6 +138,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   // Abertura de modal para criar ou editar
   const handleOpenEdit = (v = null) => {
+    setError('');
     if (v) {
       setSelectedVehicle(v);
       setFormData({
@@ -166,22 +192,23 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
   // Salvar veículo (E3, E5) com storeSync
   const handleSaveVehicle = (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.price) return;
+    if (!formData.title.trim() || !Number.isFinite(formData.price) || formData.price <= 0) {
+      setError('Informe o nome do veículo e um preço maior que zero.');
+      return;
+    }
 
     if (selectedVehicle) {
       // Editar
       const updatedItem = { ...selectedVehicle, ...formData };
-      const updatedList = storeSync.saveVehicle(storeKey, updatedItem, defaultVehicles);
-      setVehicles(updatedList);
+      if (!saveVehicle(updatedItem)) return;
     } else {
       // Criar
       const newVehicle = {
         ...formData,
-        cover_photo: '/images/FotoChevroletTracker.jpg',
-        photos: ['/images/FotoChevroletTracker.jpg']
+        cover_photo: '/images/placeholder-carro.jpg',
+        photos: ['/images/placeholder-carro.jpg']
       };
-      const updatedList = storeSync.saveVehicle(storeKey, newVehicle, defaultVehicles);
-      setVehicles(updatedList);
+      if (!saveVehicle(newVehicle)) return;
     }
     setIsModalOpen(false);
   };
@@ -191,51 +218,94 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     const v = vehicles.find(item => item.id === id);
     if (v) {
       const updatedItem = { ...v, is_published: v.is_published ? 0 : 1 };
-      const updatedList = storeSync.saveVehicle(storeKey, updatedItem, defaultVehicles);
-      setVehicles(updatedList);
+      saveVehicle(updatedItem);
     }
   };
 
   // Excluir veículo (E3)
   const handleDeleteVehicle = (id) => {
     if (window.confirm('Tem certeza de que deseja remover este veículo do estoque?')) {
-      const updatedList = storeSync.deleteVehicle(storeKey, id, defaultVehicles);
-      setVehicles(updatedList);
+      try {
+        setVehicles(storeSync.deleteVehicle(storeKey, id, defaultVehicles));
+        setError('');
+      } catch (failure) {
+        setError(failure.message || 'Não foi possível remover o veículo.');
+      }
     }
   };
 
   // Abertura do gestor de fotos (E4)
   const handleOpenPhotos = (v) => {
+    photoSession.current += 1;
+    readingPhotos.current = false;
+    setIsReadingPhotos(false);
+    setError('');
     setSelectedVehicle(v);
     setPhotosList(v.photos && v.photos.length > 0 ? [...v.photos] : ['/images/placeholder-carro.jpg']);
     setIsPhotosModalOpen(true);
   };
 
   // Adicionar foto com validação de tipo e tamanho (E4)
-  const handleAddPhotoFile = (e) => {
+  const handleAddPhotoFile = async (e) => {
     const files = Array.from(e.target.files);
-    if (!files.length) return;
+    e.target.value = '';
+    if (!files.length || readingPhotos.current) return;
 
     if (photosList.length + files.length > 20) {
-      alert('Limite excedido: Você pode enviar até no máximo 20 fotos por veículo.');
+      setError('Limite excedido: selecione no máximo 20 fotos por veículo.');
       return;
     }
 
-    // Processamento e validação no cliente (E4)
-    files.forEach(file => {
+    for (const file of files) {
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        alert(`Arquivo inválido (${file.name}). Apenas formatos JPEG, PNG e WebP são aceitos.`);
+        setError(`Arquivo inválido (${file.name}). Apenas JPEG, PNG e WebP são aceitos.`);
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        alert(`Arquivo muito pesado (${file.name}). Tamanho máximo: 10MB.`);
+        setError(`Arquivo muito pesado (${file.name}). Tamanho máximo: 10MB.`);
         return;
       }
-
-      // Converte para URL local otimizada
-      const objectUrl = URL.createObjectURL(file);
-      setPhotosList(prev => [...prev, objectUrl]);
-    });
+    }
+    const session = photoSession.current;
+    readingPhotos.current = true;
+    setIsReadingPhotos(true);
+    setError('');
+    try {
+      // Aguarda o lote inteiro para preservar a ordem e nunca salvar URLs temporárias.
+      const photos = await Promise.all(files.map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error(`Falha ao ler ${file.name}.`));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error(`A imagem ${file.name} não pôde ser aberta.`));
+          image.onload = () => {
+            try {
+              const scale = Math.min(1, 1280 / Math.max(image.width, image.height));
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.max(1, Math.round(image.width * scale));
+              canvas.height = Math.max(1, Math.round(image.height * scale));
+              const context = canvas.getContext('2d');
+              if (!context) throw new Error('Não foi possível processar a imagem.');
+              context.fillStyle = '#ffffff';
+              context.fillRect(0, 0, canvas.width, canvas.height);
+              context.drawImage(image, 0, 0, canvas.width, canvas.height);
+              resolve(canvas.toDataURL('image/jpeg', 0.8));
+            } catch (failure) { reject(failure); }
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      })));
+      if (photoSession.current !== session) return;
+      setPhotosList(previous => [...previous, ...photos]);
+    } catch (failure) {
+      if (photoSession.current === session) setError(failure.message || 'Não foi possível processar as fotos.');
+    } finally {
+      if (photoSession.current === session) {
+        readingPhotos.current = false;
+        setIsReadingPhotos(false);
+      }
+    }
   };
 
   // Definir foto de capa
@@ -267,20 +337,21 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   // Salvar fotos no veículo (E4) com storeSync
   const handleSavePhotos = () => {
+    if (readingPhotos.current) return;
     if (selectedVehicle) {
       const updatedVehicle = {
         ...selectedVehicle,
         cover_photo: photosList[0] || selectedVehicle.cover_photo,
         photos: photosList
       };
-      const updatedList = storeSync.saveVehicle(storeKey, updatedVehicle, defaultVehicles);
-      setVehicles(updatedList);
+      if (!saveVehicle(updatedVehicle)) return;
     }
-    setIsPhotosModalOpen(false);
+    closePhotos();
   };
 
   return (
     <div className="space-y-6 animate-fadeIn">
+      {error && !isModalOpen && !isPhotosModalOpen && <p role="alert" className="p-3 rounded-xl border border-rose-700 text-rose-200 bg-rose-950/40">{error}</p>}
       {/* 1. Barra de Ações do Estoque */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
@@ -356,7 +427,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               <div>
                 {/* Imagem de Capa com Badges */}
                 <div className="relative h-44 w-full bg-slate-950 overflow-hidden">
-                  <img
+                  <VehicleImage
                     src={car.cover_photo || car.imagemPrincipal || '/images/placeholder-carro.jpg'}
                     alt={car.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -486,6 +557,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
             </div>
 
             <form onSubmit={handleSaveVehicle} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+              {error && <p role="alert" className="p-3 rounded-xl border border-rose-700 text-rose-200 bg-rose-950/40">{error}</p>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Modelo / Título *</label>
@@ -515,6 +587,8 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                   <input
                     type="number"
                     required
+                    min="0.01"
+                    step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:border-blue-500 focus:outline-none"
@@ -660,7 +734,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               </div>
               <button
                 type="button"
-                onClick={() => setIsPhotosModalOpen(false)}
+                onClick={closePhotos}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
@@ -668,11 +742,13 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              {error && <p role="alert" className="p-3 rounded-xl border border-rose-700 text-rose-200 bg-rose-950/40">{error}</p>}
+              {isReadingPhotos && <p role="status" className="text-sm text-blue-200">Processando fotos… Aguarde antes de salvar a galeria.</p>}
               {/* Upload de Imagens */}
               <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-900/40 hover:bg-slate-900/80 transition-all text-center">
                 <Upload className="w-8 h-8 text-blue-400 mb-2" />
                 <span className="text-xs sm:text-sm font-semibold text-slate-200">
-                  Clique ou arraste até {20 - photosList.length} fotos adicionais
+                  Selecione até {20 - photosList.length} fotos adicionais
                 </span>
                 <span className="text-[11px] text-slate-400 mt-1">
                   Formatos aceitos: JPG, PNG, WebP (máx. 10MB por foto com compressão automática)
@@ -680,6 +756,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                 <input
                   type="file"
                   multiple
+                  disabled={isReadingPhotos || photosList.length >= 20}
                   accept="image/jpeg,image/png,image/webp"
                   onChange={handleAddPhotoFile}
                   className="hidden"
@@ -698,7 +775,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                         isCover ? 'border-blue-500 shadow-md shadow-blue-500/20 ring-2 ring-blue-500/30' : 'border-slate-800'
                       }`}
                     >
-                      <img src={url} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+                      <VehicleImage src={url} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
 
                       {/* Badge de Capa */}
                       {isCover && (
@@ -765,7 +842,8 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               <button
                 type="button"
                 onClick={handleSavePhotos}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-blue-600/30"
+                disabled={isReadingPhotos}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-wait"
               >
                 Salvar Galeria
               </button>

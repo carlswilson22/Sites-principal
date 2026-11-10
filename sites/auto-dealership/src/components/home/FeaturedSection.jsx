@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React from 'react';
 import { Sparkles, ShieldCheck, CheckCircle2, MessageCircle, ArrowRight, Gauge, Cog, Fuel } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -28,7 +29,7 @@ export function FeaturedSection({ vehicle, onSelect }) {
             </div>
 
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-xl group cursor-pointer" onClick={() => onSelect(vehicle)}>
-              <img
+              <VehicleImage
                 src={vehicle.imagemPrincipal}
                 alt={vehicle.nome}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

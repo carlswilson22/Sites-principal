@@ -9,6 +9,32 @@
  */
 
 const EVENT_PREFIX = 'merchant_store_update_';
+import { normalizeVehicle } from '../utils/vehicles.js';
+
+function readVehicles(storeKey, fallbackData) {
+  const raw = localStorage.getItem(`store_vehicles_${storeKey}`);
+  let parsed;
+  try { parsed = raw === null ? fallbackData : JSON.parse(raw); }
+  catch (error) {
+    throw new Error('O estoque salvo está inválido. Os dados existentes foram preservados.', { cause: error });
+  }
+  if (!Array.isArray(parsed) || parsed.some(vehicle => !vehicle || typeof vehicle !== 'object' || Array.isArray(vehicle))) {
+    throw new Error('O estoque salvo está inválido. Os dados existentes foram preservados.');
+  }
+  return parsed.map(normalizeVehicle);
+}
+
+function persistVehicles(storeKey, vehicles) {
+  try {
+    localStorage.setItem(`store_vehicles_${storeKey}`, JSON.stringify(vehicles));
+  } catch (error) {
+    throw new Error('Não foi possível salvar o estoque neste navegador. Reduza o tamanho ou a quantidade de fotos e verifique o armazenamento disponível.', { cause: error });
+  }
+  window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
+    detail: { type: 'VEHICLES_UPDATED', vehicles }
+  }));
+  return vehicles;
+}
 
 export const storeSync = {
   getRecords(storeKey, collection, fallback = []) {
@@ -40,20 +66,15 @@ export const storeSync = {
    * Obtém os veículos da loja
    */
   getVehicles(storeKey, fallbackData = []) {
-    if (typeof window === 'undefined') return fallbackData;
+    if (typeof window === 'undefined') return fallbackData.map(normalizeVehicle);
     try {
-      const raw = localStorage.getItem(`store_vehicles_${storeKey}`);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
+      const list = readVehicles(storeKey, fallbackData);
+      if (localStorage.getItem(`store_vehicles_${storeKey}`) === null && list.length) {
+        localStorage.setItem(`store_vehicles_${storeKey}`, JSON.stringify(list));
       }
-      // Inicializa com os dados iniciais do modelo se ainda não existir
-      if (fallbackData && fallbackData.length > 0) {
-        localStorage.setItem(`store_vehicles_${storeKey}`, JSON.stringify(fallbackData));
-      }
-      return fallbackData;
+      return list;
     } catch {
-      return fallbackData;
+      return fallbackData.map(normalizeVehicle);
     }
   },
 
@@ -61,13 +82,13 @@ export const storeSync = {
    * Salva ou atualiza um veículo no estoque da loja
    */
   saveVehicle(storeKey, vehicle, fallbackData = []) {
-    const list = this.getVehicles(storeKey, fallbackData);
+    const list = readVehicles(storeKey, fallbackData);
     let updated;
     const exists = list.some(v => v.id === vehicle.id);
     if (exists) {
-      updated = list.map(v => v.id === vehicle.id ? { ...v, ...vehicle, updatedAt: new Date().toISOString() } : v);
+      updated = list.map(v => v.id === vehicle.id ? normalizeVehicle({ ...v, ...vehicle, updatedAt: new Date().toISOString() }) : v);
     } else {
-      const newId = vehicle.id || (list.length > 0 ? Math.max(...list.map(v => Number(v.id) || 0)) + 1 : 1);
+      const newId = vehicle.id ?? (list.length > 0 ? Math.max(...list.map(v => Number(v.id) || 0)) + 1 : 1);
       const newVehicle = {
         ...vehicle,
         id: newId,
@@ -75,38 +96,20 @@ export const storeSync = {
         is_published: vehicle.is_published !== undefined ? vehicle.is_published : 1,
         days_in_stock: vehicle.days_in_stock || 1
       };
-      updated = [newVehicle, ...list];
+      updated = [normalizeVehicle(newVehicle), ...list];
     }
 
-    try {
-      localStorage.setItem(`store_vehicles_${storeKey}`, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
-        detail: { type: 'VEHICLES_UPDATED', vehicles: updated }
-      }));
-    } catch (e) {
-      console.warn('Erro ao persistir veículo no storage:', e);
-    }
-
-    return updated;
+    return persistVehicles(storeKey, updated);
   },
 
   /**
    * Remove um veículo do estoque da loja
    */
   deleteVehicle(storeKey, vehicleId, fallbackData = []) {
-    const list = this.getVehicles(storeKey, fallbackData);
+    const list = readVehicles(storeKey, fallbackData);
     const updated = list.filter(v => v.id !== vehicleId);
 
-    try {
-      localStorage.setItem(`store_vehicles_${storeKey}`, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
-        detail: { type: 'VEHICLES_UPDATED', vehicles: updated }
-      }));
-    } catch (e) {
-      console.warn('Erro ao remover veículo do storage:', e);
-    }
-
-    return updated;
+    return persistVehicles(storeKey, updated);
   },
 
   /**
@@ -226,7 +229,7 @@ export const storeSync = {
         const data = event.newValue === null ? [] : JSON.parse(event.newValue);
         if (!Array.isArray(data)) return;
         for (const name of event.key === null ? collections : [collection]) {
-          callback({ type: `${name.toUpperCase()}_UPDATED`, [name]: data });
+          callback({ type: `${name.toUpperCase()}_UPDATED`, [name]: name === 'vehicles' ? data.map(normalizeVehicle) : data });
         }
       } catch {
         // Ignora dados externos inválidos e preserva o estado atual.

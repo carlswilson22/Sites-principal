@@ -24,7 +24,6 @@ export function HomePage({ vehicles, onNavigate, onSelectVehicle }) {
       <HeroSection onSearch={handleHeroSearch} />
 
       {/* Régua de Estatísticas */}
-      <StatsSection />
 
       {/* Vitrine de Destaques Rápidos */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -140,6 +139,7 @@ export function HomePage({ vehicles, onNavigate, onSelectVehicle }) {
 
       {/* Por que escolher a AutoElite */}
       <WhyUsSection />
+      <StatsSection />
     </div>
   );
 }

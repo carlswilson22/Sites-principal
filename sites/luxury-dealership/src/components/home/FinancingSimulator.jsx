@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { Calculator, ArrowRight, ShieldCheck, Sparkles, Building2, CheckCircle2 } from 'lucide-react';
+import { useFinancingSimulation } from '../../../../../packages/merchant-core/src/hooks/useFinancingSimulation';
+import { Calculator, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { buildFinancingWhatsappLink } from '../../utils/whatsapp';
 import { storeSync } from '../../../../../packages/merchant-core/src';
 
 export function FinancingSimulator({ vehicles = [], preselectedVehicle = null }) {
-  const defaultPrice = preselectedVehicle ? preselectedVehicle.preco : (vehicles[0]?.preco || 2500000);
-  const defaultVehicle = preselectedVehicle || vehicles[0] || null;
+  const {
+    selectedVehicle, price: vehicleValue, downPayment, term, setTerm, setPrice,
+    setDownPayment, selectVehicle, bounds, minimumDownPayment, maximumDownPayment,
+    financedAmount, monthlyPayment
+  } = useFinancingSimulation({
+    vehicles, preselectedVehicle, fallbackPrice: 2500000, downPaymentRatio: 0.3, minimumDownPaymentRatio: 0.2, monthlyRate: 0.0125
+  });
 
-  const [selectedVehicle, setSelectedVehicle] = useState(defaultVehicle);
-  const [vehicleValue, setVehicleValue] = useState(defaultPrice);
-  const [downPayment, setDownPayment] = useState(Math.round(defaultPrice * 0.3));
-  const [term, setTerm] = useState(48);
   const [contact, setContact] = useState({ name: '', phone: '' });
 
   const handleRequest = (event) => {
@@ -29,22 +31,6 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
     storeSync.addLead('drivenow', lead);
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
-
-  const handleVehicleSelect = (e) => {
-    const vId = Number(e.target.value);
-    const found = vehicles.find(v => v.id === vId);
-    if (found) {
-      setSelectedVehicle(found);
-      setVehicleValue(found.preco);
-      setDownPayment(Math.round(found.preco * 0.3));
-    }
-  };
-
-  const financedAmount = Math.max(vehicleValue - downPayment, 0);
-  const monthlyRate = 0.0125; // 1,25% ao mês taxa VIP Private
-  const monthlyPayment = financedAmount > 0 
-    ? Math.round((financedAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -term)))
-    : 0;
 
   const whatsappUrl = buildFinancingWhatsappLink({
     vehicle: selectedVehicle,
@@ -82,8 +68,9 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
                 Selecione o Veículo do Acervo
               </label>
               <select
-                value={selectedVehicle?.id || ''}
-                onChange={handleVehicleSelect}
+                aria-label="Veículo para simulação"
+                value={selectedVehicle?.id ?? ''}
+                onChange={event => selectVehicle(event.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors"
               >
                 {vehicles.map(v => (
@@ -104,15 +91,12 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
               </div>
               <input
                 type="range"
-                min="500000"
-                max="5000000"
-                step="50000"
+                aria-label="Valor do veículo"
+                min={bounds.minimum}
+                max={bounds.maximum}
+                step="0.01"
                 value={vehicleValue}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setVehicleValue(val);
-                  if (downPayment > val) setDownPayment(Math.round(val * 0.3));
-                }}
+                onChange={event => setPrice(event.target.value)}
                 className="w-full accent-amber-500 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
             </div>
@@ -124,11 +108,12 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
               </div>
               <input
                 type="range"
-                min={Math.round(vehicleValue * 0.2)}
-                max={Math.round(vehicleValue * 0.8)}
-                step="25000"
+                aria-label="Valor da entrada"
+                min={minimumDownPayment}
+                max={maximumDownPayment}
+                step="0.01"
                 value={downPayment}
-                onChange={(e) => setDownPayment(Number(e.target.value))}
+                onChange={event => setDownPayment(event.target.value)}
                 className="w-full accent-amber-500 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
             </div>

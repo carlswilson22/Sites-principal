@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
 import { Scale, ArrowRight, X } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -15,7 +16,7 @@ export function ComparisonFloatingBar({ comparedVehicles = [], onOpenComparator,
         <div className="flex items-center gap-2 overflow-x-auto">
           {comparedVehicles.map(v => (
             <div key={v.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 shrink-0">
-              <img src={v.imagemPrincipal} alt={v.nome} className="w-5 h-5 rounded object-cover" />
+              <VehicleImage src={v.imagemPrincipal} alt={v.nome} className="w-5 h-5 rounded object-cover" />
               <span className="text-xs text-white font-medium truncate max-w-[100px]">{v.nome}</span>
             </div>
           ))}

@@ -16,11 +16,11 @@ export function App() {
     { name: 'Filtros Avançados de Showroom (Preço, Câmbio)', essential: false, pro: true, enterprise: true },
     { name: 'Vídeo Pericial Integrado (20 segundos)', essential: false, pro: true, enterprise: true },
     { name: 'Agendamento de Concierge / Test Drive VIP', essential: false, pro: true, enterprise: true },
-    { name: 'Consultor Virtual com Inteligência Artificial', essential: false, false: false, enterprise: true, highlight: true },
-    { name: 'Comparador Técnico Lado a Lado (Até 3 Carros)', essential: false, false: false, enterprise: true },
-    { name: 'Dossiê Cautelar IA (Leilão, Sinistro, Pintura)', essential: false, false: false, enterprise: true },
-    { name: 'Calculadora de Custo Total Anual (TCO)', essential: false, false: false, enterprise: true },
-    { name: 'Sistema de Veículos Favoritos & Alertas de Preço', essential: false, false: false, enterprise: true },
+    { name: 'Consultor Virtual com Inteligência Artificial', essential: false, pro: false, enterprise: true, highlight: true },
+    { name: 'Comparador Técnico Lado a Lado (Até 3 Carros)', essential: false, pro: false, enterprise: true },
+    { name: 'Dossiê Cautelar IA (Leilão, Sinistro, Pintura)', essential: false, pro: false, enterprise: true },
+    { name: 'Calculadora de Custo Total Anual (TCO)', essential: false, pro: false, enterprise: true },
+    { name: 'Sistema de Veículos Favoritos & Alertas de Preço', essential: false, pro: false, enterprise: true },
   ];
 
   return (
@@ -31,7 +31,7 @@ export function App() {
 
         {/* Models Grid Showcase */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="model-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {modelsList.map((model) => (
               <ModelCard key={model.id} model={model} />
             ))}

@@ -19,3 +19,24 @@
   border-color: rgba(37, 99, 235, 0.4);
   box-shadow: 0 14px 34px -4px rgba(37, 99, 235, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
 }
+
+.model-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.model-card-action {
+  margin-top: auto;
+}
+
+/* Share tracks between neighboring cards without clipping longer content. */
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 768px) {
+    .model-card {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: span 6;
+      row-gap: 0;
+    }
+  }
+}

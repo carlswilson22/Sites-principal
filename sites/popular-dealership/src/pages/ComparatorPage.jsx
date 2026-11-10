@@ -1,3 +1,4 @@
+import { VehicleImage } from '../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
 import { Scale, ArrowRight, X, Car, Plus } from 'lucide-react';
 import { formatCurrency, formatKm, calculateFipeDiff } from '../utils/formatters';
@@ -43,7 +44,7 @@ export function ComparatorPage({
 
                   <div className="space-y-3">
                     <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-slate-950 relative">
-                      <img src={car.imagemPrincipal} alt={car.nome} className="w-full h-full object-cover" />
+                      <VehicleImage src={car.imagemPrincipal} alt={car.nome} className="w-full h-full object-cover" />
                       {fipe && (
                         <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-emerald-500/90 text-black text-[10px] font-bold">
                           {fipe.label}

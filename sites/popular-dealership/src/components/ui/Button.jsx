@@ -35,7 +35,7 @@ export function Button({
 
   if (href) {
     return (
-      <a href={href} target={target} rel={rel} className={classes} {...props}>
+      <a href={disabled ? undefined : href} target={target} rel={rel} aria-disabled={disabled || undefined} onClick={disabled ? event => event.preventDefault() : onClick} className={classes} {...props}>
         {Icon && iconPosition === 'left' && <Icon className="w-4 h-4 shrink-0" />}
         <span>{children}</span>
         {Icon && iconPosition === 'right' && <Icon className="w-4 h-4 shrink-0" />}

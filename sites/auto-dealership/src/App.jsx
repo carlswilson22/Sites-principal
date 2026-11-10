@@ -1,3 +1,4 @@
+import { dealershipInfo } from './data/dealershipInfo';
 import React, { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
@@ -9,50 +10,18 @@ import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { buildGeneralWhatsappLink } from './utils/whatsapp';
-import { 
-  AuthProvider, 
-  TierProvider, 
-  MerchantShell, 
-  DashboardView, 
-  InventoryView, 
-  LeadsView, 
-  LoginView, 
-  useAuth,
-  storeSync
-} from '../../../packages/merchant-core/src';
+import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchant-core/src';
+import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
+import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 
-function MerchantPanelContainer({ onExitToSite }) {
-  const { isAuthenticated } = useAuth();
-  const [merchantTab, setMerchantTab] = useState('dashboard');
-
-  if (!isAuthenticated) {
-    return (
-      <LoginView
-        onLoginSuccess={() => setMerchantTab('dashboard')}
-        onCancel={onExitToSite}
-      />
-    );
-  }
-
-  return (
-    <MerchantShell
-      storeName="AutoElite Seminovos"
-      activeTab={merchantTab}
-      onSelectTab={setMerchantTab}
-      onExitToSite={onExitToSite}
-    >
-      {merchantTab === 'dashboard' && <DashboardView onNavigateTo={setMerchantTab} storeKey="autoelite" />}
-      {merchantTab === 'inventory' && <InventoryView storeKey="autoelite" defaultVehicles={vehiclesData} />}
-      {merchantTab === 'leads' && <LeadsView storeKey="autoelite" />}
-    </MerchantShell>
-  );
-}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [searchFilter, setSearchFilter] = useState({ term: '', category: 'todos' });
   const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('autoelite', vehiclesData));
+
+  const publishedVehicles = vehicles.filter(isPublishedVehicle);
 
   useEffect(() => {
     const unsub = storeSync.subscribe('autoelite', (detail) => {
@@ -88,7 +57,7 @@ export default function App() {
     return (
       <AuthProvider>
         <TierProvider tier={1}>
-          <MerchantPanelContainer onExitToSite={() => navigateTo('home')} />
+          <MerchantPanel storeKey="autoelite" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
         </TierProvider>
       </AuthProvider>
     );
@@ -103,7 +72,7 @@ export default function App() {
       <main className="flex-1">
         {currentPage === 'home' && (
           <HomePage
-            vehicles={vehicles}
+            vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />
@@ -111,7 +80,7 @@ export default function App() {
 
         {currentPage === 'estoque' && (
           <InventoryPage
-            vehicles={vehicles}
+            vehicles={publishedVehicles}
             searchFilter={searchFilter}
             onClearFilter={() => setSearchFilter({ term: '', category: 'todos' })}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
@@ -120,7 +89,7 @@ export default function App() {
 
         {currentPage === 'destaques' && (
           <FeaturedPage
-            vehicles={vehicles}
+            vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
           />

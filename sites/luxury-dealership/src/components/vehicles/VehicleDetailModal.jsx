@@ -1,3 +1,5 @@
+import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
+import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React, { useState, useEffect } from 'react';
 import { 
   X, Shield, CheckCircle2, MessageCircle, Calendar, 
@@ -10,14 +12,15 @@ import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
 export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
+  const dialogRef = useDialog();
   const images = vehicle?.imagens && vehicle.imagens.length > 0 ? vehicle.imagens : [vehicle?.imagemPrincipal || ''];
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState('360'); // '360' | 'galeria' | 'laudo' | 'ficha'
+  const [activeTab, setActiveTab] = useState('galeria'); // '360' | 'galeria' | 'laudo' | 'ficha'
 
   useEffect(() => {
     if (vehicle) {
       setCurrentIndex(0);
-      setActiveTab('360');
+      setActiveTab('galeria');
     }
   }, [vehicle]);
 
@@ -45,7 +48,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
   const currentImage = images[currentIndex] || vehicle.imagemPrincipal;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
       <div 
         className="relative w-full max-w-4xl bg-[#090a10] border border-amber-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto"
         onClick={(e) => e.stopPropagation()}
@@ -135,7 +138,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
             {activeTab === 'galeria' && (
               <div className="space-y-3">
                 <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-black border border-white/10 group">
-                  <img
+                  <VehicleImage
                     src={currentImage}
                     alt={`${vehicle.nome} - Foto ${currentIndex + 1}`}
                     className="w-full h-full object-cover transition-all duration-300"
@@ -178,7 +181,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
                             : 'border-white/10 opacity-60 hover:opacity-100'
                         }`}
                       >
-                        <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                        <VehicleImage src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>

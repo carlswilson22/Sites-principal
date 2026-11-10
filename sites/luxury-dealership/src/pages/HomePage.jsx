@@ -61,7 +61,6 @@ export function HomePage({ vehicles, onNavigate, onSelectVehicle }) {
       </HeroVideoScrub>
 
       {/* Régua de Estatísticas */}
-      <StatsSection />
 
       {/* Vitrine de Destaques VIP */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -165,6 +164,7 @@ export function HomePage({ vehicles, onNavigate, onSelectVehicle }) {
 
       {/* Por que escolher a Apex */}
       <WhyUsSection />
+      <StatsSection />
     </div>
   );
 }

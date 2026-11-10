@@ -1,33 +1,18 @@
-﻿import React, { useState } from 'react';
-import { Calculator, ArrowRight, Zap, CheckCircle2 } from 'lucide-react';
+﻿import React from 'react';
+import { useFinancingSimulation } from '../../../../../packages/merchant-core/src/hooks/useFinancingSimulation';
+import { Calculator, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { buildFinancingWhatsappLink } from '../../utils/whatsapp';
 
 export function FinancingSimulator({ vehicles = [], preselectedVehicle = null }) {
-  const defaultPrice = preselectedVehicle ? preselectedVehicle.preco : (vehicles[0]?.preco || 95000);
-  const defaultVehicle = preselectedVehicle || vehicles[0] || null;
-
-  const [selectedVehicle, setSelectedVehicle] = useState(defaultVehicle);
-  const [carPrice, setCarPrice] = useState(defaultPrice);
-  const [downPayment, setDownPayment] = useState(Math.round(defaultPrice * 0.25));
-  const [term, setTerm] = useState(48);
-
-  const handleVehicleSelect = (e) => {
-    const vId = Number(e.target.value);
-    const found = vehicles.find(v => v.id === vId);
-    if (found) {
-      setSelectedVehicle(found);
-      setCarPrice(found.preco);
-      setDownPayment(Math.round(found.preco * 0.25));
-    }
-  };
-
-  const financed = Math.max(carPrice - downPayment, 0);
-  const monthlyRate = 0.0145; // 1,45% a.m.
-  const monthlyPayment = financed > 0
-    ? Math.round((financed * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -term)))
-    : 0;
+  const {
+    selectedVehicle, price: carPrice, downPayment, term, setTerm, setPrice,
+    setDownPayment, selectVehicle, bounds, minimumDownPayment, maximumDownPayment,
+    financedAmount: financed, monthlyPayment
+  } = useFinancingSimulation({
+    vehicles, preselectedVehicle, fallbackPrice: 95000, downPaymentRatio: 0.25, minimumDownPaymentRatio: 0, monthlyRate: 0.0145
+  });
 
   const whatsappUrl = buildFinancingWhatsappLink({
     vehicle: selectedVehicle,
@@ -64,8 +49,9 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
                 Selecione o Modelo para Simulação
               </label>
               <select
-                value={selectedVehicle?.id || ''}
-                onChange={handleVehicleSelect}
+                aria-label="Veículo para simulação"
+                value={selectedVehicle?.id ?? ''}
+                onChange={event => selectVehicle(event.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400 transition-colors"
               >
                 {vehicles.map(v => (
@@ -86,15 +72,12 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
               </div>
               <input
                 type="range"
-                min="40000"
-                max="250000"
-                step="5000"
+                aria-label="Valor do veículo"
+                min={bounds.minimum}
+                max={bounds.maximum}
+                step="0.01"
                 value={carPrice}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setCarPrice(val);
-                  if (downPayment > val) setDownPayment(Math.round(val * 0.25));
-                }}
+                onChange={event => setPrice(event.target.value)}
                 className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
             </div>
@@ -106,11 +89,12 @@ export function FinancingSimulator({ vehicles = [], preselectedVehicle = null })
               </div>
               <input
                 type="range"
-                min="0"
-                max={Math.round(carPrice * 0.8)}
-                step="2000"
+                aria-label="Valor da entrada"
+                min={minimumDownPayment}
+                max={maximumDownPayment}
+                step="0.01"
                 value={downPayment}
-                onChange={(e) => setDownPayment(Number(e.target.value))}
+                onChange={event => setDownPayment(event.target.value)}
                 className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
               />
             </div>
