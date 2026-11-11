@@ -1,183 +1,39 @@
+import React from 'react';
+import { ArrowDown, BookOpen, ListChecks, MessageCircle } from 'lucide-react';
 import { StoreContactDetails } from '../../../../packages/merchant-core/src/components/layout/StoreContactDetails';
 import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
-import { vehiclesData } from '../data/vehicles';
-import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
-﻿import React, { useState } from 'react';
-import { Building2, Send, CheckCircle2 } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { StoreInquiryForm } from '../../../../packages/merchant-core/src/components/common/StoreInquiryForm';
 import { WhyUsSection } from '../components/home/WhyUsSection';
 import { dealershipInfo } from '../data/dealershipInfo';
+import { vehiclesData } from '../data/vehicles';
+
+const sections = [
+  { href: '#historia-enterprise', label: 'Nossa história', Icon: BookOpen },
+  { href: '#como-ajudamos-enterprise', label: 'Como ajudamos', Icon: ListChecks },
+  { href: '#contato-enterprise', label: 'Fale com a equipe', Icon: MessageCircle },
+];
 
 export function AboutContactPage() {
-  const [contactForm, setContactForm] = useState({
-    nome: '',
-    email: '',
-    telefone: '',
-    assunto: 'Dúvidas sobre Veículos e Financiamento',
-    mensagem: ''
-  });
+  return <div data-about-layout="directory" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 space-y-8 sm:space-y-10">
+    <header className="space-y-3"><p className="text-xs text-cyan-300 font-semibold uppercase tracking-widest">{dealershipInfo.nome} · Pessoas e atendimento</p><h1 className="font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight">Sobre Nós e Contato</h1><p className="text-slate-400 max-w-2xl leading-relaxed">Conheça a loja, entenda como podemos ajudar e encontre o melhor caminho para falar com nossa equipe.</p></header>
+    <div className="grid xl:grid-cols-[12rem_minmax(0,1fr)] gap-8 xl:gap-12 items-start">
+      <aside className="xl:sticky xl:top-44"><nav aria-label="Nesta página" className="flex xl:flex-col gap-2 overflow-x-auto pb-2">{sections.map(({ href, label, Icon }) => <a key={href} href={href} className="shrink-0 min-h-12 rounded-xl bg-slate-900/70 hover:bg-slate-800 text-slate-200 px-4 py-3 flex items-center gap-3 text-sm"><Icon aria-hidden="true" className="w-4 h-4 text-cyan-300 shrink-0" />{label}</a>)}</nav></aside>
+      <div className="min-w-0 space-y-12 sm:space-y-16">
+        <section id="historia-enterprise" aria-labelledby="enterprise-story" className="scroll-mt-44 grid md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-center">
+          <div className="space-y-5"><p className="text-xs uppercase tracking-widest text-cyan-300">Nossa história</p><h2 id="enterprise-story" className="text-3xl font-heading font-bold text-white leading-tight">Tecnologia para explorar.<br />Pessoas para ajudar.</h2><p className="text-slate-300 leading-relaxed">A {dealershipInfo.nome} aproxima a pesquisa online da conversa com a loja. Aqui, você pode conhecer os veículos, organizar suas opções e chegar ao atendimento com uma ideia mais clara do que procura.</p><p className="text-sm text-slate-400 leading-relaxed">As ferramentas ajudam na pesquisa. Nossa equipe está disponível para esclarecer informações, conversar sobre condições e acompanhar os próximos passos.</p><a href="#contato-enterprise" className="inline-flex min-h-11 items-center gap-2 text-sm text-cyan-300 font-semibold">Encontre nossa equipe<ArrowDown aria-hidden="true" className="w-4 h-4" /></a></div>
+          <StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} imageClassName="w-full aspect-[4/3] object-contain bg-slate-900/60 rounded-3xl" />
+        </section>
 
-  const [messageSent, setMessageSent] = useState(false);
+        <WhyUsSection />
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setContactForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    const text = 
-      `⚡ *Nova Mensagem via Site - ${dealershipInfo.nome}*\n\n` +
-      `• *Nome:* ${contactForm.nome}\n` +
-      `• *Telefone:* ${contactForm.telefone}\n` +
-      `• *E-mail:* ${contactForm.email}\n` +
-      `• *Assunto:* ${contactForm.assunto}\n` +
-      `• *Mensagem:* ${contactForm.mensagem}`;
-
-    const url = `https://wa.me/${dealershipInfo.whatsapp}?text=${encodeURIComponent(text)}`;
-    siteAnalytics.track('apexluxury', { type: 'whatsapp_click', page: 'sobre-contato' });
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setMessageSent(true);
-    setTimeout(() => setMessageSent(false), 5000);
-  };
-
-  return (
-    <div className="pb-12 sm:pb-16 space-y-10 sm:space-y-14">
-      <div className="pt-6 sm:pt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-2">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Institucional & Showroom</span>
+        <section id="contato-enterprise" aria-labelledby="enterprise-contact" className="scroll-mt-44 space-y-6">
+          <div className="space-y-2"><p className="text-xs uppercase tracking-widest text-cyan-300">Central de contato</p><h2 id="enterprise-contact" className="text-3xl font-heading font-bold text-white">Como podemos ajudar?</h2><p className="text-sm text-slate-400 max-w-2xl leading-relaxed">Prepare sua mensagem ou consulte os canais, horários e localização. Visitas são combinadas com o lojista pelo WhatsApp.</p></div>
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem] gap-6 items-start">
+            <div className="min-w-0 rounded-3xl bg-slate-900/50 p-5 sm:p-7"><StoreInquiryForm dealership={dealershipInfo} storeKey="apexluxury" /></div>
+            <div className="min-w-0 space-y-4"><p className="text-sm text-slate-300 font-semibold">Informações da loja</p><StoreContactDetails dealership={dealershipInfo} tone="cyan" presentation="directory" /></div>
           </div>
-          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Sobre Nós e Contato</h1>
-          <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
-            Conheça a {dealershipInfo.nome}, nosso padrão de periciamento digital e venha tomar um café em nossa mega-loja no SIA.
-          </p>
-        </div>
+        </section>
       </div>
-
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Texto Institucional */}
-          <div className="lg:col-span-6 space-y-6">
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Nossa Missão</span>
-              <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-                Transparência Digital e Financiamento Descomplicado
-              </h2>
-            </div>
-
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
-              A <strong className="text-white font-semibold">{dealershipInfo.nome}</strong> nasceu para transformar a jornada de compra de seminovos. Unimos tecnologia, inteligência artificial e rigor pericial para que você compre seu veículo com segurança absoluta.
-            </p>
-
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
-              Todos os nossos veículos possuem Laudo Cautelar Digital com 100% de aprovação, 1 ano de garantia total e aprovação bancária em até 15 minutos com os principais bancos do país.
-            </p>
-
-            <StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} />
-
-            {/* Endereço e Contato */}
-            <StoreContactDetails dealership={dealershipInfo} stacked tone="cyan" />
-          </div>
-
-          {/* Formulário de Contato Completo (Base Obrigatória) */}
-          <div className="lg:col-span-6 p-8 rounded-3xl bg-[#090d16] border border-cyan-500/30 shadow-2xl space-y-6">
-            <div className="space-y-1">
-              <span className="text-xs uppercase tracking-widest text-cyan-400 font-bold">Atendimento Online</span>
-              <h3 className="font-heading text-2xl font-bold text-white">Envie sua Mensagem</h3>
-              <p className="text-xs text-slate-400">Nossa equipe retornará imediatamente no seu WhatsApp ou telefone.</p>
-            </div>
-
-            {messageSent && (
-              <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Mensagem enviada com sucesso! Consultor de plantão conectado.</span>
-              </div>
-            )}
-
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">Nome Completo *</label>
-                <input
-                  type="text"
-                  name="nome"
-                  required
-                  placeholder="Seu nome completo"
-                  value={contactForm.nome}
-                  onChange={handleFormChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-slate-300 block mb-1">WhatsApp / Telefone *</label>
-                  <input
-                    type="tel"
-                    name="telefone"
-                    required
-                    placeholder="(61) 99999-9999"
-                    value={contactForm.telefone}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-300 block mb-1">E-mail</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="seuemail@exemplo.com"
-                    value={contactForm.email}
-                    onChange={handleFormChange}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">Assunto</label>
-                <select
-                  name="assunto"
-                  value={contactForm.assunto}
-                  onChange={handleFormChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400"
-                >
-                  <option value="Dúvidas sobre Veículos e Financiamento">Dúvidas sobre Veículos e Financiamento</option>
-                  <option value="Simulação de Crédito Bancário">Simulação de Crédito Bancário</option>
-                  <option value="Avaliação de Usado na Troca">Avaliação de Usado na Troca</option>
-                  <option value="Outros Assuntos">Outros Assuntos</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">Mensagem</label>
-                <textarea
-                  name="mensagem"
-                  required
-                  rows="3"
-                  placeholder="Como podemos te ajudar hoje?"
-                  value={contactForm.mensagem}
-                  onChange={handleFormChange}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400 resize-none"
-                ></textarea>
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                icon={Send}
-                className="w-full py-4 text-center justify-center font-bold"
-              >
-                Enviar Mensagem para o Plantão
-              </Button>
-            </form>
-          </div>
-        </div>
-      </section>
-      <WhyUsSection />
     </div>
-  );
+  </div>;
 }

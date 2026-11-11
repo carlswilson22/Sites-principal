@@ -60,7 +60,7 @@ for (const [name, Component, props] of [
     if (name.startsWith('modelo-') || name.startsWith('sobre-modelo-')) {
       if (html.includes('data-store-highlight=') || ['Carros entregues com sucesso', 'Veículos periciados', 'Pré-análise de crédito', 'Veículos disponíveis'].some(label => html.includes(label))) throw new Error('Indicadores antigos ainda presentes');
       if (html.includes('Pedido de visita') || html.includes('Visitas e showroom')) throw new Error('Navegação antiga de visitas ainda presente');
-      if (!html.includes('Sobre Nós e Contato')) throw new Error('Página institucional ausente');
+      if (!html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').includes('Sobre Nós e Contato')) throw new Error('Página institucional ausente');
     }
     if (name.startsWith('sobre-modelo-') && (!html.includes('data-store-photo=') || html.includes('type="date"'))) throw new Error('Página institucional sem foto ou com agendamento');
     if (name.startsWith('sobre-modelo-')) {

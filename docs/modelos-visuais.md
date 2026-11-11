@@ -17,6 +17,22 @@ No celular, os conteúdos se empilham, os filtros ficam antes dos resultados e
 os menus podem ser percorridos horizontalmente. A visualização 360° continua
 incluída somente no modelo 3. Atendimento e financiamento permanecem no anúncio.
 
+## Sobre Nós e Contato
+
+- **DriveNow:** composição editorial com foto panorâmica, narrativa em capítulos,
+  valores em lista e canais de contato em uma faixa aberta. O formulário tem
+  os dados pessoais em uma coluna e a mensagem em outra, como uma carta à loja.
+- **Enterprise:** navegação pelas seções da página, história e fotografia lado
+  a lado, etapas de compra e uma central de contato. Canais, horários e endereço
+  ficam em painéis expansíveis ao lado do formulário, que começa pelo assunto.
+
+As páginas mantêm os dados de contato em um único lugar e o rodapé compacto.
+O encaminhamento ao WhatsApp exige o envio explícito do formulário. A interface
+informa que a mensagem foi preparada; o cliente continua no WhatsApp para enviá-la.
+Os formulários validam nome, telefone e mensagem e registram o contato na própria
+loja quando há armazenamento disponível. A foto permanece identificada como
+ilustrativa, com crédito. O modelo 1 mantém sua composição atual.
+
 ## Inicialização e GitHub Pages
 
 Os arquivos publicados do primeiro modelo responderam com sucesso durante a

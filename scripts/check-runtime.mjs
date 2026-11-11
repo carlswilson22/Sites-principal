@@ -20,6 +20,8 @@ for (const [model, scenario] of scenarios) {
   virtualConsole.on('error', (...args) => failures.push(args.map(String).join(' ')));
   const dom = new JSDOM(html, { url: `https://carlswilson22.github.io/Sites-principal/${model}/`, runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
   const { window } = dom;
+  const openedWindows = [];
+  window.open = (...args) => { openedWindows.push(args); return null; };
   window.matchMedia = query => ({ matches: scenario !== 'motion' && query.includes('prefers-reduced-motion'), media: query, ...(scenario === 'legacy-media' ? { addListener() {}, removeListener() {} } : { addEventListener() {}, removeEventListener() {} }) });
   if (scenario === 'no-media') delete window.matchMedia;
   if (scenario === 'invalid-storage') window.localStorage.setItem('store_vehicles_autoelite', '{invalid');
@@ -81,6 +83,38 @@ for (const [model, scenario] of scenarios) {
     button('Sobre Nós e Contato').click();
     await wait(() => document.querySelector('[data-store-photo]'));
     assert.equal(document.querySelectorAll('a[href^="mailto:"]').length, 1, 'Contato duplicado na página institucional');
+    if (scenario === 'normal' && model !== 'auto-dealership') {
+      const inquiry = document.querySelector('form[data-store-inquiry]');
+      assert(inquiry, 'Formulário institucional ausente');
+      inquiry.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      await wait(() => inquiry.querySelector('[role="alert"]'));
+      assert.equal(openedWindows.length, 0, 'Contato inválido abriu o WhatsApp');
+      for (const [name, value] of Object.entries({ nome: 'Cliente de Teste', telefone: '(61) 90000-0000', email: 'cliente@example.test', mensagem: 'Quero conhecer melhor um veículo do catálogo.' })) {
+        const input = inquiry.elements.namedItem(name);
+        const prototype = input.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+        Object.getOwnPropertyDescriptor(prototype, 'value').set.call(input, value);
+        input.dispatchEvent(new window.Event('input', { bubbles: true }));
+      }
+      await new Promise(resolve => setTimeout(resolve, 20));
+      inquiry.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      await wait(() => openedWindows.length === 1);
+      const destination = new URL(openedWindows[0][0]);
+      assert.equal(destination.hostname, 'wa.me');
+      assert(destination.searchParams.get('text').includes('Cliente de Teste') && destination.searchParams.get('text').includes('Quero conhecer melhor um veículo do catálogo.'), 'Mensagem perdeu os dados do cliente');
+      const storeKey = inquiry.dataset.storeInquiry;
+      const leads = JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`));
+      assert(leads.some(lead => lead.name === 'Cliente de Teste' && lead.source === 'formulario_site'), 'Contato não acompanha a loja no painel');
+      assert.equal(inquiry.querySelector('[role="alert"]'), null);
+      assert(inquiry.querySelector('[role="status"]').textContent.includes('Continue no WhatsApp'), 'Confirmação de encaminhamento incorreta');
+      if (model === 'popular-dealership') {
+        const address = [...document.querySelectorAll('details')].find(item => item.querySelector('summary')?.textContent.includes('Endereço'));
+        assert(address && !address.open, 'Diretório de contato indisponível');
+        address.querySelector('summary').click();
+        await wait(() => address.open);
+        const sectionLinks = [...document.querySelectorAll('nav[aria-label="Nesta página"] a')];
+        assert(sectionLinks.length && sectionLinks.every(link => document.getElementById(link.hash.slice(1))), 'Navegação institucional aponta para uma seção ausente');
+      }
+    }
     button('Início').click();
     await wait(() => document.querySelector('[data-store-layout]'));
     if (scenario === 'normal' && model === 'auto-dealership') {
