@@ -207,6 +207,44 @@ for (const [model, scenario] of scenarios) {
     ads[0].click();
     await wait(() => document.querySelector('[role="dialog"]'));
     if (fullFlow) {
+      const vehicleAd = document.querySelector('[role="dialog"]');
+      const mainGallery = vehicleAd.querySelector('[data-vehicle-gallery]');
+      const tools = vehicleAd.querySelector('[data-vehicle-tools]');
+      const services = vehicleAd.querySelector('[data-vehicle-services]');
+      assert(mainGallery && tools && services, 'Anúncio sem galeria ou ferramentas');
+      assert(services.compareDocumentPosition(tools) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Ferramentas não estão no final do anúncio');
+      const controls = [...tools.querySelectorAll('[data-ad-tool]')];
+      const panelFor = control => document.getElementById(control.getAttribute('aria-controls'));
+      assert(controls.length > 0 && controls.every(control => control.getAttribute('aria-expanded') === 'false' && panelFor(control).hidden && !panelFor(control).childElementCount), 'Ferramentas carregadas antes do clique');
+      for (const control of controls) {
+        const panel = panelFor(control);
+        control.click();
+        await wait(() => control.getAttribute('aria-expanded') === 'true' && !panel.hidden && panel.childElementCount > 0);
+        assert(mainGallery.isConnected && mainGallery.querySelector('img'), 'Ferramenta substituiu as fotos principais');
+        if (control.dataset.adTool === 'galeria') assert.equal(panel.querySelectorAll('figure').length, mainGallery.querySelectorAll('[data-photo-index]').length, 'Galeria expandida perdeu fotos');
+        if (control.dataset.adTool === 'tco') {
+          await changeField(panel.querySelector('input[type="range"]'), '1800');
+          await wait(() => panel.textContent.includes('1800 km/mês'));
+        }
+        control.click();
+        await wait(() => control.getAttribute('aria-expanded') === 'false' && panel.hidden);
+        if (control.dataset.adTool === '360') assert.equal(panel.childElementCount, 0, 'Visualizador 360° continuou ativo após fechar');
+        control.click();
+        await wait(() => control.getAttribute('aria-expanded') === 'true' && !panel.hidden);
+        if (control.dataset.adTool === 'tco') assert.equal(panel.querySelector('input[type="range"]').value, '1800', 'Fechar a TCO apagou a simulação');
+        control.click();
+        await wait(() => panel.hidden);
+      }
+      if (controls.length > 1) {
+        controls[0].click();
+        await wait(() => !panelFor(controls[0]).hidden);
+        controls.at(-1).click();
+        await wait(() => panelFor(controls[0]).hidden && !panelFor(controls.at(-1)).hidden);
+        controls.at(-1).click();
+        await wait(() => panelFor(controls.at(-1)).hidden);
+      }
+      assert(!loginForm(), 'Ferramenta pública do anúncio exigiu login');
+      console.log(`OK: ${model} (ferramentas no final, abertura, segundo clique fecha e galeria preservada)`);
       button('Atendimento sobre este veículo').click();
       await wait(() => document.querySelector('[data-concierge-vehicle] textarea'));
       assert(!loginForm(), 'Atendimento público exigiu login');

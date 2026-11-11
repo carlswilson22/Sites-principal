@@ -1,3 +1,5 @@
+import { VehicleAdTools } from '../../../../../packages/merchant-core/src/components/common/VehicleAdTools';
+import { VehicleExpandedGallery } from '../../../../../packages/merchant-core/src/components/common/VehicleExpandedGallery';
 import { VehicleThumbnails } from '../../../../../packages/merchant-core/src/components/common/VehicleThumbnails';
 import { VehicleAdServices } from '../../../../../packages/merchant-core/src/components/common/VehicleAdServices';
 import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
@@ -8,9 +10,9 @@ import { useDialog } from '../../../../../packages/merchant-core/src/components/
 import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  X, ShieldCheck, CheckCircle2, MessageCircle, Calendar, 
-  Gauge, Cog, Fuel, Award, ChevronLeft, ChevronRight, Share2, Mail,
+import {
+  X, ShieldCheck, CheckCircle2, MessageCircle, Calendar,
+  Gauge, Cog, Fuel, ChevronLeft, ChevronRight,
   RotateCw, Camera
 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -31,14 +33,10 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
   useEffect(() => {
     setCurrentIndex(previous => galleryIndex(previous, images.length));
   }, [images.length]);
-  const [activeTab, setActiveTab] = useState('laudo'); // 'laudo' | 'ficha' | 'opcionais'
-  const [mediaMode, setMediaMode] = useState('photos'); // 'photos' | '360'
 
   useEffect(() => {
     if (vehicle) {
       setCurrentIndex(0);
-      setActiveTab('laudo');
-      setMediaMode('photos');
     }
   }, [vehicle]);
 
@@ -46,13 +44,13 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isTopDialog(dialogRef.current)) return;
-      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
-      if (e.key === 'ArrowRight' && mediaMode === 'photos') handleNextImage();
-      if (e.key === 'ArrowLeft' && mediaMode === 'photos') handlePrevImage();
+      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable], [data-vehicle-tools]')) return;
+      if (e.key === 'ArrowRight') handleNextImage();
+      if (e.key === 'ArrowLeft') handlePrevImage();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, currentIndex, images.length, mediaMode]);
+  }, [onClose, currentIndex, images.length]);
 
   if (!vehicle) return null;
 
@@ -122,85 +120,47 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
             </div>
           </div>
 
-          {/* Seletor de Modo: Fotos HD ou 360° Orbital */}
+          {/* Galeria principal */}
+          <div data-vehicle-gallery className="space-y-3">
+            <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+              <VehicleImage
+                src={currentImage}
+                fetchPriority="high"
+                alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
+                className="w-full h-full object-cover transition-all duration-300"
+              />
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setMediaMode('photos')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                mediaMode === 'photos'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
-              }`}
-            >
-              <Camera className="w-3.5 h-3.5" />
-              <span>Fotos em Alta Definição ({images.length})</span>
-            </button>
+              {/* Controles de Navegação Anterior / Próxima */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePrevImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
+                    title="Foto anterior"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
 
-            {hasVehicle360(dealershipInfo) && (<button
-              data-feature="vehicle-360"
-                onClick={() => setMediaMode('360')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                mediaMode === '360'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
-              }`}
-            >
-              <RotateCw className="w-3.5 h-3.5 text-blue-400" />
-              <span>Visualizador 360° Orbital Interativo</span>
-            </button>)}
+                  <button
+                    onClick={handleNextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
+                    title="Próxima foto"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+                <div role="status" aria-live="polite" className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-700 text-xs font-semibold text-white">
+                  {images.length ? `Foto ${imageIndex + 1} de ${images.length}` : 'Sem fotos cadastradas'}
+                </div>
+
+            </div>
+
+            <VehiclePhotoCredit src={currentImage} />
+
+            {/* Fila de Miniaturas (Thumbnails) */}
+            <VehicleThumbnails images={images} imageIndex={imageIndex} onSelect={setCurrentIndex} vehicleName={vehicle.nome} />
           </div>
-
-          {/* Exibição da Mídia */}
-          {hasVehicle360(dealershipInfo) && mediaMode === '360' ? (
-            <div className="space-y-2">
-              {orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-8 rounded-2xl bg-slate-950/60 border border-slate-700 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p>}
-              {orbitalImages.length > 0 && <p className="text-xs text-slate-400 text-center">
-                Use o mouse ou o touch para arrastar e inspecionar o veículo em 360 graus.
-              </p>}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
-                <VehicleImage
-                  src={currentImage}
-                  fetchPriority="high"
-                  alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
-                  className="w-full h-full object-cover transition-all duration-300"
-                />
-
-                {/* Controles de Navegação Anterior / Próxima */}
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={handlePrevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
-                      title="Foto anterior"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-
-                    <button
-                      onClick={handleNextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
-                      title="Próxima foto"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-                  <div role="status" aria-live="polite" className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-700 text-xs font-semibold text-white">
-                    {images.length ? `Foto ${imageIndex + 1} de ${images.length}` : 'Sem fotos cadastradas'}
-                  </div>
-
-              </div>
-
-              <VehiclePhotoCredit src={currentImage} />
-
-              {/* Fila de Miniaturas (Thumbnails) */}
-              <VehicleThumbnails images={images} imageIndex={imageIndex} onSelect={setCurrentIndex} vehicleName={vehicle.nome} />
-            </div>
-          )}
 
           {/* Grid de Especificações Rápidas */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80">
@@ -237,56 +197,11 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
             </div>
           </div>
 
-          {/* Abas de Detalhamento: Laudo / Opcionais / Ficha Técnica */}
-          <div className="space-y-4">
-            <div className="flex border-b border-slate-800">
-              <button
-                onClick={() => setActiveTab('laudo')}
-                className={`pb-3 px-4 text-xs font-bold transition-all relative ${
-                  activeTab === 'laudo'
-                    ? 'text-blue-400'
-                    : 'text-slate-400 hover:text-slate-300'
-                }`}
-              >
-                Laudo Pericial Cautelar
-                {activeTab === 'laudo' && (
-                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full" />
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab('opcionais')}
-                className={`pb-3 px-4 text-xs font-bold transition-all relative ${
-                  activeTab === 'opcionais'
-                    ? 'text-blue-400'
-                    : 'text-slate-400 hover:text-slate-300'
-                }`}
-              >
-                Itens de Série & Opcionais
-                {activeTab === 'opcionais' && (
-                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full" />
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab('ficha')}
-                className={`pb-3 px-4 text-xs font-bold transition-all relative ${
-                  activeTab === 'ficha'
-                    ? 'text-blue-400'
-                    : 'text-slate-400 hover:text-slate-300'
-                }`}
-              >
-                Ficha Técnica Completa
-                {activeTab === 'ficha' && (
-                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full" />
-                )}
-              </button>
-            </div>
-
-            {/* Conteúdo da Aba Ativa */}
-            <div className="pt-2">
-              {/* Aba: Laudo Cautelar */}
-              {activeTab === 'laudo' && (
+          <VehicleAdServices ref={servicesRef} key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="autoelite" initialFinancing={initialFinancing} />
+          <VehicleAdTools key={`tools-${vehicle.id}`} theme="blue" tools={[
+            { id: 'galeria', label: `Fotos em Alta Definição (${images.length})`, icon: Camera, content: <VehicleExpandedGallery images={images} vehicleName={vehicle.nome} /> },
+            ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-5 rounded-2xl border border-slate-700 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),
+            { id: 'laudo', label: 'Laudo Pericial Cautelar', icon: ShieldCheck, content: (
                 <div className="space-y-3">
                   <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-3">
                     <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
@@ -332,10 +247,8 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
                     </div>
                   </div>
                 </div>
-              )}
-
-              {/* Aba: Opcionais */}
-              {activeTab === 'opcionais' && (
+            ) },
+            { id: 'opcionais', label: 'Itens de Série & Opcionais', icon: CheckCircle2, content: (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {vehicle.opcionais && vehicle.opcionais.map((opt, idx) => (
                     <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/50 border border-slate-800">
@@ -344,10 +257,8 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
                     </div>
                   ))}
                 </div>
-              )}
-
-              {/* Aba: Ficha Técnica */}
-              {activeTab === 'ficha' && (
+            ) },
+            { id: 'ficha', label: 'Ficha Técnica Completa', icon: Cog, content: (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {vehicle.fichaTecnica && Object.entries(vehicle.fichaTecnica).map(([chave, valor], idx) => (
                     <div key={idx} className="flex justify-between items-center p-3 rounded-xl bg-slate-950/50 border border-slate-800">
@@ -364,10 +275,8 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
                     <span className="font-semibold text-white">{vehicle.potencia}</span>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-          <VehicleAdServices ref={servicesRef} key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="autoelite" initialFinancing={initialFinancing} />
+            ) }
+          ]} />
         </div>
 
         {/* Rodapé Fixo do Modal com CTAs */}

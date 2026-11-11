@@ -87,10 +87,13 @@ for (const [name, Component, props] of [
       if (html.includes('data-concierge-vehicle=') || html.includes('<textarea')) throw new Error('Chat fechado está sendo montado antecipadamente');
       if (html.includes('data-feature="vehicle-360"') !== (Component === PopularModal)) throw new Error('360 habilitado em edição incorreta');
       const services = html.indexOf('data-vehicle-services=');
+      const tools = html.indexOf('data-vehicle-tools=');
       const gallery = html.indexOf('Foto 1 de ');
       const financing = html.indexOf('data-financing-vehicle=');
       if (gallery >= 0 && services <= gallery) throw new Error('Serviços não estão no final do anúncio');
       if (services < 0 || !html.includes('Atendimento sobre este veículo') || !html.includes('Simular financiamento deste veículo')) throw new Error('Atendimento ou financiamento fora do final do anúncio');
+      if (tools <= services || !html.includes('data-vehicle-gallery=')) throw new Error('Ferramentas fora do final do anúncio ou galeria principal ausente');
+      if (html.includes('data-ad-tool=') && html.slice(tools).includes('aria-expanded="true"')) throw new Error('Ferramentas adicionais abertas antes do clique');
       if (!html.includes('Tenho interesse')) throw new Error('CTA de interesse incorreto');
     }
     console.log('OK:', name);

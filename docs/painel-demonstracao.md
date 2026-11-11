@@ -4,6 +4,14 @@ Os três modelos começam como **visitante**, sem uma conta conectada e sem
 favoritos ou veículos pré-selecionados para comparação. Navegação, catálogo,
 anúncios, informações da loja, atendimento e WhatsApp ficam públicos.
 
+Nos anúncios, as fotos principais continuam no início. Os botões de galeria
+expandida, laudo, ficha e ferramentas disponíveis em cada edição ficam no final,
+depois do atendimento e do financiamento. Os conteúdos adicionais começam
+fechados: clicar abre, clicar novamente fecha, e escolher outra ferramenta
+recolhe a anterior. A TCO preserva os valores ao recolher; fechar o giro 360°
+interrompe a animação. TCO e 360° continuam exclusivos do Enterprise na
+configuração inicial, e a galeria expandida carrega suas fotos sob demanda.
+
 ## Cliente
 
 Ao usar uma ferramenta pessoal, o site abre o login e mantém a página atual.
