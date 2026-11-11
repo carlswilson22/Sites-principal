@@ -95,7 +95,7 @@ export function FeaturedSection({ vehicle, onSelect }) {
                 rel="noopener noreferrer"
                 className="flex-1"
               >
-                Negociar no WhatsApp
+                Enviar Proposta
               </Button>
               <Button
                 variant="outline"
