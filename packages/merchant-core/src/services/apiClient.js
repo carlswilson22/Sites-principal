@@ -1,4 +1,4 @@
-import { isDemoMode, createDemoUser, createDemoCustomer } from './demoConfig';
+import { isDemoMode, createDemoAccount } from './demoConfig';
 /**
  * packages/merchant-core/src/services/apiClient.js
  * Adaptador de dados híbrido:
@@ -39,9 +39,8 @@ export const apiClient = {
     };
   },
 
-  async login(email, password, audience = 'staff') {
-    if (isDemoMode) return { user: audience === 'customer' ? createDemoCustomer(email, password) : createDemoUser(email, password) };
-    if (audience === 'customer') throw new Error('O login de clientes precisa ser conectado ao servidor da loja.');
+  async login(email, password) {
+    if (isDemoMode) return { user: createDemoAccount(email, password) };
     const res = await fetch(API_BASE_URL + '/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }), credentials: 'include'

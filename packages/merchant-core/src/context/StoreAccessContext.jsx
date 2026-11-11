@@ -14,18 +14,18 @@ function StoreAccess({ storeKey, storeName, children }) {
   const auth = useAuth();
   const [loginRequest, setLoginRequest] = useState(null);
   const pending = useRef(null);
-  const requestLogin = (audience = 'customer', reason = '', action = null) => {
+  const requestLogin = (reason = '', action = null) => {
     pending.current = action;
-    setLoginRequest({ audience, reason });
+    setLoginRequest({ reason });
   };
   const requireLogin = (action, reason = '') => {
     if (auth.user) action(auth.user);
-    else requestLogin('customer', reason, action);
+    else requestLogin(reason, action);
   };
   const authorizeNavigation = (page, action) => {
     if (page === 'painel-lojista') {
       if (auth.isStaff) action(auth.user);
-      else requestLogin('staff', '', account => { if (isStaffUser(account)) action(account); });
+      else requestLogin('Entre com sua conta da loja para continuar.', account => { if (isStaffUser(account)) action(account); });
     } else if (Object.hasOwn(customerPages, page)) requireLogin(action, customerPages[page]);
     else action(auth.user);
   };
@@ -38,7 +38,7 @@ function StoreAccess({ storeKey, storeName, children }) {
   };
   return <StoreAccessContext.Provider value={{ ...auth, storeKey, storeName, requestLogin, requireLogin, authorizeNavigation }}>
     {children}
-    {loginRequest && <AccountLoginDialog key={loginRequest.audience} audience={loginRequest.audience} reason={loginRequest.reason} storeKey={storeKey} storeName={storeName} onClose={close} onSuccess={onLogin} />}
+    {loginRequest && <AccountLoginDialog reason={loginRequest.reason} storeKey={storeKey} storeName={storeName} onClose={close} onSuccess={onLogin} />}
   </StoreAccessContext.Provider>;
 }
 

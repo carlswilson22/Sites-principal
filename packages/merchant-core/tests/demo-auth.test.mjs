@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDemoUser, createDemoCustomer, demoRoles, isDemoMode, readDemoSession, isStaffUser } from '../src/services/demoConfig.js';
+import { createDemoAccount, createDemoUser, createDemoCustomer, demoRoles, isDemoMode, readDemoSession, isStaffUser, isStoreUser } from '../src/services/demoConfig.js';
 
 test('Demonstração exige ativação explícita pelo build', () => {
   assert.equal(isDemoMode, false);
@@ -35,4 +35,25 @@ test('Acesso demonstrativo aceita apenas as três identidades fictícias conheci
     ['admin@demo.invalid', 'Demonstracao@2026'],
     ['', ''],
   ]) assert.throws(() => createDemoUser(email, password));
+});
+
+test('login único identifica cliente e equipe pelas credenciais, sem selecionar cargo', () => {
+  assert.equal(createDemoAccount('cliente@demo.invalid', 'Cliente@2026').role, 'cliente');
+  for (const role of demoRoles) {
+    assert.equal(createDemoAccount(`${role}@demo.invalid`, 'Demonstracao@2026').role, role);
+  }
+  for (const [email, password] of [
+    ['cliente@demo.invalid', 'Demonstracao@2026'],
+    ['atendente@demo.invalid', 'Cliente@2026'],
+    ['gerente@outra-loja.invalid', 'Demonstracao@2026'],
+    ['admin@demo.invalid', 'Demonstracao@2026'],
+    ['', ''],
+  ]) assert.throws(() => createDemoAccount(email, password), { message: 'E-mail ou senha inválidos.' });
+});
+
+test('perfis válidos da loja mantêm as permissões de cliente e equipe separadas', () => {
+  for (const role of ['cliente', ...demoRoles]) assert.equal(isStoreUser({ role }), true);
+  for (const role of [undefined, 'visitante', 'admin', 'Cliente']) assert.equal(isStoreUser({ role }), false);
+  assert.equal(isStoreUser(null), false);
+  assert.equal(isStaffUser(createDemoAccount('cliente@demo.invalid', 'Cliente@2026')), false);
 });

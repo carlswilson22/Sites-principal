@@ -13,31 +13,34 @@ Cancelar preserva a navegação; entrar retoma a ação solicitada.
 - Nos modelos 2 e 3: página de financiamento e avaliação do usado na troca.
 - No modelo 3: favoritos, comparação e interesse em condição de preço.
 
-O botão **Entrar** abre a conta de cliente. Para testar:
+O botão **Entrar** abre um único formulário para clientes e funcionários. O
+perfil é identificado pelas credenciais autenticadas, sem selecionar um tipo
+de acesso ou cargo. Para testar uma conta de cliente, digite:
 
 | E-mail | Senha |
 | --- | --- |
 | `cliente@demo.invalid` | `Cliente@2026` |
 
-**Preencher acesso de teste** apenas preenche o formulário; ainda é necessário
-confirmar o login. A conta de cliente não mostra o Painel do Lojista.
+Não há preenchimento automático nem botões para experimentar uma conta
+fictícia. A conta de cliente não mostra o Painel do Lojista.
 
 O formulário segue a identidade de cada site: azul e cantos arredondados no
 AutoElite, tons âmbar e acabamento editorial no DriveNow, ciano e linhas de
 interface no Enterprise. Os campos têm ícones, rótulos visíveis e controle
 para mostrar ou ocultar a senha. O login mantém o anúncio aberto ao fundo.
 
-As abas **Fazer login** e **Criar conta** organizam o acesso de cliente.
-Na demonstração, **Experimentar conta de cliente** inicia a conta fictícia
-acima e retoma a ferramenta solicitada; não registra novos dados nem cria
-uma identidade real. **Esqueceu a senha?** orienta o uso dessas credenciais
-e permite preencher o formulário, sem enviar ou prometer um e-mail.
-Cadastro e recuperação reais ficam para a instalação do cliente.
+As abas **Fazer login** e **Criar conta** organizam o formulário.
+Nesta entrega, a aba de cadastro informa que o recurso será disponibilizado no
+site da loja, sem iniciar uma sessão. **Esqueceu a senha?** orienta entrar em
+contato com a loja ou, para funcionários, com o administrador. As telas não
+exibem credenciais de teste nem enviam ou prometem um e-mail. Cadastro e
+recuperação reais ficam para a instalação do cliente.
 
 ## Equipe da loja
 
-No login, escolha **Equipe da loja**. A entrada exige credenciais desse tipo de
-acesso; a senha de cliente não autentica um funcionário. Contas de teste:
+No mesmo formulário **Entrar**, digite o e-mail e a senha de funcionário.
+O perfil autenticado libera apenas os módulos permitidos; a senha de cliente
+não autentica um funcionário. Contas de teste:
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
@@ -48,8 +51,9 @@ acesso; a senha de cliente não autentica um funcionário. Contas de teste:
 Após entrar, **Painel do lojista** aparece no cabeçalho. Não há entrada rápida
 por perfil, senha de funcionário preenchida ou seletor de cargos no painel.
 Para conferir outro cargo, saia da sessão e entre com a outra conta.
-O acesso da equipe fica separado abaixo do formulário de cliente, sem aba de
-cadastro. A recuperação desse acesso orienta procurar o administrador da loja.
+Não há botão de acesso separado para a equipe. O cadastro público não atribui
+cargos de funcionários, e a recuperação desse acesso orienta procurar o
+administrador da loja.
 
 As permissões dos módulos continuam em `merchantAccess.js`; Contratos e Termos
 e o simulador permanecem disponíveis ao atendente nas três edições.
@@ -74,12 +78,15 @@ para apresentação e não constituem uma barreira de segurança para dados reai
 Na instalação do cliente, será necessário integrar o login de clientes a um
 servidor, validar permissões e sessões no servidor e persistir preferências por
 conta. Ao desativar a demonstração, o login da equipe consulta a API existente;
-o login de clientes informa a integração pendente, sem criar uma sessão fictícia.
+o mesmo endpoint deverá ser ampliado para clientes. O formulário aceita apenas
+perfis de cliente ou equipe reconhecidos na resposta da API, sem criar uma
+sessão fictícia quando a API falha.
 
 ## Verificação
 
 `npm run test:merchant` cobre identidades, validade e isolamento de sessões,
 regras de visitante/cliente e rejeição de acesso do cliente a módulos internos.
 Após o build, `npm run check:runtime` verifica os fluxos nos arquivos compilados,
-incluindo login no anúncio, cancelamento, retorno à ferramenta, favoritos,
-saída e login individual em cada perfil da equipe.
+incluindo login único no anúncio, credenciais incorretas, cancelamento, retorno
+à ferramenta, favoritos, ausência dos atalhos de teste, saída e login individual
+em cada perfil da equipe.

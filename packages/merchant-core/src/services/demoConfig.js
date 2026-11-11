@@ -2,6 +2,7 @@
 export const isDemoMode = import.meta.env?.VITE_MERCHANT_DEMO === 'true';
 export const demoRoles = ['proprietario', 'gerente', 'atendente'];
 export const isStaffUser = user => demoRoles.includes(user?.role);
+export const isStoreUser = user => isStaffUser(user) || user?.role === 'cliente';
 
 export function createDemoCustomer(email, password) {
   if (email !== 'cliente@demo.invalid' || password !== 'Cliente@2026') throw new Error('E-mail ou senha inválidos para o acesso de cliente.');
@@ -14,6 +15,14 @@ export function createDemoUser(email, password) {
     throw new Error('E-mail ou senha inválidos para o acesso da equipe.');
   }
   return { id: demoRoles.indexOf(role) + 1, name: `Perfil demonstrativo: ${role}`, email, role, demo: true };
+}
+
+export function createDemoAccount(email, password) {
+  try {
+    return email === 'cliente@demo.invalid' ? createDemoCustomer(email, password) : createDemoUser(email, password);
+  } catch {
+    throw new Error('E-mail ou senha inválidos.');
+  }
 }
 
 export function demoSessionKey(storeKey) { return `store_access_${storeKey}`; }

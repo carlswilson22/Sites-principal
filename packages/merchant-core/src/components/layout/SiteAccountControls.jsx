@@ -21,7 +21,6 @@ export function SiteAccountControls({ onNavigate, editorial }) {
     <button type="button" aria-label="Minha conta" aria-expanded={open} aria-haspopup="menu" onClick={() => { setOpen(value => !value); setError(''); }} className={`${button} inline-flex items-center gap-2`}><UserRound aria-hidden="true" className="w-4 h-4" /><span className={isStaff ? 'hidden lg:inline' : ''}>Minha conta</span></button>
     {open && <div role="menu" aria-label="Sua conta" className="absolute top-full right-0 mt-3 w-64 max-w-[85vw] z-50 rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-200 shadow-2xl">
       <p className="font-semibold text-white">{user.name}</p><p className="mt-1 text-xs text-slate-400 break-all">{user.email}</p>
-      {!isStaff && <button type="button" role="menuitem" onClick={() => { setOpen(false); requestLogin('staff'); }} className="mt-3 min-h-11 w-full text-left text-slate-300 hover:text-white">Acesso da equipe</button>}
       <button type="button" role="menuitem" onClick={async () => { try { await logout(); setOpen(false); } catch (failure) { setError(failure.message); } }} className="mt-2 min-h-11 w-full text-left text-rose-200 hover:text-white">Sair da conta</button>
       {error && <p role="alert" className="text-xs text-rose-300">{error}</p>}
     </div>}

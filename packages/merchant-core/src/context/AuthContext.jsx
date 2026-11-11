@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
-import { demoSessionKey, isDemoMode, isStaffUser, readDemoSession } from '../services/demoConfig';
+import { demoSessionKey, isDemoMode, isStaffUser, isStoreUser, readDemoSession } from '../services/demoConfig';
 
 const AuthContext = createContext(null);
 function storedSession(storeKey) {
@@ -17,15 +17,16 @@ export function AuthProvider({ children, storeKey = 'default' }) {
     if (isDemoMode) { setUser(storedSession(storeKey)); setLoading(false); }
     else {
       setLoading(true);
-      apiClient.getSession().then(account => { if (active) setUser(isStaffUser(account) ? account : null); })
+      apiClient.getSession().then(account => { if (active) setUser(isStoreUser(account) ? account : null); })
         .catch(() => { if (active) setUser(null); }).finally(() => { if (active) setLoading(false); });
     }
     return () => { active = false; };
   }, [storeKey]);
 
-  const login = async (email, password, audience = 'staff') => {
-    const result = await apiClient.login(String(email).trim().toLowerCase(), password, audience);
-    if (audience === 'staff' ? !isStaffUser(result.user) : result.user?.role !== 'cliente') throw new Error('Este perfil não pertence ao tipo de acesso escolhido.');
+  const login = async (email, password, { staffOnly = false } = {}) => {
+    const result = await apiClient.login(String(email).trim().toLowerCase(), password);
+    if (!isStoreUser(result.user)) throw new Error('Este perfil não tem acesso ao site.');
+    if (staffOnly && !isStaffUser(result.user)) throw new Error('O painel é exclusivo da equipe da loja.');
     if (isDemoMode) {
       try { sessionStorage.setItem(demoSessionKey(storeKey), JSON.stringify({ storeKey, user: result.user, expiresAt: Date.now() + 4 * 60 * 60 * 1000 })); } catch {}
     }
