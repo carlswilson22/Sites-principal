@@ -4,7 +4,7 @@ import { ShieldCheck, Car } from 'lucide-react';
 
 export function InventoryPage({ vehicles, searchFilter, onClearFilter, onSelectVehicle }) {
   return (
-    <div className="pt-24 pb-16 space-y-8">
+    <div className="pb-16 space-y-8">
       {/* Page Header Compacto */}
       <div className="border-b border-slate-800/80 bg-gradient-to-b from-blue-950/20 via-slate-950 to-transparent py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

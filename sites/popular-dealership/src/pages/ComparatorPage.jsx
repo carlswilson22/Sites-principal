@@ -11,7 +11,7 @@ export function ComparatorPage({
   onOpenFinancing 
 }) {
   return (
-    <div className="pt-24 pb-20 space-y-10">
+    <div className="pb-20 space-y-10">
       <div className="border-b border-slate-800 bg-gradient-to-b from-cyan-950/20 via-[#070a12] to-transparent py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-2">

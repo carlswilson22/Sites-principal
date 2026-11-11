@@ -43,7 +43,7 @@ export function InventoryPage({ vehicles, onSelectVehicle }) {
   };
 
   return (
-    <div className="pt-24 pb-20 space-y-10">
+    <div className="pb-20 space-y-10">
       {/* Page Header */}
       <div className="border-b border-white/10 bg-gradient-to-b from-amber-500/10 via-[#050508] to-transparent py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
