@@ -6,7 +6,7 @@ Esta matriz estabelece a distribuição rigorosa e cumulativa dos recursos do Pa
 
 ## 1. Tabela Comparativa Geral por Nível
 
-| Código | Funcionalidade | Modelo 1 (AutoElite)<br>`Tier 1: Básico` | Modelo 2 (DriveNow)<br>`Tier 2: Pro` | Modelo 3 (Apex Luxury)<br>`Tier 3: Enterprise` | Perfil Mínimo (RBAC) | Resposta no Backend se Nível Inferior |
+| Código | Funcionalidade | Modelo 1 (AutoElite)<br>`Tier 1: Básico` | Modelo 2 (DriveNow)<br>`Tier 2: Pro` | Modelo 3 (Enterprise Veículos)<br>`Tier 3: Enterprise` | Perfil Mínimo (RBAC) | Resposta no Backend se Nível Inferior |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | **E1** | Acesso: Login, Logout, Recuperação e Sessão | ✅ | ✅ | ✅ | Atendente | `200 OK` |
 | **E2** | Início: 4 Indicadores e Lista de Pendências | ✅ | ✅ | ✅ | Atendente | `200 OK` |
@@ -17,10 +17,10 @@ Esta matriz estabelece a distribuição rigorosa e cumulativa dos recursos do Pa
 | **I1** | Descrição por IA a partir de Dados Estruturados & Ficha de Custos | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
 | **I2** | CRM Avançado: Clientes com LGPD Criptografada & Linha do Tempo | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
 | **I3** | Avisos no Celular: Notificações Web Push (PWA) | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
-| **I4** | Simulador de Financiamento: Tabela Price com Juros Compostos | ❌ *(Bloqueado)* | ✅ | ✅ | Gerente | `404 Not Found` |
+| **I4** | Simulador de Financiamento: Tabela Price com Juros Compostos | ✅ | ✅ | ✅ | Atendente | Disponível nas três edições |
 | **I5** | Métricas do Site: Visualizações, Cliques no WhatsApp e Ranking 7/30/90d | ❌ *(Bloqueado)* | ✅ | ✅ | Gerente | `404 Not Found` |
 | **I6** | Precificador Simples FIPE com Cache e Cálculo de Margem Compra/Venda | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
-| **I7** | Contratos Básicos: Compra/Venda, Recibo de Sinal e Vistoria Simples | ❌ *(Bloqueado)* | ✅ | ✅ | Gerente | `404 Not Found` |
+| **I7** | Contratos Básicos: Compra/Venda, Recibo de Sinal e Vistoria Simples | ✅ | ✅ | ✅ | Atendente | Disponível nas três edições |
 | **I8** | Financeiro Básico: Lançamento de Gastos por Carro e Lucro Realizado | ❌ *(Bloqueado)* | ✅ | ✅ | **Proprietário** | `403 Forbidden` / `404 Not Found` |
 | **A1** | Consignação Completa: Diárias de Guarda, Repasse Líquido e Alertas | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Gerente | `404 Not Found` |
 | **A2** | Contratos Avançados: Consignação, Troca, Termo Aditivo e Testemunhas | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Gerente | `404 Not Found` |
@@ -46,7 +46,9 @@ O sistema implementa o princípio do menor privilégio:
 | Visualizar Todos os Leads da Loja | ❌ | ✅ | ✅ |
 | Gerar Descrições com IA | ✅ | ✅ | ✅ |
 | Consultar Tabela FIPE e Precificador | ✅ | ✅ | ✅ |
-| Emitir Contratos e Termos de Vistoria | ❌ | ✅ | ✅ |
+| Simular Financiamento | ✅ | ✅ | ✅ |
+| Emitir Contratos Básicos e Termos de Vistoria | ✅ | ✅ | ✅ |
+| Emitir Contratos Avançados | ❌ | ✅ | ✅ |
 | Gestão de Consignações | ❌ | ✅ | ✅ |
 | Visualizar Gastos e Custos por Carro | ❌ | ❌ | ✅ |
 | Visualizar Lucro Líquido e DRE da Loja | ❌ | ❌ | ✅ |

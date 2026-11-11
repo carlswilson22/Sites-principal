@@ -3,6 +3,8 @@
  * Emissor de Contratos Básicos, Recibos e Termos de Vistoria para uso no navegador (I7).
  */
 
+import { createRecordId } from './recordId.js';
+
 export function generateContractDocument({
   type, // 'compra_venda', 'recibo_sinal', 'vistoria_simples'
   contractCode,
@@ -16,7 +18,7 @@ export function generateContractDocument({
   dealership = escapeFields(dealership);
   client = escapeFields(client);
   vehicle = escapeFields(vehicle);
-  const code = contractCode ? escape(contractCode) : `CTR-${globalThis.crypto.randomUUID()}`;
+  const code = contractCode ? escape(contractCode) : `CTR-${createRecordId()}`;
 
   const disclaimer = `⚠️ AVISO LEGAL: Este documento foi gerado pelo sistema como modelo referencial genérico. Deve ser submetido à revisão e validação de um advogado ou departamento jurídico antes do uso comercial definitivo.`;
 
@@ -122,13 +124,13 @@ export function generateContractDocument({
         <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px;">ITENS CONFERIDOS NO ATO DA ENTREGA:</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px;">
           <tr style="background: #f1f5f9;"><th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Item</th><th style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; width: 80px;">Status</th></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Documento do Veículo (CRLV)</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Chave Principal e Reserva</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Manual do Proprietário</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Estepe, Macaco e Chave de Roda</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Pneus e Calibração</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Pintura, Lataria e Vidros</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
-          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Interior, Estofamento e Elétrica</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; color: green;">✓ OK</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Documento do Veículo (CRLV)</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Chave Principal e Reserva</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Manual do Proprietário</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Estepe, Macaco e Chave de Roda</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Pneus e Calibração</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Pintura, Lataria e Vidros</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
+          <tr><td style="border: 1px solid #cbd5e1; padding: 6px;">Interior, Estofamento e Elétrica</td><td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">☐ Conforme ☐ Ressalva</td></tr>
         </table>
 
         <div style="margin-top: 40px; display: flex; justify-content: space-between;">

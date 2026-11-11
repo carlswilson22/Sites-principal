@@ -3,8 +3,10 @@ import { hasOpenDialogs, isTopDialog, registerDialog } from '../../utils/dialogA
 
 let previousOverflow = '';
 
-export function useDialog() {
+export function useDialog(onClose) {
   const ref = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
@@ -27,9 +29,18 @@ export function useDialog() {
         event.preventDefault(); first.focus();
       }
     };
+    const closeOnEscape = event => {
+      if (event.key === 'Escape' && isTopDialog(dialog) && closeRef.current) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeRef.current();
+      }
+    };
     dialog.addEventListener('keydown', trapFocus);
+    window.addEventListener('keydown', closeOnEscape);
     return () => {
       dialog.removeEventListener('keydown', trapFocus);
+      window.removeEventListener('keydown', closeOnEscape);
       const wasTop = isTopDialog(dialog);
       unregister();
       if (!hasOpenDialogs()) document.body.style.overflow = previousOverflow;

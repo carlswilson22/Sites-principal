@@ -5,6 +5,7 @@ import { dealershipInfo } from '../../data/dealershipInfo';
 import { getVehicleGallery, getVehicle360Images, galleryIndex } from '../../../../../packages/merchant-core/src/utils/vehicleGallery';
 import { VehiclePhotoCredit } from '../../../../../packages/merchant-core/src/components/common/VehiclePhotoCredit';
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
+import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
@@ -28,7 +29,7 @@ export function VehicleDetailModal({
   isFavorite,
   onToggleFavorite 
 }) {
-  const dialogRef = useDialog();
+  const dialogRef = useDialog(onClose);
   const servicesRef = useRef(null);
   const images = useMemo(() => getVehicleGallery(vehicle), [vehicle]);
   const orbitalImages = useMemo(() => hasVehicle360(dealershipInfo) ? getVehicle360Images(vehicle) : [], [vehicle]);
@@ -49,7 +50,7 @@ export function VehicleDetailModal({
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (!isTopDialog(dialogRef.current)) return;
       if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
       if (e.key === 'ArrowRight' && activeTab === 'galeria') handleNextImage();
       if (e.key === 'ArrowLeft' && activeTab === 'galeria') handlePrevImage();
@@ -259,7 +260,7 @@ export function VehicleDetailModal({
                     onClick={() => onOpenDossier && onOpenDossier(vehicle)}
                     className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-semibold border border-emerald-500/40"
                   >
-                    Abrir Dossiê Oficial
+                    Abrir dossiê do veículo
                   </button>
                 </div>
 

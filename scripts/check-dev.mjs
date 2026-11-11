@@ -39,7 +39,7 @@ for (const input of urls) {
       const withoutSlash = await fetch(url.href.slice(0, -1), { headers: { Accept: 'text/html' } });
       assert(withoutSlash.ok && (await withoutSlash.text()).includes(`${url.pathname}src/main.jsx`), `Modelo sem barra final incorreto: ${url}`);
       const app = await fetch(new URL('src/App.jsx', url));
-      assert(app.ok && (await app.text()).includes('MerchantPanel'), `Aplicação do modelo não encontrada: ${url}`);
+      assert(app.ok && (await app.text()).includes('MerchantEntry'), `Aplicação do modelo não encontrada: ${url}`);
       const photo = await fetch(new URL('images/FotoChevroletTracker.jpg', url));
       assert(photo.ok && photo.headers.get('content-type')?.startsWith('image/'), `Foto indisponível: ${url}`);
       await checkHmr(url);

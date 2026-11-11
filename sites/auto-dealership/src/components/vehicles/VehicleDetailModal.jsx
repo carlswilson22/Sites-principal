@@ -5,6 +5,7 @@ import { dealershipInfo } from '../../data/dealershipInfo';
 import { VehiclePhotoCredit } from '../../../../../packages/merchant-core/src/components/common/VehiclePhotoCredit';
 import { getVehicleGallery, getVehicle360Images, galleryIndex } from '../../../../../packages/merchant-core/src/utils/vehicleGallery';
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
+import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
@@ -20,7 +21,7 @@ import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
 export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false }) {
-  const dialogRef = useDialog();
+  const dialogRef = useDialog(onClose);
   const servicesRef = useRef(null);
   const images = useMemo(() => getVehicleGallery(vehicle), [vehicle]);
   const orbitalImages = useMemo(() => hasVehicle360(dealershipInfo) ? getVehicle360Images(vehicle) : [], [vehicle]);
@@ -44,7 +45,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
   // Fechar com tecla ESC
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (!isTopDialog(dialogRef.current)) return;
       if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
       if (e.key === 'ArrowRight' && mediaMode === 'photos') handleNextImage();
       if (e.key === 'ArrowLeft' && mediaMode === 'photos') handlePrevImage();

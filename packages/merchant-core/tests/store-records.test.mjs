@@ -61,3 +61,10 @@ test('documentos escapam texto livre e respeitam o sinal informado, incluindo ze
   assert.notEqual(document.code, generateContractDocument(input).code);
   assert(generateContractDocument({ ...input, terms: { signalValue: 0 } }).html.includes('R$ 0,00'));
 });
+
+test('termo de vistoria deixa o checklist para conferência, sem aprovação automática', () => {
+  const doc = generateContractDocument({ type: 'vistoria_simples', dealership: {}, client: { name: 'Teste' }, vehicle: { title: 'Veículo', km: 10 } });
+  assert(!doc.html.includes('✓ OK'));
+  assert.equal((doc.html.match(/☐ Conforme/g) || []).length, 7);
+  assert.equal((doc.html.match(/☐ Ressalva/g) || []).length, 7);
+});

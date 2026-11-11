@@ -50,6 +50,11 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           id: 'leads',
           label: 'Contatos & WhatsApp',
           icon: MessageSquare,
+        },
+        {
+          id: 'contracts',
+          label: 'Contratos & Termos',
+          icon: FileText,
         }
       ]
     },
@@ -66,11 +71,6 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           id: 'fipe',
           label: 'Precificador FIPE',
           icon: Tag,
-        },
-        {
-          id: 'contracts',
-          label: 'Contratos & Termos',
-          icon: FileText,
         },
         {
           id: 'financial',
@@ -156,7 +156,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+        <nav aria-label="Navegação do painel" className="flex-1 overflow-y-auto p-4 space-y-6">
           {menuSections.map((section, idx) => {
             // Oculta a seção inteira se o tier da loja for menor que o mínimo exigido
             if (section.minTier && tier < section.minTier) return null;
@@ -178,6 +178,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
                     <button
                       key={item.id}
                       type="button"
+                      aria-current={isActive ? 'page' : undefined}
                       onClick={() => {
                         onSelectTab(item.id);
                         if (onClose) onClose();

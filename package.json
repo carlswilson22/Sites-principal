@@ -15,6 +15,7 @@
     "build": "node scripts/build-all.mjs",
     "build:portal": "npm --workspace=portal run build",
     "test:merchant": "node --test packages/merchant-core/tests/*.test.mjs",
+    "test:server": "node scripts/check-server.mjs",
     "check:ui": "node scripts/check-ui.mjs",
     "check:dev": "node scripts/check-dev.mjs",
     "preview": "vite preview --base /Sites-principal/ --outDir dist --host 127.0.0.1 --port 4173",

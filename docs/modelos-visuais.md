@@ -17,6 +17,16 @@ No celular, os conteúdos se empilham, os filtros ficam antes dos resultados e
 os menus podem ser percorridos horizontalmente. A visualização 360° continua
 incluída somente no modelo 3. Atendimento e financiamento permanecem no anúncio.
 
+A animação tem mais espaço nas aberturas do AutoElite e Enterprise: o painel
+ocupa a maior coluna no computador e aparece primeiro no celular. Legendas
+menores e uma camada de escurecimento mais leve preservam os detalhes do vídeo.
+No DriveNow, o título e o texto ocupam menos área da abertura cinematográfica.
+A animação continua acompanhando a rolagem, respeita a preferência por movimento
+reduzido e suspende as atualizações quando um anúncio está aberto.
+
+O painel do lojista é carregado sob demanda nos três modelos, com indicação de
+carregamento. Seus módulos não precisam ser baixados para abrir a vitrine.
+
 ## Sobre Nós e Contato
 
 - **DriveNow:** composição editorial com foto panorâmica, narrativa em capítulos,

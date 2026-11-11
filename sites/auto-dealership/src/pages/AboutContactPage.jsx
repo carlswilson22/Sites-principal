@@ -1,68 +1,13 @@
 import { StoreContactDetails } from '../../../../packages/merchant-core/src/components/layout/StoreContactDetails';
 import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
 import { vehiclesData } from '../data/vehicles';
-import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
-import React, { useState } from 'react';
+import React from 'react';
 import { WhyUsSection } from '../components/home/WhyUsSection';
-import { Building2, Send } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Building2 } from 'lucide-react';
 import { dealershipInfo } from '../data/dealershipInfo';
-import { apiClient, storeSync } from '../../../../packages/merchant-core/src';
+import { StoreInquiryForm } from '../../../../packages/merchant-core/src/components/common/StoreInquiryForm';
 
 export function AboutContactPage() {
-  const [contactForm, setContactForm] = useState({
-    nome: '',
-    email: '',
-    telefone: '',
-    assunto: 'Dúvidas sobre Veículos',
-    mensagem: ''
-  });
-
-  const [messageSent, setMessageSent] = useState(false);
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setContactForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-
-    // E6: Captura automática do lead para o Painel do Lojista
-    try {
-      storeSync.addLead('autoelite', {
-        name: contactForm.nome,
-        phone: contactForm.telefone,
-        email: contactForm.email,
-        source: 'formulario_site',
-        message: `Assunto: ${contactForm.assunto} - Mensagem: ${contactForm.mensagem}`
-      });
-      await apiClient.captureLead({
-        name: contactForm.nome,
-        phone: contactForm.telefone,
-        email: contactForm.email,
-        source: 'site_formulario',
-        notes: `Assunto: ${contactForm.assunto} - Mensagem: ${contactForm.mensagem}`
-      });
-    } catch {
-      // Continua mesmo em modo offline
-    }
-
-    const text = 
-      `📩 *Nova Mensagem via Site - ${dealershipInfo.nome}*\n\n` +
-      `• *Nome:* ${contactForm.nome}\n` +
-      `• *Telefone:* ${contactForm.telefone}\n` +
-      `• *E-mail:* ${contactForm.email}\n` +
-      `• *Assunto:* ${contactForm.assunto}\n` +
-      `• *Mensagem:* ${contactForm.mensagem}`;
-
-    const url = `https://wa.me/${dealershipInfo.whatsapp}?text=${encodeURIComponent(text)}`;
-    siteAnalytics.track('autoelite', { type: 'whatsapp_click', page: 'sobre-contato' });
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setMessageSent(true);
-    setTimeout(() => setMessageSent(false), 5000);
-  };
-
   return (
     <div className="pb-12 sm:pb-16 space-y-10 sm:space-y-14">
       {/* Page Header */}
@@ -136,90 +81,7 @@ export function AboutContactPage() {
               Preencha os campos abaixo para falar com nosso setor comercial.
             </p>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">Seu Nome *</label>
-                <input
-                  type="text"
-                  name="nome"
-                  required
-                  placeholder="Nome completo"
-                  value={contactForm.nome}
-                  onChange={handleFormChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500 placeholder-slate-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">Telefone / WhatsApp *</label>
-                  <input
-                    type="tel"
-                    name="telefone"
-                    required
-                    placeholder="(61) 99999-9999"
-                    value={contactForm.telefone}
-                    onChange={handleFormChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500 placeholder-slate-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">E-mail</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="seuemail@exemplo.com"
-                    value={contactForm.email}
-                    onChange={handleFormChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500 placeholder-slate-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">Assunto</label>
-                <select
-                  name="assunto"
-                  value={contactForm.assunto}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="Dúvidas sobre Veículos">Dúvidas sobre Veículos do Estoque</option>
-                  <option value="Simulação de Financiamento">Simulação de Financiamento</option>
-                  <option value="Avaliação de Veículo Usado">Avaliação de Veículo Usado</option>
-                  <option value="Outros Assuntos">Outros Assuntos</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1">Mensagem *</label>
-                <textarea
-                  name="mensagem"
-                  required
-                  rows="3"
-                  placeholder="Como podemos te ajudar hoje?"
-                  value={contactForm.mensagem}
-                  onChange={handleFormChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500 placeholder-slate-500 resize-none"
-                ></textarea>
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                icon={Send}
-                className="w-full py-3"
-              >
-                Enviar Mensagem no WhatsApp
-              </Button>
-
-              {messageSent && (
-                <p className="text-xs text-emerald-400 text-center font-medium animate-fade-in">
-                  ✓ Mensagem formatada com sucesso! Redirecionando...
-                </p>
-              )}
-            </form>
+            <StoreInquiryForm dealership={dealershipInfo} storeKey="autoelite" presentation="classic" />
           </div>
 
           {/* Mapa Incorporado Google Maps */}

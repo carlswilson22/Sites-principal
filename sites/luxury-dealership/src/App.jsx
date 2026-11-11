@@ -11,8 +11,8 @@ import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { dealershipInfo } from './data/dealershipInfo';
-import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchant-core/src';
-import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
+import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
+import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
@@ -52,11 +52,7 @@ export default function App() {
   // Renderização Dedicada da Área Restrita do Lojista (Tier 2 Pro)
   if (currentPage === 'painel-lojista') {
     return (
-      <AuthProvider>
-        <TierProvider tier={2}>
-          <MerchantPanel storeKey="drivenow" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
-        </TierProvider>
-      </AuthProvider>
+      <MerchantEntry tier={2} storeKey="drivenow" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
     );
   }
 

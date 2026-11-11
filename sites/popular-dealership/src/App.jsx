@@ -19,8 +19,8 @@ import { PriceAlertModal } from './components/vehicles/PriceAlertModal';
 import { vehiclesData } from './data/vehicles';
 import { useFavorites } from './hooks/useFavorites';
 import { useComparator } from './hooks/useComparator';
-import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchant-core/src';
-import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
+import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
+import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
@@ -39,7 +39,6 @@ export default function App() {
   const [priceAlertVehicle, setPriceAlertVehicle] = useState(null);
 
   const { 
-    favoriteIds, 
     toggleFavorite, 
     isFavorite, 
     favoritesCount, 
@@ -47,7 +46,6 @@ export default function App() {
   } = useFavorites(publishedVehicles);
 
   const { 
-    comparedIds, 
     toggleCompare, 
     isComparing, 
     clearCompared, 
@@ -76,11 +74,7 @@ export default function App() {
   // Renderização Dedicada da Área Restrita do Lojista (Tier 3 Enterprise)
   if (currentPage === 'painel-lojista') {
     return (
-      <AuthProvider>
-        <TierProvider tier={3}>
-          <MerchantPanel storeKey="apexluxury" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
-        </TierProvider>
-      </AuthProvider>
+      <MerchantEntry tier={3} storeKey="apexluxury" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
     );
   }
 
@@ -191,7 +185,7 @@ export default function App() {
       <Footer compact={currentPage === 'sobre-contato'} />
 
       {/* Barra Flutuante de Comparação Ativa */}
-      {['estoque', 'destaques', 'favoritos'].includes(currentPage) && (
+      {['destaques', 'favoritos'].includes(currentPage) && (
         <ComparisonFloatingBar
           comparedVehicles={comparedVehicles}
           onOpenComparator={() => navigateTo('comparador')}
@@ -211,9 +205,6 @@ export default function App() {
           onToggleFavorite={toggleFavorite}
         />
       )}
-
-      {/* Modal de Comparação Lado a Lado */}
-
 
       {/* Modal de Dossiê Oficial de Procedência */}
       {dossierVehicle && (

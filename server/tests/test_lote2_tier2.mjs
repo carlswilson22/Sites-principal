@@ -3,8 +3,9 @@
  * Bateria de Testes Automatizados do LOTE 2 (Modelo 2 - Nível 2: I1 a I8)
  */
 import assert from 'node:assert';
-import test from 'node:test';
-import { getDb } from '../src/database/db.js';
+import test, { before, after } from 'node:test';
+import { getDb, closeDb } from '../src/database/db.js';
+import { runSeed } from '../src/database/seed.js';
 import { assertTier } from '../src/middlewares/tierGate.js';
 import { checkRole } from '../src/middlewares/rbacMiddleware.js';
 import { calculatePriceFinancing } from '../src/services/financeCalculator.js';
@@ -12,6 +13,9 @@ import { generateVehicleDescription, estimateVehicleCosts } from '../src/service
 import { lookupFipe, calculatePricing } from '../src/services/fipeAdapter.js';
 import { generateContractDocument } from '../src/services/contractGenerator.js';
 import { encryptSensitive, decryptSensitive, maskCPF } from '../src/security/crypto.js';
+
+before(() => runSeed(2));
+after(() => closeDb());
 
 test('Lote 2 (I1): Descrição por IA a partir de dados estruturados e estimativa de custos', async () => {
   const vehicle = {
@@ -137,13 +141,13 @@ test('Lote 2 (I7): Contratos Básicos (Compra e Venda, Recibo e Vistoria) com av
 
   // 2. Recibo de sinal
   const sinalDoc = generateContractDocument({ type: 'recibo_sinal', dealership, client, vehicle, terms: { signalValue: 10000 } });
-  assert.ok(sinalDoc.html.includes('RECIBO DE SINAL'));
+  assert.ok(sinalDoc.html.includes('RECIBO DE RESERVA E SINAL'));
   assert.ok(sinalDoc.html.includes('10.000,00'));
 
   // 3. Vistoria simples (checklist)
   const vistoriaDoc = generateContractDocument({ type: 'vistoria_simples', dealership, client, vehicle });
   assert.ok(vistoriaDoc.html.includes('TERMO DE VISTORIA'));
-  assert.ok(vistoriaDoc.html.includes('CRLV-e') && vistoriaDoc.html.includes('Chave Principal'));
+  assert.ok(vistoriaDoc.html.includes('CRLV') && vistoriaDoc.html.includes('Chave Principal'));
 });
 
 test('Lote 2 (I8): Financeiro Básico e Segurança RBAC para o Proprietário', () => {

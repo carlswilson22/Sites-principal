@@ -1,14 +1,16 @@
 ﻿import { useState, useEffect } from 'react';
 
-const STORAGE_KEY = 'drivenow_favorites_v1';
+import { normalizeSelectionIds, selectedVehicles } from '../utils/vehicleSelection';
+
+const STORAGE_KEY = 'apexluxury_favorites_v1';
 
 export function useFavorites(allVehicles = []) {
   const [favoriteIds, setFavoriteIds] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [1, 2]; // Default 2 favoritos para demonstração imediata
+      const saved = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('drivenow_favorites_v1');
+      return normalizeSelectionIds(saved ? JSON.parse(saved) : [1, 2], [1, 2]);
     } catch {
-      return [1, 2];
+      return normalizeSelectionIds([1, 2]);
     }
   });
 
@@ -22,21 +24,21 @@ export function useFavorites(allVehicles = []) {
 
   const toggleFavorite = (vehicleId) => {
     setFavoriteIds(prev => 
-      prev.includes(vehicleId) 
-        ? prev.filter(id => id !== vehicleId)
-        : [...prev, vehicleId]
+      prev.includes(String(vehicleId))
+        ? prev.filter(id => id !== String(vehicleId))
+        : [...prev, String(vehicleId)]
     );
   };
 
-  const isFavorite = (vehicleId) => favoriteIds.includes(vehicleId);
+  const isFavorite = (vehicleId) => favoriteIds.includes(String(vehicleId));
 
-  const favoriteVehicles = allVehicles.filter(v => favoriteIds.includes(v.id));
+  const favoriteVehicles = selectedVehicles(favoriteIds, allVehicles);
 
   return {
     favoriteIds,
     toggleFavorite,
     isFavorite,
-    favoritesCount: favoriteIds.length,
+    favoritesCount: favoriteVehicles.length,
     favoriteVehicles
   };
 }

@@ -10,14 +10,19 @@ const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname =
   ? 'http://localhost:3001/api'
   : '/api';
 
+async function optionalApi(...args) {
+  if (isDemoMode) return null;
+  try {
+    const response = await fetch(...args);
+    if (response.ok) return await response.json();
+  } catch {}
+  return null;
+}
+
 export const apiClient = {
   async getSummary(tier = 1) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/dashboard/summary`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {
-      // Fallback estático gracioso para GitHub Pages
-    }
+    const result = await optionalApi(`${API_BASE_URL}/dashboard/summary`, { credentials: 'include' });
+    if (result !== null) return result;
 
     return {
       tier,
@@ -91,10 +96,8 @@ export const apiClient = {
 
   // A1: Consignações
   async getConsignments() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/consignments`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/consignments`, { credentials: 'include' });
+    if (result !== null) return result;
 
     return [
       {
@@ -128,37 +131,31 @@ export const apiClient = {
   },
 
   async saveConsignment(data) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/consignments`, {
+    const result = await optionalApi(`${API_BASE_URL}/tier3/consignments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
         credentials: 'include'
       });
-      if (res.ok) return await res.json();
-    } catch {}
+    if (result !== null) return result;
     return { success: true, message: 'Consignação gravada (modo demonstração).' };
   },
 
   async getConsignmentAlerts() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/consignments/alerts`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/consignments/alerts`, { credentials: 'include' });
+    if (result !== null) return result;
     return { uncontractedVehicles: [], expiringConsignments: [] };
   },
 
   // A2: Contratos Avançados
   async createAdvancedContract(contractData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/contracts/advanced`, {
+    const result = await optionalApi(`${API_BASE_URL}/tier3/contracts/advanced`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contractData),
         credentials: 'include'
       });
-      if (res.ok) return await res.json();
-    } catch {}
+    if (result !== null) return result;
 
     const code = `CTR-EXP-${new Date().getFullYear()}-0099`;
     return {
@@ -170,10 +167,8 @@ export const apiClient = {
 
   // A3: Financeiro Completo & DRE
   async getFullFinancial() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/financial/full`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/financial/full`, { credentials: 'include' });
+    if (result !== null) return result;
 
     return {
       ownStock: { count: 8, total_retail_value: 820000, total_invested: 645000 },
@@ -197,15 +192,13 @@ export const apiClient = {
 
   // A4: Precificador Completo
   async calculateMarketPricing(payload) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/market-pricing`, {
+    const result = await optionalApi(`${API_BASE_URL}/tier3/market-pricing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         credentials: 'include'
       });
-      if (res.ok) return await res.json();
-    } catch {}
+    if (result !== null) return result;
 
     const fipe = Number(payload.fipePrice) || 85000;
     const auctionDec = payload.hasAuctionRecord ? fipe * 0.18 : 0;
@@ -226,10 +219,8 @@ export const apiClient = {
 
   // A5: Funil de Vendas & Giro
   async getSalesFunnel() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/funnel`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/funnel`, { credentials: 'include' });
+    if (result !== null) return result;
 
     return {
       funnelSteps: [
@@ -252,10 +243,8 @@ export const apiClient = {
 
   // A6 & A7: Stories e Instagram
   async getInstagramStatus() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/instagram/status`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/instagram/status`, { credentials: 'include' });
+    if (result !== null) return result;
     return {
       configured: false,
       status: 'nao_configurado',
@@ -264,15 +253,13 @@ export const apiClient = {
   },
 
   async publishInstagramStory(payload) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/instagram/queue`, {
+    const result = await optionalApi(`${API_BASE_URL}/tier3/instagram/queue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         credentials: 'include'
       });
-      if (res.ok) return await res.json();
-    } catch {}
+    if (result !== null) return result;
     return {
       success: false,
       status: 'nao_configurado',
@@ -281,29 +268,23 @@ export const apiClient = {
   },
 
   async getInstagramHistory() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/instagram/history`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/instagram/history`, { credentials: 'include' });
+    if (result !== null) return result;
     return [];
   },
 
   // A8: Auditoria & LGPD
   async getAuditLogs() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/audit`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/audit`, { credentials: 'include' });
+    if (result !== null) return result;
     return [
       { id: 1, user_name: 'Carlos Silva (Proprietário)', user_role: 'proprietario', action: 'LOGIN_SUCESSO', entity: 'sessions', entity_id: '1', created_at: new Date().toISOString() }
     ];
   },
 
   async exportLgpdData(clientId) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/lgpd/export/${clientId}`, { credentials: 'include' });
-      if (res.ok) return await res.json();
-    } catch {}
+    const result = await optionalApi(`${API_BASE_URL}/tier3/lgpd/export/${clientId}`, { credentials: 'include' });
+    if (result !== null) return result;
     return {
       titular: { id: clientId, nome: 'Titular Exemplo', cpf_completo: '123.456.789-00', telefone: '(11) 99999-9999' },
       termo_consentimento: 'Consentimento registrado em conformidade com o Artigo 7º da LGPD.'
@@ -311,13 +292,11 @@ export const apiClient = {
   },
 
   async anonymizeLgpd(clientId) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tier3/lgpd/anonymize/${clientId}`, {
+    const result = await optionalApi(`${API_BASE_URL}/tier3/lgpd/anonymize/${clientId}`, {
         method: 'POST',
         credentials: 'include'
       });
-      if (res.ok) return await res.json();
-    } catch {}
+    if (result !== null) return result;
     return { success: true, message: 'Dados anonimizados com sucesso.' };
   }
 };

@@ -8,11 +8,18 @@ test('financiamento está disponível ao atendente, gerente e proprietário nas 
   assert.equal(canAccessMerchantRoute('financing', 3, 'desconhecido'), false);
 });
 
-test('liberar simulador mantém as restrições financeiras e administrativas', () => {
+test('contratos e termos estão disponíveis aos três perfis em todas as edições', () => {
+  for (const tier of [1, 2, 3]) for (const role of ['atendente', 'gerente', 'proprietario']) assert.equal(canAccessMerchantRoute('contracts', tier, role), true);
+  assert.equal(canAccessMerchantRoute('contracts', 0, 'atendente'), false);
+  assert.equal(canAccessMerchantRoute('contracts', 3, 'desconhecido'), false);
+});
+
+test('ferramentas de atendimento mantêm as restrições financeiras e administrativas', () => {
   for (const tier of [1, 2, 3]) {
     assert.equal(canAccessMerchantRoute('financial', tier, 'atendente'), false);
     assert.equal(canAccessMerchantRoute('financial_full', tier, 'gerente'), false);
-    assert.equal(canAccessMerchantRoute('contracts', tier, 'atendente'), false);
+    assert.equal(canAccessMerchantRoute('contracts_adv', tier, 'atendente'), false);
+    assert.equal(canAccessMerchantRoute('audit_lgpd', tier, 'atendente'), false);
   }
   assert.equal(canAccessMerchantRoute('financial_full', 3, 'proprietario'), true);
   assert.equal(canAccessMerchantRoute('financial_full', 2, 'proprietario'), false);

@@ -14,7 +14,8 @@ export function calculatePriceFinancing({ vehiclePrice, downPayment, months, mon
   const price = parseFloat(vehiclePrice) || 0;
   const down = parseFloat(downPayment) || 0;
   const n = parseInt(months, 10) || 48;
-  const i = parseFloat(monthlyInterestRate) / 100 || 0.0149; // Padrão 1.49% a.m.
+  const requestedRate = Number(monthlyInterestRate ?? 1.49);
+  const i = Number.isFinite(requestedRate) && requestedRate >= 0 ? requestedRate / 100 : 0.0149;
 
   const principal = Math.max(0, price - down);
   if (principal === 0 || n <= 0) {

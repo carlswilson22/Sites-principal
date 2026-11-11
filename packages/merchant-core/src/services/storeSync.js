@@ -11,6 +11,7 @@
 const EVENT_PREFIX = 'merchant_store_update_';
 import { normalizeVehicle } from '../utils/vehicles.js';
 import { reconcileCatalogMedia } from '../utils/catalogMedia.js';
+import { createRecordId } from '../utils/recordId.js';
 const RECORD_COLLECTIONS = ['clients', 'contracts', 'expenses'];
 
 function readLeadsForMutation(storeKey, fallback) {
@@ -74,7 +75,7 @@ export const storeSync = {
     const records = this.getRecords(storeKey, collection);
     const saved = {
       ...record,
-      id: record.id || globalThis.crypto.randomUUID(),
+      id: record.id || createRecordId(),
       created_at: record.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -206,7 +207,7 @@ export const storeSync = {
       ...lead,
       vehicle_id: lead.vehicle_id ?? lead.vehicleId,
       vehicle_title: lead.vehicle_title ?? lead.vehicleName,
-      id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: createRecordId(),
       status: lead.status || 'novo',
       temperature: lead.temperature || 'quente',
       created_at: new Date().toISOString()

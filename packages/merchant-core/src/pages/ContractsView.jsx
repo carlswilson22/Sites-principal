@@ -1,6 +1,6 @@
 /**
  * packages/merchant-core/src/pages/ContractsView.jsx
- * Emissão de Contratos Básicos, Recibos e Termos de Vistoria (I7 - Nível 2)
+ * Emissão de contratos básicos, recibos e termos de vistoria.
  */
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Printer, Share2, CheckCircle2, AlertTriangle, Eye, X, ShieldAlert } from 'lucide-react';
@@ -111,7 +111,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
   };
 
   const handleShareWhatsApp = (contract) => {
-    const text = `Olá ${contract.clientName}! Segue a via digital do seu documento (${contract.typeLabel} - Código: ${contract.code}) emitido pela concessionária.`;
+    const text = `Olá ${contract.clientName}! Seu documento (${contract.typeLabel} - Código: ${contract.code}) está disponível para conferência na loja. Podemos combinar o envio da via digital?`;
     const phone = (contract.clientPhone || '').replace(/\D/g, '');
     if (!phone) return;
     const url = `https://wa.me/${phone.length <= 11 ? '55' + phone : phone}?text=${encodeURIComponent(text)}`;
@@ -127,7 +127,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
               <FileText className="w-6 h-6 text-amber-400" />
-              Contratos & Vistorias (I7)
+              Contratos e Termos
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
@@ -216,6 +216,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
+                aria-label="Fechar emissão de documento"
                 className="p-1 rounded-lg text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
@@ -235,7 +236,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
               </label>}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo de Documento (I7)</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo de Documento</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -335,6 +336,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
                 <button
                   type="button"
                   onClick={() => setPreviewDoc(null)}
+                  aria-label="Fechar documento"
                   className="p-1 rounded-lg text-slate-500 hover:text-slate-900"
                 >
                   <X className="w-5 h-5" />

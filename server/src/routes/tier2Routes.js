@@ -14,8 +14,9 @@ import { lookupFipe, calculatePricing } from '../services/fipeAdapter.js';
 import { generateContractDocument } from '../services/contractGenerator.js';
 
 export async function handleTier2Routes(req, res, pathname, body) {
-  // Barreira de Nível Rígida: se a loja for Tier 1, retorna 404 (endpoint não existe neste modelo)
-  const tierCheck = assertTier(2);
+  // Financiamento e documentos básicos fazem parte do atendimento em todas as edições.
+  const basicService = ['/api/financing/calculate', '/api/contracts', '/api/contracts/generate'].includes(pathname);
+  const tierCheck = assertTier(basicService ? 1 : 2);
   if (!tierCheck.allowed) {
     // Retorna false para cair no 404 geral ou envia 404 explícito
     return false;
@@ -173,6 +174,9 @@ export async function handleTier2Routes(req, res, pathname, body) {
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
     const { type, clientId, vehicleId, terms } = body || {};
+    if (type && !['compra_venda', 'recibo_sinal', 'vistoria_simples'].includes(type)) {
+      return sendJson(res, 400, { error: 'Tipo de documento básico inválido.' });
+    }
 
     const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(clientId);
     const vehicle = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(vehicleId);

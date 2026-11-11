@@ -1,33 +1,36 @@
 ﻿import { useState } from 'react';
 
+import { selectedVehicles } from '../utils/vehicleSelection';
+
 export function useComparator(allVehicles = []) {
-  const [comparedIds, setComparedIds] = useState([1, 2]); // Inicialmente com 2 veículos selecionados para testar
+  const [comparedIds, setComparedIds] = useState(['1', '2']);
 
   const toggleCompare = (vehicleId) => {
     setComparedIds(prev => {
-      if (prev.includes(vehicleId)) {
-        return prev.filter(id => id !== vehicleId);
+      const available = selectedVehicles(prev, allVehicles).map(vehicle => String(vehicle.id));
+      if (available.includes(String(vehicleId))) {
+        return available.filter(id => id !== String(vehicleId));
       }
-      if (prev.length >= 3) {
+      if (available.length >= 3) {
         alert('Você pode comparar no máximo 3 veículos simultaneamente.');
-        return prev;
+        return available;
       }
-      return [...prev, vehicleId];
+      return [...available, String(vehicleId)];
     });
   };
 
-  const isComparing = (vehicleId) => comparedIds.includes(vehicleId);
+  const isComparing = (vehicleId) => comparedIds.includes(String(vehicleId));
 
   const clearCompared = () => setComparedIds([]);
 
-  const comparedVehicles = allVehicles.filter(v => comparedIds.includes(v.id));
+  const comparedVehicles = selectedVehicles(comparedIds, allVehicles);
 
   return {
     comparedIds,
     toggleCompare,
     isComparing,
     clearCompared,
-    comparedCount: comparedIds.length,
+    comparedCount: comparedVehicles.length,
     comparedVehicles
   };
 }

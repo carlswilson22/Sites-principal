@@ -4,9 +4,9 @@ import { resolveAssetUrl } from '../../utils/assets';
 import { subscribeDialogActivity } from '../../utils/dialogActivity';
 
 const tones = {
-  blue: { background: 'bg-slate-950', overlay: 'from-slate-950 via-slate-950/80 to-slate-950/65', tint: 'bg-blue-950/10' },
-  amber: { background: 'bg-[#050508]', overlay: 'from-[#050508] via-[#050508]/80 to-[#050508]/65', tint: 'bg-amber-950/10' },
-  cyan: { background: 'bg-[#070a12]', overlay: 'from-[#070a12] via-[#070a12]/80 to-[#070a12]/65', tint: 'bg-cyan-950/10' },
+  blue: { background: 'bg-slate-950' },
+  amber: { background: 'bg-[#050508]' },
+  cyan: { background: 'bg-[#070a12]' },
 };
 
 export function AnimatedStoreHero({ children, tone = 'amber', layout = 'cinema' }) {
@@ -81,8 +81,8 @@ export function AnimatedStoreHero({ children, tone = 'amber', layout = 'cinema' 
       {showVideo && <video ref={videoRef} key={source} src={source} poster={poster} muted playsInline preload={cinema ? 'auto' : 'metadata'} tabIndex={-1}
         onLoadedMetadata={() => setReadySource(source)}
         onError={() => setFailedSource(source)} className="absolute inset-0 w-full h-full object-cover" />}
-      <div className={`absolute inset-0 bg-gradient-to-t ${palette.overlay}`} />
-      <div className={`absolute inset-0 ${palette.tint}`} />
+      <div className={`absolute inset-0 bg-gradient-to-t ${cinema ? 'from-black/65 via-black/5 to-black/10' : 'from-black/55 via-transparent to-transparent'}`} />
+      {cinema && <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/10 to-transparent" />}
     </div>
     <div className={`relative w-full ${cinema ? 'py-16 sm:py-24 px-4 sm:px-6 lg:px-8' : 'p-6 sm:p-8'}`}>{children}</div>
     </div>

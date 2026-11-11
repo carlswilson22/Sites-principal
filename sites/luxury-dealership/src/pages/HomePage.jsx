@@ -12,11 +12,11 @@ export function HomePage({ vehicles = [], onNavigate, onSelectVehicle }) {
       <div className="max-w-7xl mx-auto grid lg:grid-cols-[1fr_18rem] items-end gap-10">
         <div className="space-y-7">
           <p className="text-xs uppercase tracking-[0.25em] text-amber-200">{dealershipInfo.nome}</p>
-          <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl font-light text-white tracking-tight leading-[1.05]">Algumas escolhas<br />merecem <span className="italic text-amber-200">tempo.</span></h1>
+          <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-light text-white tracking-tight leading-[1.05] max-w-2xl drop-shadow-lg">Algumas escolhas<br />merecem <span className="italic text-amber-200">tempo.</span></h1>
           <a href="#colecao" className="inline-flex gap-3 items-center text-white min-h-12 border-b border-amber-300/60">Conheça nossa seleção<ArrowDown aria-hidden="true" className="w-4 h-4" /></a>
         </div>
-        <div className="text-slate-200 leading-relaxed space-y-5 lg:pb-3">
-          <p>Uma seleção para quem valoriza cada detalhe. Explore os veículos com calma, descubra suas histórias e encontre a sua próxima escolha.</p>
+        <div className="text-white text-sm leading-relaxed space-y-4 lg:pb-3 drop-shadow-md">
+          <p>Explore cada detalhe e encontre sua próxima escolha, no seu tempo.</p>
           <button type="button" onClick={() => onNavigate('sobre-contato')} className="inline-flex items-center gap-2 min-h-11 text-sm text-amber-200">Conheça a DriveNow<ArrowUpRight aria-hidden="true" className="w-4 h-4" /></button>
         </div>
       </div>

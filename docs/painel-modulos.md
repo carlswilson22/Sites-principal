@@ -26,6 +26,14 @@ Os números pertencem ao navegador utilizado. Não são visitantes únicos nem u
 
 ## Contatos e contratos
 
+- Contratos e Termos fica em Operação Diária e está disponível ao atendente,
+  gerente e proprietário nos três modelos. Permite emitir compra e venda,
+  recibo de sinal e termo de vistoria com veículo do estoque da própria loja.
+- Contratos avançados e módulos financeiros mantêm suas regras de acesso.
+- API e painel compartilham o emissor de documentos básicos. Os endpoints de
+  contratos e financiamento também estão disponíveis no nível 1; emissão exige
+  sessão válida. O termo de vistoria deixa os itens para conferência, sem
+  preencher automaticamente uma aprovação.
 - Contatos guardam histórico de situações e observações, com data.
 - O atendimento permanece aberto quando o salvamento falha.
 - A seleção acompanha alterações de outras abas e fecha se o contato for removido.
@@ -46,6 +54,11 @@ Os números pertencem ao navegador utilizado. Não são visitantes únicos nem u
 - A comunicação centralizada entre cliente e funcionário ainda depende de um serviço no servidor; esta entrega mantém a arquitetura de persistência local existente.
 
 Na conferência manual, abra um anúncio, expanda o simulador e ajuste entrada, prazo e taxa. Confira o chat, registre uma preferência e confira a opção de combinar visita pelo WhatsApp; depois, no perfil atendente, confira o contato e abra o simulador do painel. Repita nos três modelos.
+
+Ainda no perfil atendente, abra **Contratos & Termos**, selecione um veículo e
+emita cada um dos três tipos de documento. Confira a prévia, a opção de impressão
+e o registro no histórico da loja. `npm run check:runtime` verifica esse fluxo
+nos arquivos compilados dos três modelos, além dos testes de permissões.
 
 1. Execute `npm run dev` e abra um modelo pelo portal.
 2. No painel do Modelo 2 ou 3, use o perfil proprietário e abra **Financeiro & Margens**. Registre a aquisição e outro gasto; alterne entre veículos e recarregue para verificar a persistência.
