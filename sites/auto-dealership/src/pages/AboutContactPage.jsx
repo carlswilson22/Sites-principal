@@ -107,6 +107,8 @@ export function AboutContactPage() {
         </div>
       </section>
 
+      <WhyUsSection />
+
       {/* ======================================================== */}
       {/* PARTE 2: CONTATO & LOCALIZAÇÃO (Unificada)                 */}
       {/* ======================================================== */}
@@ -238,7 +240,6 @@ export function AboutContactPage() {
           </div>
         </div>
       </section>
-      <WhyUsSection />
     </div>
   );
 }
