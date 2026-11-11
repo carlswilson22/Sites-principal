@@ -31,6 +31,11 @@ jobs:
           npm install --include=optional
           npm install -D @rollup/rollup-linux-x64-gnu || true
 
+      - name: Validate source
+        run: |
+          npm run test:merchant
+          npm run check:ui
+
       - name: Build
         run: |
           node scripts/build-all.mjs 2>&1 | tee build.log || {
@@ -38,6 +43,9 @@ jobs:
             echo "::error title=Build Failure::$ERR"
             exit 1
           }
+
+      - name: Validate production startup
+        run: npm run check:runtime
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

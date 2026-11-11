@@ -13,5 +13,5 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'sobre-contato', label: 'Sobre Nós e Contato' }
   ];
   const activePage = ['consultor-ia', 'simulador', 'troca', 'comparador', 'favoritos'].includes(currentPage) ? 'servicos' : currentPage;
-  return <SiteHeader currentPage={activePage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} whatsappUrl={buildGeneralWhatsappLink()} Logo={AutomatchLogo} />;
+  return <SiteHeader variant="workspace" currentPage={activePage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} whatsappUrl={buildGeneralWhatsappLink()} Logo={AutomatchLogo} />;
 }

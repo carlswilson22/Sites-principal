@@ -106,12 +106,17 @@ export default function App() {
             isComparing={isComparing}
             onToggleCompare={toggleCompare}
             onOpenPriceAlert={(v) => { setSelectedVehicleForModal(null); setPriceAlertVehicle(v); }}
+            favoritesCount={favoritesCount}
+            comparedCount={comparedCount}
           />
         )}
 
         {currentPage === 'estoque' && (
           <InventoryPage
             vehicles={publishedVehicles}
+            onNavigate={navigateTo}
+            favoritesCount={favoritesCount}
+            comparedCount={comparedCount}
             onSelectVehicle={openVehicle}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}

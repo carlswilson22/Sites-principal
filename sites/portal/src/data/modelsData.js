@@ -2,62 +2,63 @@ export const modelsList = [
   {
     id: 'auto-dealership',
     title: 'AutoElite Seminovos (Modelo 1)',
-    tagline: 'Edição Ágil de Alta Conversão para Concessionárias e Revendas',
+    tagline: 'Vitrine direta · Busca em primeiro plano',
     tier: 'Básico',
     category: 'Tier 1 • Básico',
     badge: 'Tier 1 • Básico',
     status: 'available',
     path: 'auto-dealership/',
     previewImage: 'images/tracker.jpg',
-    description: 'Interface limpa e objetiva com vitrine de ofertas, catálogo de seminovos, galeria de fotos, atendimento dentro do anúncio e contato com a equipe da loja.',
+    presentation: 'catalog',
+    description: 'Uma loja objetiva, com abertura em duas colunas, busca rápida e uma vitrine de veículos em grade. Para quem quer levar o cliente da pesquisa ao anúncio com poucos passos.',
     features: [
-      'Galeria de Fotos e Atendimento Dentro do Anúncio',
-      'Catálogo de Seminovos Periciados com Filtro Rápido (4 Páginas)',
-      'Modal de Ficha Técnica Pericial com Galeria HD',
-      'Conversão Instantânea para WhatsApp com Dados do Veículo',
-      'Design Responsivo Institucional com Tipografia Acessível'
+      'Busca direta na abertura do site',
+      'Catálogo em grade e navegação compacta',
+      'Galeria e simulador dentro do anúncio',
+      'Atendimento no site e contato com a loja',
+      'Páginas de estoque e apresentação da empresa'
     ],
     techStack: ['React 18', 'Tailwind CSS', 'Vite', 'Lucide Icons']
   },
   {
     id: 'luxury-dealership',
     title: 'DriveNow Multimarcas (Modelo 2)',
-    tagline: 'Experiência Interativa Avançada com Negociação e Simulação Online',
+    tagline: 'Showroom editorial · Fotografia em destaque',
     tier: 'Intermediário',
     category: 'Tier 2 • Intermediário',
     badge: 'Tier 2 • Intermediário',
     status: 'available',
     path: 'luxury-dealership/',
     previewImage: 'images/corolla.jpg',
-    description: 'Edição expandida para concessionárias consolidadas. Agrega ferramentas completas de fechamento online: simulador de financiamento com cálculo de parcelas em tempo real, avaliação de seminovo na troca (Trade-In), vídeo pericial de 20s e agendamento de Concierge / Test Drive.',
+    presentation: 'editorial',
+    description: 'Uma experiência de showroom: abertura cinematográfica, marca centralizada e uma coleção de veículos com fotografias amplas. A apresentação convida o cliente a explorar cada escolha com calma.',
     features: [
-      'Tudo do Tier Essential +',
-      'Simulador Financeiro com Amortização Price/SAC e IOF',
-      'Avaliação de Entrada na Troca (Trade-In) com Margem FIPE',
-      'Filtros Avançados de Showroom (Câmbio, Combustível e Preço)',
-      'Player de Vídeo Pericial (20s) e Módulo de Concierge VIP (7 Páginas)'
+      'Abertura com vídeo e apresentação editorial',
+      'Anúncios horizontais com fotos amplas',
+      'Simulação de financiamento no anúncio',
+      'Avaliação do usado na troca',
+      'Concierge no anúncio e módulos de gestão'
     ],
     techStack: ['React 18', 'Tailwind CSS', 'Finance Engine', 'Vite']
   },
   {
     id: 'popular-dealership',
     title: 'Enterprise Veículos',
-    tagline: 'Ecossistema Completo com Inteligência Artificial e Comparador Técnico',
+    tagline: 'Exploração interativa · Escolhas lado a lado',
     tier: 'Completo',
     category: 'Tier 3 • Mais Completo',
     badge: 'Tier 3 • Mais Completo',
     status: 'available',
     path: 'popular-dealership/',
     previewImage: 'images/pulse.jpg',
-    description: 'A suíte definitiva com a inteligência máxima da plataforma. Consultor Virtual com Inteligência Artificial para recomendações personalizadas, Comparador Técnico lado a lado de até 3 veículos com barra flutuante, Dossiê Cautelar IA com verificação de leilão/sinistros, Calculadora TCO anual e alertas de preço.',
+    presentation: 'explorer',
+    description: 'Um espaço de descoberta com filtros laterais, área de resultados e acesso às escolhas salvas. Para o cliente que quer pesquisar, comparar veículos e analisar os detalhes antes de decidir.',
     features: [
-      'Tudo dos Tiers Essential e Pro +',
-      'Visualizador 360° Orbital Interativo Incluído',
-      'Consultor Virtual com Inteligência Artificial (Chatbot IA)',
-      'Comparador Técnico de Veículos Lado a Lado (Até 3 Carros)',
-      'Dossiê Cautelar IA (Histórico, Leilão, Sinistro e Pintura)',
-      'Calculadora de Custo Total (TCO Anual: IPVA, Seguro e Manutenção)',
-      'Sistema de Favoritos e Alertas de Queda de Preço (9 Páginas)'
+      'Filtros laterais e resultados interativos',
+      'Comparação de até três veículos e favoritos',
+      'Visualizador 360° incluído nos anúncios compatíveis',
+      'Calculadora de custo total e dossiê do veículo',
+      'Atendimento e financiamento dentro do anúncio'
     ],
     techStack: ['React 18', 'AI Engine', 'Local Storage', 'Tailwind CSS', 'Vite']
   }

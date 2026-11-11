@@ -17,9 +17,13 @@
     "test:merchant": "node --test packages/merchant-core/tests/*.test.mjs",
     "check:ui": "node scripts/check-ui.mjs",
     "check:dev": "node scripts/check-dev.mjs",
-    "preview": "vite preview --base /Sites-principal/ --outDir dist --host 127.0.0.1 --port 4173"
+    "preview": "vite preview --base /Sites-principal/ --outDir dist --host 127.0.0.1 --port 4173",
+    "check:runtime": "node --experimental-vm-modules scripts/check-runtime.mjs"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.28.1"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.0"
   }
 }

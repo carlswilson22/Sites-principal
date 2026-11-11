@@ -7,18 +7,21 @@ import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, MessageCircle } 
 import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
-export function VehicleCard({ vehicle, onSelect }) {
+export function VehicleCard({ vehicle, onSelect, layout = 'grid', index }) {
+  const editorial = layout === 'editorial';
   const whatsappUrl = buildVehicleWhatsappLink(vehicle);
 
   return (
-    <div data-vehicle-id={vehicle.id} className="group rounded-3xl bg-[#0c0d14]/90 border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-950/20">
+    <div data-vehicle-id={vehicle.id} className={`group overflow-hidden ${editorial ? 'rounded-sm bg-[#0c0d14] grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]' : 'rounded-3xl bg-[#0c0d14]/90 border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col shadow-xl'}`}>
       {/* Imagem com Overlay */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-black cursor-pointer" onClick={() => onSelect(vehicle)}>
+      <div className={`relative overflow-hidden bg-black ${editorial ? 'aspect-[4/3] md:aspect-auto md:min-h-80' : 'aspect-[16/10]'}`}>
         <VehicleImage
           src={vehicle.imagemPrincipal}
           alt={vehicle.nome}
+          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
+        <button type="button" onClick={() => onSelect(vehicle)} aria-label={`Ver fotos de ${vehicle.nome}`} className="absolute inset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300 focus-visible:-outline-offset-4" />
 
         {/* Gradiente Inferior para Contraste */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d14] via-transparent to-black/30 pointer-events-none" />
@@ -51,20 +54,16 @@ export function VehicleCard({ vehicle, onSelect }) {
       </div>
 
       {/* Detalhes do Veículo */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+      <div className={`${editorial ? 'p-5 sm:p-7 lg:p-8' : 'p-5'} min-w-0 flex-1 flex flex-col justify-between space-y-6`}>
         <div>
+          {editorial && index && <p className="text-3xl font-light text-amber-300/60 mb-5" aria-hidden="true">{String(index).padStart(2, '0')}</p>}
           <div className="flex items-center gap-1.5 text-xs text-amber-400/90 uppercase tracking-widest font-semibold mb-1">
             <span>{vehicle.marca}</span>
             <span className="text-slate-600">•</span>
             <span>{vehicle.categoria}</span>
           </div>
 
-          <h3 
-            onClick={() => onSelect(vehicle)}
-            className="font-heading text-xl font-bold text-white group-hover:text-amber-300 transition-colors cursor-pointer line-clamp-1"
-          >
-            {vehicle.nome}
-          </h3>
+          <h3 className={`font-heading text-white group-hover:text-amber-300 transition-colors ${editorial ? 'text-2xl font-medium leading-tight' : 'text-xl font-bold'}`}><button type="button" onClick={() => onSelect(vehicle)} className="text-left focus-visible:outline focus-visible:outline-amber-300">{vehicle.nome}</button></h3>
           <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{vehicle.versao}</p>
 
           <VehicleCardFacts vehicle={vehicle} />
@@ -72,14 +71,14 @@ export function VehicleCard({ vehicle, onSelect }) {
 
         {/* Preço e Botões */}
         <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
-          <div className="flex items-baseline justify-between">
+          <div className={`flex gap-1 ${editorial ? 'flex-col' : 'items-baseline justify-between'}`}>
             <span className="text-[11px] text-slate-400 uppercase tracking-wider">Valor Especial</span>
             <span className="font-heading text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500">
               {formatCurrency(vehicle.preco)}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className={`grid gap-2 ${editorial ? 'grid-cols-1' : 'grid-cols-2'}`}>
             <button
               onClick={() => onSelect(vehicle)}
               className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 hover:border-amber-500/40"

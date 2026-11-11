@@ -31,7 +31,7 @@ export const Header = () => {
 
       {/* Subtitle */}
       <p className="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8">
-        Compare as três edições e encontre os recursos que sua loja precisa: catálogo de veículos, atendimento, negociação e gestão em um só lugar.
+        Três formas de apresentar sua loja: uma vitrine direta, um showroom editorial ou uma experiência de exploração e comparação. Escolha a estrutura que combina com o seu negócio.
       </p>
 
       {/* Quick Metrics Bar */}

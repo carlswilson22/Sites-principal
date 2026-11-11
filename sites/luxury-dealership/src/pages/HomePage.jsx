@@ -1,50 +1,34 @@
 import React from 'react';
 import { selectHomeVehicles } from '../../../../packages/merchant-core/src/utils/storeExperience';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { HeroVideoScrub } from '../components/home/HeroVideoScrub';
 import { VehicleCard } from '../components/vehicles/VehicleCard';
-import { Button } from '../components/ui/Button';
 import { dealershipInfo } from '../data/dealershipInfo';
 
 export function HomePage({ vehicles = [], onNavigate, onSelectVehicle }) {
-  const topVehicles = selectHomeVehicles(vehicles);
-
-  return (
-    <div className="space-y-14 sm:space-y-20 pb-16 sm:pb-20">
-      <HeroVideoScrub>
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <p className="text-sm font-semibold tracking-widest uppercase text-amber-300">Seleção de veículos e atendimento exclusivo</p>
-          <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-tight">
-            {dealershipInfo.nome}
-          </h1>
-          <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
-            Conheça os veículos disponíveis e encontre o próximo capítulo da sua história ao volante.
-          </p>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2">
-            <Button variant="gold" size="lg" icon={ArrowRight} onClick={() => onNavigate('estoque')}>
-              Explorar estoque
-            </Button>
-            <Button variant="outline" size="lg" onClick={() => onNavigate('sobre-contato')}>
-              Conhecer a loja
-            </Button>
-          </div>
+  const selection = selectHomeVehicles(vehicles);
+  return <div data-store-layout="editorial" className="pb-16 sm:pb-24">
+    <HeroVideoScrub>
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-[1fr_18rem] items-end gap-10">
+        <div className="space-y-7">
+          <p className="text-xs uppercase tracking-[0.25em] text-amber-200">{dealershipInfo.nome}</p>
+          <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl font-light text-white tracking-tight leading-[1.05]">Algumas escolhas<br />merecem <span className="italic text-amber-200">tempo.</span></h1>
+          <a href="#colecao" className="inline-flex gap-3 items-center text-white min-h-12 border-b border-amber-300/60">Conheça nossa seleção<ArrowDown aria-hidden="true" className="w-4 h-4" /></a>
         </div>
-      </HeroVideoScrub>
-
-      <section aria-labelledby="home-selection-title" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
-          <div>
-            <h2 id="home-selection-title" className="font-heading text-2xl sm:text-3xl font-extrabold text-white">Uma seleção para você</h2>
-            <p className="text-slate-400 text-sm sm:text-base mt-2">Veja alguns veículos da loja. O catálogo completo está no estoque.</p>
-          </div>
-          <Button variant="outline" size="md" icon={ArrowRight} onClick={() => onNavigate('estoque')} className="self-start sm:shrink-0">
-            Ver todo o estoque
-          </Button>
+        <div className="text-slate-200 leading-relaxed space-y-5 lg:pb-3">
+          <p>Uma seleção para quem valoriza cada detalhe. Explore os veículos com calma, descubra suas histórias e encontre a sua próxima escolha.</p>
+          <button type="button" onClick={() => onNavigate('sobre-contato')} className="inline-flex items-center gap-2 min-h-11 text-sm text-amber-200">Conheça a DriveNow<ArrowUpRight aria-hidden="true" className="w-4 h-4" /></button>
         </div>
-        {topVehicles.length ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topVehicles.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={onSelectVehicle} />)}
-        </div> : <p className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-slate-300">Estamos preparando novas opções para você. Fale com a loja para consultar disponibilidade.</p>}
-      </section>
-    </div>
-  );
+      </div>
+    </HeroVideoScrub>
+    <section id="colecao" aria-labelledby="collection-title" className="scroll-mt-44 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 grid lg:grid-cols-[12rem_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
+      <div className="lg:sticky lg:top-44 space-y-5">
+        <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Em exposição</p>
+        <h2 id="collection-title" className="font-heading text-3xl font-light text-white">Uma seleção.<br />Muitas histórias.</h2>
+        <p className="text-sm text-slate-400 leading-relaxed">Fotografias, detalhes e o que você precisa saber para escolher seu próximo carro.</p>
+        <button type="button" onClick={() => onNavigate('estoque')} className="inline-flex items-center gap-2 text-sm text-amber-200 min-h-11 underline underline-offset-4">Ver acervo completo<ArrowUpRight aria-hidden="true" className="w-4 h-4" /></button>
+      </div>
+      <div className="space-y-8 sm:space-y-12 min-w-0">{selection.length ? selection.map((vehicle, index) => <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={onSelectVehicle} layout="editorial" index={index + 1} />) : <p className="text-slate-300 py-8">Em breve, novas escolhas no nosso acervo. Converse com a loja para saber mais.</p>}</div>
+    </section>
+  </div>;
 }

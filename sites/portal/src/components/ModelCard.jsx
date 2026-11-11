@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExternalLink, Check, Clock } from 'lucide-react';
+import { ModelPreview } from './ModelPreview';
 
 export const ModelCard = ({ model }) => {
   const isAvailable = model.status === 'available';
@@ -12,9 +13,9 @@ export const ModelCard = ({ model }) => {
 
   return (
     <article aria-labelledby={`model-${model.id}`} className="model-card glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 group">
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100 border-b border-slate-200/80">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 border-b border-slate-200/80">
         {model.previewImage ? (
-          <img src={import.meta.env.BASE_URL + model.previewImage} alt={`Prévia de ${model.title}`} loading="lazy" width="640" height="360" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <ModelPreview model={model} />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
             <Clock className="w-10 h-10 text-slate-400 mb-2" />
