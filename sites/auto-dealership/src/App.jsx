@@ -14,9 +14,18 @@ import { MerchantEntry } from '../../../packages/merchant-core/src/components/la
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 
 
+import { StoreAccessProvider, useStoreAccess } from '../../../packages/merchant-core/src/context/StoreAccessContext';
+import { canAccessSitePage } from '../../../packages/merchant-core/src/utils/siteAccess';
+
 const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 
+
 export default function App() {
+  return <StoreAccessProvider storeKey="autoelite" storeName={dealershipInfo.nome}><StoreApp /></StoreAccessProvider>;
+}
+
+function StoreApp() {
+  const { user, authorizeNavigation } = useStoreAccess();
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [searchFilter, setSearchFilter] = useState({ term: '', category: 'todos' });
@@ -33,7 +42,7 @@ export default function App() {
     return unsub;
   }, []);
 
-  const navigateTo = (page, params = {}) => {
+  const navigateTo = (page, params = {}) => authorizeNavigation(page, () => {
     setCurrentPage(page === 'visitas' ? 'sobre-contato' : page);
 
     if (params.term !== undefined || params.category !== undefined) {
@@ -44,9 +53,13 @@ export default function App() {
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  });
 
 
+
+  React.useEffect(() => {
+    if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
+  }, [currentPage, user]);
 
   useSiteAnalytics('autoelite', currentPage, selectedVehicleForModal);
 

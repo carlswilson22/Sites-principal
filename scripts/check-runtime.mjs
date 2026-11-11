@@ -10,8 +10,10 @@ const scenarios = [
   ['auto-dealership', 'motion'], ['auto-dealership', 'legacy-media'], ['auto-dealership', 'no-media'], ['auto-dealership', 'invalid-storage'],
   ['popular-dealership', 'invalid-favorites'], ['popular-dealership', 'legacy-favorites'],
   ['auto-dealership', 'lan-http'],
+  ['auto-dealership', 'legacy-staff'], ['popular-dealership', 'invalid-account'],
 ];
 for (const [model, scenario] of scenarios) {
+  const storeKey = { 'auto-dealership': 'autoelite', 'luxury-dealership': 'drivenow', 'popular-dealership': 'apexluxury' }[model];
   const fullFlow = scenario === 'normal' || scenario === 'lan-http';
   const directory = path.resolve('dist', model);
   const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
@@ -32,6 +34,8 @@ for (const [model, scenario] of scenarios) {
   if (scenario === 'invalid-storage') window.localStorage.setItem('store_vehicles_autoelite', '{invalid');
   if (scenario === 'invalid-favorites') window.localStorage.setItem('apexluxury_favorites_v1', '{"invalid":true}');
   if (scenario === 'legacy-favorites') window.localStorage.setItem('drivenow_favorites_v1', '[1,"1",999,2]');
+  if (scenario === 'legacy-staff') window.sessionStorage.setItem('merchant_demo_user', JSON.stringify({ id: 1, role: 'proprietario', email: 'proprietario@demo.invalid', demo: true }));
+  if (scenario === 'invalid-account') window.sessionStorage.setItem(`store_access_${storeKey}`, '{invalid');
   window.scrollTo = () => {};
   window.fetch = async input => {
     const url = new URL(String(input), window.location.href);
@@ -69,31 +73,74 @@ for (const [model, scenario] of scenarios) {
     assert.equal(failures.length, 0, failures.join('\n'));
     assert(predicate(), `Estado não encontrado: ${model} (${scenario})`);
   };
+  const loginForm = audience => document.querySelector(`form[aria-label="${audience === 'staff' ? 'Login da equipe' : 'Login de cliente'}"]`);
+  const submitLogin = async (audience, email, password, failure = false) => {
+    await wait(() => loginForm(audience));
+    const form = loginForm(audience);
+    for (const [name, value] of Object.entries({ email, password })) {
+      const input = form.elements.namedItem(name);
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, value);
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    }
+    await new Promise(resolve => setTimeout(resolve, 20));
+    form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    await wait(() => failure ? form.querySelector('[role="alert"]') : !document.querySelector('button[aria-label="Fechar login"]'));
+  };
+  const signInStaff = async role => {
+    button('Entrar').click();
+    await wait(() => button('Equipe da loja'));
+    button('Equipe da loja').click();
+    await submitLogin('staff', `${role}@demo.invalid`, 'Demonstracao@2026');
+    assert(document.querySelector('button[aria-label="Painel do lojista"]'), 'Equipe autenticada sem acesso ao painel');
+    document.querySelector('button[aria-label="Painel do lojista"]').click();
+    await wait(() => button('Contratos & Termos'));
+    assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Seletor público de cargos ainda disponível');
+  };
+  const signOut = async () => {
+    const staffExit = document.querySelector('button[aria-label="Encerrar Sessão"]');
+    if (staffExit) staffExit.click();
+    else { document.querySelector('button[aria-label="Minha conta"]').click(); await wait(() => button('Sair da conta')); button('Sair da conta').click(); }
+    await wait(() => button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'));
+    assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Sair não removeu a sessão da loja');
+  };
   try {
     const root = moduleFor(path.join(directory, entry.slice(entry.lastIndexOf('/assets/') + 1)));
     await root.link(link);
     await root.evaluate();
     await wait(() => document.querySelector('[data-store-layout]'));
     assert(document.querySelector('#root h1'), `Página em branco: ${model}`);
+    assert(button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Primeira visita começou com acesso ao painel');
     if (model === 'popular-dealership') {
       const explore = document.querySelector('a[href="#explorar-enterprise"]');
       assert(explore && document.getElementById(explore.hash.slice(1)), 'Atalho da abertura não alcança a vitrine');
       for (const label of ['Comparar escolhas', 'Meus favoritos']) assert.equal(buttons().filter(item => item.textContent.includes(label)).length, 1, `Atalho duplicado na inicial: ${label}`);
+      for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(buttons().find(item => item.textContent.includes(label)).textContent.endsWith('0'), 'Visitante recebeu escolhas pré-selecionadas');
     }
     if (scenario === 'legacy-favorites') {
-      await wait(() => window.localStorage.getItem('apexluxury_favorites_v1'));
-      assert.deepEqual(JSON.parse(window.localStorage.getItem('apexluxury_favorites_v1')), ['1', '999', '2']);
-      assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('2'), 'Contador inclui favoritos fora do estoque');
+      assert.equal(window.localStorage.getItem('drivenow_favorites_v1'), '[1,"1",999,2]', 'Preferências antigas foram alteradas sem login');
     }
     const ads = buttons().filter(item => item.textContent.includes('Visualizar anúncio'));
     assert(ads.length >= 5, `Vitrine incompleta: ${model}`);
     ads[0].click();
     await wait(() => document.querySelector('[role="dialog"]'));
     if (fullFlow) {
-      button('Simular financiamento deste veículo').click();
-      await wait(() => document.querySelector('[data-financing-vehicle]'));
       button('Atendimento sobre este veículo').click();
       await wait(() => document.querySelector('[data-concierge-vehicle] textarea'));
+      assert(!loginForm('customer'), 'Atendimento público exigiu login');
+      const ad = document.querySelector('[role="dialog"]');
+      button('Simular financiamento deste veículo').click();
+      await wait(() => loginForm('customer'));
+      assert(!document.querySelector('[data-financing-vehicle]') && ad.isConnected, 'Simulador abriu antes do login ou fechou o anúncio');
+      window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
+      await wait(() => !loginForm('customer'));
+      assert(ad.isConnected && !document.querySelector('[data-financing-vehicle]'), 'Cancelar login abriu a ferramenta');
+      button('Simular financiamento deste veículo').click();
+      await submitLogin('customer', 'proprietario@demo.invalid', 'Demonstracao@2026', true);
+      assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Login de cliente promoveu usuário à equipe');
+      await submitLogin('customer', 'cliente@demo.invalid', 'Cliente@2026');
+      await wait(() => document.querySelector('[data-financing-vehicle]'));
+      assert.equal(document.querySelector('[data-financing-vehicle]').dataset.financingVehicle, ad.dataset.vehicleId, 'Login perdeu o contexto do veículo');
+      assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente autenticado recebeu o painel');
       if (model === 'popular-dealership') {
         const ad = document.querySelector('[role="dialog"]');
         button('Alerta de Preço').click();
@@ -194,6 +241,10 @@ for (const [model, scenario] of scenarios) {
       assert(results.length && results.every(item => item.textContent.includes('HB20')), 'Busca inicial não acompanha o estoque');
     }
     if (fullFlow && model === 'popular-dealership') {
+      for (let index = 0; index < 2; index += 1) {
+        document.querySelector('button[title="Salvar nos favoritos"]').click();
+        await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith(String(index + 1)));
+      }
       buttons().find(item => item.textContent.includes('Meus favoritos')).click();
       await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
       const saved = document.querySelectorAll('[data-vehicle-id]').length;
@@ -223,14 +274,28 @@ for (const [model, scenario] of scenarios) {
       const before = buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent;
       compare.click();
       await wait(() => buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent !== before);
+      for (let index = 0; index < 3; index += 1) {
+        document.querySelector('button[title="Comparar este veículo"]').click();
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      assert(buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent.endsWith('3'), 'Limite de comparação foi ultrapassado');
+      assert(document.querySelector('[role="status"]').textContent.includes('Você pode comparar até 3'), 'Comparação não explicou o limite');
       buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
       await wait(() => !document.querySelector('[data-store-layout]'));
     }
     if (fullFlow) {
-      const storeKey = { 'auto-dealership': 'autoelite', 'luxury-dealership': 'drivenow', 'popular-dealership': 'apexluxury' }[model];
-      window.sessionStorage.setItem('merchant_demo_user', JSON.stringify({ id: 'runtime-attendant', demo: true, role: 'atendente', name: 'Atendente de Teste', email: 'atendente@demo.invalid' }));
-      button('Painel do lojista').click();
-      await wait(() => button('Contratos & Termos'));
+      await signOut();
+      if (model === 'popular-dealership') {
+        for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(buttons().find(item => item.textContent.includes(label)).textContent.endsWith('0'), 'Visitante recebeu as escolhas da conta anterior');
+        document.querySelector('button[title="Salvar nos favoritos"]').click();
+        await wait(() => loginForm('customer'));
+        assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('0'), 'Favorito foi salvo sem login');
+        await submitLogin('customer', 'cliente@demo.invalid', 'Cliente@2026');
+        await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('2'));
+        assert.equal(JSON.parse(window.localStorage.getItem('customer_favorites_apexluxury_cliente_customer-demo')).length, 2, 'Login não retomou o favorito solicitado na conta correta');
+        await signOut();
+      }
+      await signInStaff('atendente');
       assert(!button('Financeiro & Margens'), 'Atendente recebeu acesso financeiro');
       assert(!button('Contratos Avançados & Troca'), 'Atendente recebeu acesso a contratos avançados');
       assert(button('Simulador de financiamento'), 'Simulador ausente para o atendente');
@@ -265,10 +330,7 @@ for (const [model, scenario] of scenarios) {
       }
       let checkedRoutes = 0;
       for (const role of ['atendente', 'gerente', 'proprietario']) {
-        const profile = document.querySelector('select[aria-label="Perfil de acesso"]');
-        profile.value = role;
-        profile.dispatchEvent(new window.Event('change', { bubbles: true }));
-        await wait(() => JSON.parse(window.sessionStorage.getItem('merchant_demo_user')).role === role);
+        if (role !== 'atendente') { await signOut(); await signInStaff(role); }
         const menu = document.querySelector('nav[aria-label="Navegação do painel"]');
         const labels = [...menu.querySelectorAll('button')].map(item => item.textContent.trim());
         assert.equal(new Set(labels).size, labels.length, 'Itens duplicados no menu do painel');
@@ -279,6 +341,8 @@ for (const [model, scenario] of scenarios) {
           checkedRoutes += 1;
         }
       }
+      await signOut();
+      assert(!document.querySelector('nav[aria-label="Navegação do painel"]'), 'Painel continuou montado após sair');
       console.log(`OK: ${model} (${checkedRoutes} acessos a módulos nos três perfis)`);
     }
     assert.equal(failures.length, 0, failures.join('\n'));

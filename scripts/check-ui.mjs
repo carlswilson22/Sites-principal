@@ -5,6 +5,7 @@ const source = `
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { AuthProvider, TierProvider } from './packages/merchant-core/src/index.js';
+import { StoreAccessProvider } from './packages/merchant-core/src/context/StoreAccessContext.jsx';
 import { merchantRoutes } from './packages/merchant-core/src/components/layout/MerchantPanel.jsx';
 import { normalizeVehicle } from './packages/merchant-core/src/utils/vehicles.js';
 import { getVehicleGallery } from './packages/merchant-core/src/utils/vehicleGallery.js';
@@ -52,7 +53,7 @@ for (const [name, Component, props] of [
     ]),
 ]) {
   try {
-    const html = renderToString(React.createElement(Component, props));
+    const html = renderToString(React.createElement(StoreAccessProvider, { storeKey: 'qa', storeName: 'Loja de teste' }, React.createElement(Component, props)));
     if (!html.length) throw new Error('Conteúdo vazio');
     if (name.startsWith('modelo-') && (html.includes('Voltar ao Topo') || html.includes('Auto-Dealership'))) throw new Error('Texto genérico ou atalho antigo presente');
     if (name.startsWith('modelo-') && (html.match(/data-vehicle-id=/g) || []).length < 5) throw new Error('Página inicial com menos de cinco veículos');
@@ -80,16 +81,14 @@ for (const [name, Component, props] of [
       if (!html.includes(count ? 'Foto 1 de ' + count : 'Sem fotos cadastradas')) throw new Error('Contador da galeria incorreto');
       if (count > 1 && !html.includes('Ver foto ' + count + ' de ' + count)) throw new Error('Navegação de fotos incompleta');
       if (props.vehicle.imagemPrincipal.includes('/images/catalog/') && !html.includes('Foto ilustrativa do modelo')) throw new Error('Créditos da foto ausentes');
-      if (props.initialFinancing) {
-        if (!html.includes('data-financing-vehicle="' + props.vehicle.id + '"') || !html.includes('aria-expanded="true"')) throw new Error('Simulador solicitado não acompanha o veículo do anúncio');
-      } else if (html.includes('data-financing-vehicle=') || html.includes('type="number"')) throw new Error('Simulador fechado está sendo montado antecipadamente');
+      if (html.includes('data-financing-vehicle=') || html.includes('type="number"')) throw new Error('Simulador foi montado para visitante sem login');
       if (html.includes('data-concierge-vehicle=') || html.includes('<textarea')) throw new Error('Chat fechado está sendo montado antecipadamente');
       if (html.includes('data-feature="vehicle-360"') !== (Component === PopularModal)) throw new Error('360 habilitado em edição incorreta');
       const services = html.indexOf('data-vehicle-services=');
       const gallery = html.indexOf('Foto 1 de ');
       const financing = html.indexOf('data-financing-vehicle=');
       if (gallery >= 0 && services <= gallery) throw new Error('Serviços não estão no final do anúncio');
-      if (services < 0 || !html.includes('Atendimento sobre este veículo') || !html.includes('Simular financiamento deste veículo') || (props.initialFinancing && financing <= services)) throw new Error('Atendimento ou financiamento fora do final do anúncio');
+      if (services < 0 || !html.includes('Atendimento sobre este veículo') || !html.includes('Simular financiamento deste veículo')) throw new Error('Atendimento ou financiamento fora do final do anúncio');
       if (!html.includes('Tenho interesse')) throw new Error('CTA de interesse incorreto');
     }
     console.log('OK:', name);

@@ -1,44 +1,28 @@
-﻿import { useState, useEffect } from 'react';
-
+import { useEffect, useState } from 'react';
+import { useStoreAccess } from '../../../../packages/merchant-core/src/context/StoreAccessContext';
 import { normalizeSelectionIds, selectedVehicles } from '../utils/vehicleSelection';
 
-const STORAGE_KEY = 'apexluxury_favorites_v1';
+const accountKey = (storeKey, user) => user ? `customer_favorites_${storeKey}_${user.role}_${user.id}` : null;
+function readIds(key) {
+  try { return key ? normalizeSelectionIds(JSON.parse(localStorage.getItem(key) || '[]')) : []; }
+  catch { return []; }
+}
 
 export function useFavorites(allVehicles = []) {
-  const [favoriteIds, setFavoriteIds] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('drivenow_favorites_v1');
-      return normalizeSelectionIds(saved ? JSON.parse(saved) : [1, 2], [1, 2]);
-    } catch {
-      return normalizeSelectionIds([1, 2]);
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(favoriteIds));
-    } catch (e) {
-      console.warn('Erro ao salvar favoritos no storage:', e);
-    }
-  }, [favoriteIds]);
-
-  const toggleFavorite = (vehicleId) => {
-    setFavoriteIds(prev => 
-      prev.includes(String(vehicleId))
-        ? prev.filter(id => id !== String(vehicleId))
-        : [...prev, String(vehicleId)]
-    );
-  };
-
-  const isFavorite = (vehicleId) => favoriteIds.includes(String(vehicleId));
-
+  const { user, storeKey, requireLogin } = useStoreAccess();
+  const key = accountKey(storeKey, user);
+  const [selection, setSelection] = useState(() => ({ key, ids: readIds(key) }));
+  useEffect(() => { setSelection({ key, ids: readIds(key) }); }, [key]);
+  const favoriteIds = key && selection.key === key ? selection.ids : [];
+  const toggleFavorite = vehicleId => requireLogin(account => {
+    const currentKey = accountKey(storeKey, account);
+    setSelection(previous => {
+      const ids = previous.key === currentKey ? previous.ids : readIds(currentKey);
+      const next = ids.includes(String(vehicleId)) ? ids.filter(id => id !== String(vehicleId)) : [...ids, String(vehicleId)];
+      try { localStorage.setItem(currentKey, JSON.stringify(next)); } catch {}
+      return { key: currentKey, ids: next };
+    });
+  }, 'Entre para salvar este veículo nos seus favoritos.');
   const favoriteVehicles = selectedVehicles(favoriteIds, allVehicles);
-
-  return {
-    favoriteIds,
-    toggleFavorite,
-    isFavorite,
-    favoritesCount: favoriteVehicles.length,
-    favoriteVehicles
-  };
+  return { favoriteIds, toggleFavorite, isFavorite: id => favoriteIds.includes(String(id)), favoritesCount: favoriteVehicles.length, favoriteVehicles };
 }

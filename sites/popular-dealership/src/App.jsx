@@ -25,9 +25,18 @@ import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/ve
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
 
+import { StoreAccessProvider, useStoreAccess } from '../../../packages/merchant-core/src/context/StoreAccessContext';
+import { canAccessSitePage } from '../../../packages/merchant-core/src/utils/siteAccess';
+
 const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 
+
 export default function App() {
+  return <StoreAccessProvider storeKey="apexluxury" storeName={dealershipInfo.nome}><StoreApp /></StoreAccessProvider>;
+}
+
+function StoreApp() {
+  const { user, isAuthenticated, authorizeNavigation, requireLogin } = useStoreAccess();
   const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('apexluxury', vehiclesData));
   React.useEffect(() => storeSync.subscribe('apexluxury', detail => { if (detail.type === 'VEHICLES_UPDATED') setVehicles(detail.vehicles); }), []);
   const publishedVehicles = vehicles.filter(isPublishedVehicle);
@@ -49,11 +58,12 @@ export default function App() {
     toggleCompare, 
     isComparing, 
     clearCompared, 
+    comparisonNotice,
     comparedCount, 
     comparedVehicles 
   } = useComparator(publishedVehicles);
 
-  const navigateTo = (page, params = {}) => {
+  const navigateTo = (page, params = {}) => authorizeNavigation(page, () => {
     setCurrentPage(page === 'visitas' ? 'sobre-contato' : page);
 
     if (params.vehicle) {
@@ -61,13 +71,19 @@ export default function App() {
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  });
+
+  const openPriceAlert = vehicle => requireLogin(() => setPriceAlertVehicle(vehicle), 'Entre para solicitar um aviso de condição de preço.');
 
   const handleOpenFinancingFromModal = vehicle => {
     setAdFinancingOpen(true);
     setSelectedVehicleForModal(vehicle);
   };
   const openVehicle = vehicle => { setAdFinancingOpen(false); setSelectedVehicleForModal(vehicle); };
+
+  React.useEffect(() => {
+    if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
+  }, [currentPage, user]);
 
   useSiteAnalytics('apexluxury', currentPage, selectedVehicleForModal);
 
@@ -89,6 +105,7 @@ export default function App() {
       />
 
       {/* Conteúdo Dinâmico da Página Ativa */}
+      {comparisonNotice && <p role="status" className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 text-sm text-cyan-200">{comparisonNotice}</p>}
       <main className="flex-1">
         {currentPage === 'home' && (
           <HomePage
@@ -99,7 +116,7 @@ export default function App() {
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
             onToggleCompare={toggleCompare}
-            onOpenPriceAlert={(v) => { setSelectedVehicleForModal(null); setPriceAlertVehicle(v); }}
+            onOpenPriceAlert={openPriceAlert}
             favoritesCount={favoritesCount}
             comparedCount={comparedCount}
           />
@@ -116,7 +133,7 @@ export default function App() {
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
             onToggleCompare={toggleCompare}
-            onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
+            onOpenPriceAlert={openPriceAlert}
           />
         )}
 
@@ -129,7 +146,7 @@ export default function App() {
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
             onToggleCompare={toggleCompare}
-            onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
+            onOpenPriceAlert={openPriceAlert}
           />
         )}
 
@@ -142,18 +159,18 @@ export default function App() {
 
         {currentPage === 'servicos' && <StoreServicesPage onNavigate={navigateTo} favoritesCount={favoriteVehicles.length} comparedCount={comparedVehicles.length} />}
 
-        {currentPage === 'simulador' && (
+        {currentPage === 'simulador' && isAuthenticated && (
           <FinancingPage
             vehicles={publishedVehicles}
             preselectedVehicle={financingPreselectedVehicle}
           />
         )}
 
-        {currentPage === 'troca' && (
+        {currentPage === 'troca' && isAuthenticated && (
           <TradeInPage vehicles={publishedVehicles} />
         )}
 
-        {currentPage === 'comparador' && (
+        {currentPage === 'comparador' && isAuthenticated && (
           <ComparatorPage
             comparedVehicles={comparedVehicles}
             onRemoveFromCompare={toggleCompare}
@@ -162,7 +179,7 @@ export default function App() {
           />
         )}
 
-        {currentPage === 'favoritos' && (
+        {currentPage === 'favoritos' && isAuthenticated && (
           <FavoritesPage
             favoriteVehicles={favoriteVehicles}
             onNavigate={navigateTo}
@@ -171,7 +188,7 @@ export default function App() {
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
             onToggleCompare={toggleCompare}
-            onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
+            onOpenPriceAlert={openPriceAlert}
           />
         )}
 
@@ -200,7 +217,7 @@ export default function App() {
           onClose={() => setSelectedVehicleForModal(null)}
           initialFinancing={adFinancingOpen}
           onOpenDossier={(v) => { setSelectedVehicleForModal(null); setDossierVehicle(v); }}
-          onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
+          onOpenPriceAlert={openPriceAlert}
           isFavorite={isFavorite(selectedVehicleForModal.id)}
           onToggleFavorite={toggleFavorite}
         />
@@ -215,7 +232,7 @@ export default function App() {
       )}
 
       {/* Modal de Alerta de Preço */}
-      {priceAlertVehicle && (
+      {priceAlertVehicle && isAuthenticated && (
         <PriceAlertModal
           vehicle={priceAlertVehicle}
           onClose={() => setPriceAlertVehicle(null)}

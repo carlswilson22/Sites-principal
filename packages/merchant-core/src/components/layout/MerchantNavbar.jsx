@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 
 
 export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitToSite }) {
-  const { user, logout, switchRole, isDemoMode } = useAuth();
+  const { user, logout } = useAuth();
   const getRoleLabel = (role) => {
     if (role === 'proprietario') return 'Proprietário';
     if (role === 'gerente') return 'Gerente';
@@ -42,22 +42,13 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitT
 
       <div className="flex items-center gap-3 sm:gap-4">
 
-        {/* Perfil do Usuário com Seletor Rápido de Teste RBAC */}
+        {/* Perfil autenticado da equipe */}
         <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-1">
           <div className="hidden sm:flex flex-col text-right mr-1">
             <span className="text-xs font-semibold text-slate-200">{user?.name || 'Lojista'}</span>
             <span className="text-[10px] text-slate-400 capitalize">{getRoleLabel(user?.role)}</span>
           </div>
-          {isDemoMode && <select aria-label="Perfil de acesso"
-            value={user?.role || 'atendente'}
-            onChange={(e) => switchRole && switchRole(e.target.value)}
-            className="bg-slate-800 text-slate-200 text-[11px] font-semibold py-1 px-1.5 rounded-lg border border-slate-600 focus:outline-none cursor-pointer"
-            title="Alternar perfil de acesso"
-          >
-            <option value="proprietario">👑 Proprietário</option>
-            <option value="gerente">👔 Gerente</option>
-            <option value="atendente">💼 Atendente</option>
-          </select>}
+
         </div>
 
         {/* Botão de Retornar ao Site Público */}

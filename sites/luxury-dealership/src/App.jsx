@@ -17,9 +17,18 @@ import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/ve
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
 
+import { StoreAccessProvider, useStoreAccess } from '../../../packages/merchant-core/src/context/StoreAccessContext';
+import { canAccessSitePage } from '../../../packages/merchant-core/src/utils/siteAccess';
+
 const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 
+
 export default function App() {
+  return <StoreAccessProvider storeKey="drivenow" storeName={dealershipInfo.nome}><StoreApp /></StoreAccessProvider>;
+}
+
+function StoreApp() {
+  const { user, isAuthenticated, authorizeNavigation } = useStoreAccess();
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
@@ -35,7 +44,7 @@ export default function App() {
     return unsub;
   }, []);
 
-  const navigateTo = (page, params = {}) => {
+  const navigateTo = (page, params = {}) => authorizeNavigation(page, () => {
     setCurrentPage(page === 'visitas' ? 'sobre-contato' : page);
 
     if (params.vehicle) {
@@ -43,9 +52,13 @@ export default function App() {
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  });
 
 
+
+  React.useEffect(() => {
+    if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
+  }, [currentPage, user]);
 
   useSiteAnalytics('drivenow', currentPage, selectedVehicleForModal);
 
@@ -88,14 +101,14 @@ export default function App() {
 
         {currentPage === 'servicos' && <StoreServicesPage premium onNavigate={navigateTo} />}
 
-        {currentPage === 'simulador' && (
+        {currentPage === 'simulador' && isAuthenticated && (
           <FinancingPage
             vehicles={publishedVehicles}
             preselectedVehicle={financingPreselectedVehicle}
           />
         )}
 
-        {currentPage === 'troca' && (
+        {currentPage === 'troca' && isAuthenticated && (
           <TradeInPage vehicles={publishedVehicles} />
         )}
 

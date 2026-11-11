@@ -41,7 +41,7 @@ class PanelErrorBoundary extends React.Component {
 }
 
 export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToSite }) {
-  const { isAuthenticated, loading, role } = useAuth();
+  const { isStaff, loading, role } = useAuth();
   const { tier } = useTier();
   const [tab, setTab] = useState('dashboard');
   const [client, setClient] = useState(null);
@@ -50,7 +50,7 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToS
     if (detail.type === 'VEHICLES_UPDATED') setVehicles(detail.vehicles);
   }), [storeKey]);
   if (loading) return <p role="status" className="p-8 text-white bg-slate-950 min-h-screen">Carregando acesso ao painel…</p>;
-  if (!isAuthenticated) return <LoginView storeName={dealership.nome} onLoginSuccess={() => setTab('dashboard')} onCancel={onExitToSite} />;
+  if (!isStaff) return <LoginView storeName={dealership.nome} onLoginSuccess={() => setTab('dashboard')} onCancel={onExitToSite} />;
   const allowed = canAccessMerchantRoute(tab, tier, role);
   const active = allowed ? tab : 'dashboard';
   const View = merchantRoutes[active].component;

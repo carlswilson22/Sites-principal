@@ -1,26 +1,71 @@
-# Painel demonstrativo — lote 0
+# Acessos de demonstração
 
-O projeto apresenta três modelos cumulativos para escolha comercial. O painel compartilha componentes React; o site público de cada modelo mantém sua identidade.
+Os três modelos começam como **visitante**, sem uma conta conectada e sem
+favoritos ou veículos pré-selecionados para comparação. Navegação, catálogo,
+anúncios, informações da loja, atendimento e WhatsApp ficam públicos.
 
-## Configuração
+## Cliente
 
-Os três builds da vitrine usam `VITE_MERCHANT_DEMO=true` por padrão na configuração Vite. Há um `.env.example` em cada modelo. Para desabilitar explicitamente o acesso demonstrativo, configure a variável de ambiente do processo de build como `false`. Isso não transforma os demais módulos existentes em uma instalação pronta para produção.
+Ao usar uma ferramenta pessoal, o site abre o login e mantém a página atual.
+Cancelar preserva a navegação; entrar retoma a ação solicitada.
 
-O acesso demonstrativo aceita os perfis `proprietario`, `gerente` e `atendente`, com endereços terminados em `@demo.invalid` e senha `Demonstracao@2026`. Os botões de acesso preenchem essas credenciais. Apenas dados fictícios devem ser usados. A sessão demonstrativa fica no sessionStorage, separada da sessão da API; não representa uma barreira de segurança.
+- Nos três modelos: simulação de financiamento dentro do anúncio.
+- Nos modelos 2 e 3: página de financiamento e avaliação do usado na troca.
+- No modelo 3: favoritos, comparação e interesse em condição de preço.
 
-Sem demonstração, o login consulta a API e propaga falhas. O perfil é consultado na sessão do servidor; o seletor de perfis não aparece. Sair solicita revogação ao servidor. Recuperação de senha não possui serviço de envio configurado e informa essa limitação.
+O botão **Entrar** abre a conta de cliente. Para testar:
 
-## Estado de validação
+| E-mail | Senha |
+| --- | --- |
+| `cliente@demo.invalid` | `Cliente@2026` |
 
-- Node executado: 22.23.2.
-- Os três builds individuais passaram, inclusive após a revisão final de textos.
-- `node --test packages/merchant-core/tests/demo-auth.test.mjs`: 2 testes passaram, cobrindo ativação explícita e rejeição de credenciais demonstrativas inválidas.
-- Validação manual em navegador e celular: pendente.
-- Testes de API, CSRF, permissões e demais lotes: não executados nesta etapa.
-- Nenhuma dependência instalada, nenhuma alteração no CI e nenhum deploy.
+**Preencher acesso de teste** apenas preenche o formulário; ainda é necessário
+confirmar o login. A conta de cliente não mostra o Painel do Lojista.
 
-## Continuidade
+## Equipe da loja
 
-O estoque e contatos ainda possuem armazenamento demonstrativo local e outros adaptadores ainda têm fallbacks legados, a revisar nos lotes seguintes. O backend existente permanece no repositório. Não usar esta vitrine para dados reais ou afirmar que integrações externas estão operacionais.
+No login, escolha **Equipe da loja**. A entrada exige credenciais desse tipo de
+acesso; a senha de cliente não autentica um funcionário. Contas de teste:
 
-As seis alterações locais anteriores ao trabalho foram preservadas e não devem ser incluídas nos commits do lote 0. A integração à main e exclusão das branches serão feitas após os lotes aprovados e verificações finais, conforme autorização do usuário.
+| Perfil | E-mail | Senha |
+| --- | --- | --- |
+| Atendente | `atendente@demo.invalid` | `Demonstracao@2026` |
+| Gerente | `gerente@demo.invalid` | `Demonstracao@2026` |
+| Proprietário | `proprietario@demo.invalid` | `Demonstracao@2026` |
+
+Após entrar, **Painel do lojista** aparece no cabeçalho. Não há entrada rápida
+por perfil, senha de funcionário preenchida ou seletor de cargos no painel.
+Para conferir outro cargo, saia da sessão e entre com a outra conta.
+
+As permissões dos módulos continuam em `merchantAccess.js`; Contratos e Termos
+e o simulador permanecem disponíveis ao atendente nas três edições.
+
+## Sessão e preferências
+
+- Sessões demonstrativas ficam em `sessionStorage`, com validade de quatro horas,
+  usando `store_access_<loja>`. Uma loja não restaura a sessão de outra.
+- As chaves legadas `merchant_demo_user` e `merchant_user` não iniciam uma sessão.
+- Favoritos ficam separados por loja e conta. Preferências antigas da demonstração
+  são preservadas no navegador, mas não atribuídas a um novo visitante.
+- Comparação começa vazia e pertence ao perfil conectado na sessão atual.
+- Sair remove a sessão da loja, oculta dados pessoais e retira o acesso ao painel.
+
+## Instalação futura do cliente
+
+Conforme o escopo acordado, esta entrega simula o fluxo de acesso: não cria contas
+reais, não envia e-mails e não utiliza um servidor de autenticação. Os builds
+mantêm `VITE_MERCHANT_DEMO=true`. As credenciais e regras no JavaScript servem
+para apresentação e não constituem uma barreira de segurança para dados reais.
+
+Na instalação do cliente, será necessário integrar o login de clientes a um
+servidor, validar permissões e sessões no servidor e persistir preferências por
+conta. Ao desativar a demonstração, o login da equipe consulta a API existente;
+o login de clientes informa a integração pendente, sem criar uma sessão fictícia.
+
+## Verificação
+
+`npm run test:merchant` cobre identidades, validade e isolamento de sessões,
+regras de visitante/cliente e rejeição de acesso do cliente a módulos internos.
+Após o build, `npm run check:runtime` verifica os fluxos nos arquivos compilados,
+incluindo login no anúncio, cancelamento, retorno à ferramenta, favoritos,
+saída e login individual em cada perfil da equipe.

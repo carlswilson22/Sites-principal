@@ -33,6 +33,11 @@ estoque, permanecem na lateral dos filtros, sem repetir os mesmos atalhos na tel
 O painel do lojista é carregado sob demanda nos três modelos, com indicação de
 carregamento. Seus módulos não precisam ser baixados para abrir a vitrine.
 
+As três vitrines começam como visitante. **Entrar** oferece acesso de cliente
+e acesso separado da equipe. Ferramentas pessoais solicitam login no contexto
+atual e o Painel do Lojista aparece apenas para perfis da equipe. Os acessos
+fictícios estão descritos em [Acessos de demonstração](painel-demonstracao.md).
+
 ## Sobre Nós e Contato
 
 - **DriveNow:** composição editorial com foto panorâmica, narrativa em capítulos,
