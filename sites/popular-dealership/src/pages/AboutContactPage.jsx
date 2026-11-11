@@ -1,15 +1,12 @@
+import { StoreContactDetails } from '../../../../packages/merchant-core/src/components/layout/StoreContactDetails';
 import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
 import { vehiclesData } from '../data/vehicles';
 import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 ﻿import React, { useState } from 'react';
-import { 
-  Building2, ShieldCheck, Award, MapPin, Phone, Mail, Clock, 
-  MessageCircle, Send, CheckCircle2, Zap 
-} from 'lucide-react';
+import { Building2, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { WhyUsSection } from '../components/home/WhyUsSection';
 import { dealershipInfo } from '../data/dealershipInfo';
-import { buildGeneralWhatsappLink } from '../utils/whatsapp';
 
 export function AboutContactPage() {
   const [contactForm, setContactForm] = useState({
@@ -45,8 +42,8 @@ export function AboutContactPage() {
   };
 
   return (
-    <div className="pt-24 pb-20 space-y-20">
-      <div className="border-b border-slate-800 bg-gradient-to-b from-cyan-950/20 via-[#070a12] to-transparent py-12">
+    <div className="pb-12 sm:pb-16 space-y-10 sm:space-y-14">
+      <div className="pt-6 sm:pt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-2">
             <Building2 className="w-3.5 h-3.5" />
@@ -71,7 +68,7 @@ export function AboutContactPage() {
             </div>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
-              A <strong className="text-white font-semibold">DriveNow Motors</strong> nasceu para transformar a jornada de compra de seminovos. Unimos tecnologia, inteligência artificial e rigor pericial para que você compre seu veículo com segurança absoluta.
+              A <strong className="text-white font-semibold">{dealershipInfo.nome}</strong> nasceu para transformar a jornada de compra de seminovos. Unimos tecnologia, inteligência artificial e rigor pericial para que você compre seu veículo com segurança absoluta.
             </p>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
@@ -80,35 +77,8 @@ export function AboutContactPage() {
 
             <StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                <h4 className="font-bold text-sm text-white">100% Laudo Cautelar</h4>
-                <p className="text-xs text-slate-400">Inspeção completa de longarinas, monobloco e histórico legal.</p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-2">
-                <Award className="w-5 h-5 text-cyan-400" />
-                <h4 className="font-bold text-sm text-white">1 Ano de Garantia</h4>
-                <p className="text-xs text-slate-400">Proteção total para câmbio e motor em oficinas credenciadas.</p>
-              </div>
-            </div>
-
             {/* Endereço e Contato */}
-            <div className="p-6 rounded-2xl bg-[#090d16] border border-slate-800 space-y-3 text-xs sm:text-sm">
-              <div className="flex items-start gap-3 text-slate-300">
-                <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <span>{dealershipInfo.endereco.logradouro}, {dealershipInfo.endereco.bairro} — {dealershipInfo.endereco.cidade}/{dealershipInfo.endereco.uf}</span>
-              </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <Phone className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>{dealershipInfo.telefone}</span>
-              </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>{dealershipInfo.horarios.semana} • {dealershipInfo.horarios.sabado}</span>
-              </div>
-            </div>
+            <StoreContactDetails dealership={dealershipInfo} stacked tone="cyan" />
           </div>
 
           {/* Formulário de Contato Completo (Base Obrigatória) */}

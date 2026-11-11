@@ -110,7 +110,7 @@ export default function App() {
       </main>
 
       {/* Rodapé com Links entre Páginas */}
-      <Footer onNavigate={navigateTo} />
+      <Footer compact={currentPage === 'sobre-contato'} />
 
       {/* Modal Global de Detalhes & Experiência 360° */}
       {selectedVehicleForModal && (

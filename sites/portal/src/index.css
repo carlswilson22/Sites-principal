@@ -28,15 +28,3 @@
 .model-card-action {
   margin-top: auto;
 }
-
-/* Share tracks between neighboring cards without clipping longer content. */
-@supports (grid-template-rows: subgrid) {
-  @media (min-width: 768px) {
-    .model-card {
-      display: grid;
-      grid-template-rows: subgrid;
-      grid-row: span 6;
-      row-gap: 0;
-    }
-  }
-}

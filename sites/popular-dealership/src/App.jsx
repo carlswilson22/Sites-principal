@@ -183,7 +183,7 @@ export default function App() {
       </main>
 
       {/* Rodapé Completo */}
-      <Footer onNavigate={navigateTo} />
+      <Footer compact={currentPage === 'sobre-contato'} />
 
       {/* Barra Flutuante de Comparação Ativa */}
       {['estoque', 'destaques', 'favoritos'].includes(currentPage) && (

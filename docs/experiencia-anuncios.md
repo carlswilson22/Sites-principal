@@ -22,6 +22,16 @@ endereço, horários, canais de contato e uma foto local de um veículo do catá
 A foto é identificada como ilustrativa e mantém os créditos. A antiga rota
 interna `visitas` encaminha para essa página.
 
+Na página institucional, telefone, WhatsApp, e-mail, endereço e horários ficam
+em um único bloco. O rodapé dessa página mostra apenas identificação e direitos
+da loja. Os diferenciais ficam em uma única seção, sem cartões repetidos junto
+à apresentação. O título começa logo abaixo da navegação, sem faixa adicional
+ou divisórias horizontais entre as seções.
+
+As páginas iniciais exibem até seis veículos publicados e não vendidos,
+priorizando os destaques e completando a seleção com o restante do estoque.
+Se houver menos veículos disponíveis, exibem somente os existentes.
+
 Os indicadores de carros entregues, veículos periciados, pré-análise de crédito
 e veículos disponíveis foram removidos das páginas iniciais e de sua configuração.
 

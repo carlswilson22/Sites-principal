@@ -1,15 +1,12 @@
+import { StoreContactDetails } from '../../../../packages/merchant-core/src/components/layout/StoreContactDetails';
 import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
 import { vehiclesData } from '../data/vehicles';
 import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 import React, { useState } from 'react';
-import { 
-  Building2, Shield, Award, MapPin, Phone, Mail, Clock, 
-  MessageCircle, Send, CheckCircle2, Crown, Eye 
-} from 'lucide-react';
+import { Building2, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { WhyUsSection } from '../components/home/WhyUsSection';
 import { dealershipInfo } from '../data/dealershipInfo';
-import { buildGeneralWhatsappLink } from '../utils/whatsapp';
 import { storeSync } from '../../../../packages/merchant-core/src';
 
 export function AboutContactPage() {
@@ -55,9 +52,9 @@ export function AboutContactPage() {
   };
 
   return (
-    <div className="pt-24 pb-20 space-y-20">
+    <div className="pb-12 sm:pb-16 space-y-10 sm:space-y-14">
       {/* Header */}
-      <div className="border-b border-white/10 bg-gradient-to-b from-amber-500/10 via-[#050508] to-transparent py-12">
+      <div className="pt-6 sm:pt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-2">
             <Building2 className="w-3.5 h-3.5" />
@@ -92,35 +89,8 @@ export function AboutContactPage() {
 
             <StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="p-4 rounded-2xl bg-[#0a0b12] border border-white/10 space-y-2">
-                <Crown className="w-5 h-5 text-amber-400" />
-                <h4 className="font-bold text-sm text-white">Showroom Privativo</h4>
-                <p className="text-xs text-slate-400">Atendimento apenas com hora marcada e sala reservada.</p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#0a0b12] border border-white/10 space-y-2">
-                <Shield className="w-5 h-5 text-amber-400" />
-                <h4 className="font-bold text-sm text-white">Laudo Balístico III-A</h4>
-                <p className="text-xs text-slate-400">Certificação completa de vidros e mantas blindadas.</p>
-              </div>
-            </div>
-
             {/* Dados de Contato e Horários */}
-            <div className="p-6 rounded-2xl bg-[#0a0b12] border border-white/10 space-y-3 text-xs sm:text-sm">
-              <div className="flex items-start gap-3 text-slate-300">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>{dealershipInfo.endereco.logradouro}, {dealershipInfo.endereco.bairro} — {dealershipInfo.endereco.cidade}/{dealershipInfo.endereco.uf}</span>
-              </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{dealershipInfo.telefone}</span>
-              </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{dealershipInfo.horarios.semana}</span>
-              </div>
-            </div>
+            <StoreContactDetails dealership={dealershipInfo} stacked tone="amber" />
           </div>
 
           {/* Formulário de Contato Completo (Base Obrigatória) */}

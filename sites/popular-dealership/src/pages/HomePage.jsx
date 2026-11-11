@@ -1,4 +1,5 @@
 import React from 'react';
+import { selectHomeVehicles } from '../../../../packages/merchant-core/src/utils/storeExperience';
 import { ArrowRight } from 'lucide-react';
 import { HeroSection } from '../components/home/HeroSection';
 import { VehicleCard } from '../components/vehicles/VehicleCard';
@@ -8,8 +9,7 @@ export function HomePage({
   vehicles = [], onNavigate, onSelectVehicle, isFavorite, onToggleFavorite,
   isComparing, onToggleCompare, onOpenPriceAlert
 }) {
-  const featuredVehicles = vehicles.filter(vehicle => vehicle.destaque);
-  const topVehicles = (featuredVehicles.length ? featuredVehicles : vehicles).slice(0, 3);
+  const topVehicles = selectHomeVehicles(vehicles);
 
   return (
     <div className="space-y-14 sm:space-y-20 pb-16 sm:pb-20">
