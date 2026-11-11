@@ -75,6 +75,11 @@ for (const [model, scenario] of scenarios) {
     await root.evaluate();
     await wait(() => document.querySelector('[data-store-layout]'));
     assert(document.querySelector('#root h1'), `Página em branco: ${model}`);
+    if (model === 'popular-dealership') {
+      const explore = document.querySelector('a[href="#explorar-enterprise"]');
+      assert(explore && document.getElementById(explore.hash.slice(1)), 'Atalho da abertura não alcança a vitrine');
+      for (const label of ['Comparar escolhas', 'Meus favoritos']) assert.equal(buttons().filter(item => item.textContent.includes(label)).length, 1, `Atalho duplicado na inicial: ${label}`);
+    }
     if (scenario === 'legacy-favorites') {
       await wait(() => window.localStorage.getItem('apexluxury_favorites_v1'));
       assert.deepEqual(JSON.parse(window.localStorage.getItem('apexluxury_favorites_v1')), ['1', '999', '2']);
@@ -189,14 +194,30 @@ for (const [model, scenario] of scenarios) {
       assert(results.length && results.every(item => item.textContent.includes('HB20')), 'Busca inicial não acompanha o estoque');
     }
     if (fullFlow && model === 'popular-dealership') {
-      const aside = document.querySelector('aside');
-      const select = aside.querySelector('select');
+      buttons().find(item => item.textContent.includes('Meus favoritos')).click();
+      await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
+      const saved = document.querySelectorAll('[data-vehicle-id]').length;
+      assert(saved > 0, 'Atalho não abriu os veículos favoritos');
+      document.querySelector('button[title="Remover dos favoritos"]').click();
+      await wait(() => document.querySelectorAll('[data-vehicle-id]').length === saved - 1);
+      button('Início').click();
+      await wait(() => document.querySelector('[data-store-layout]'));
+      assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith(String(saved - 1)), 'Atalho da abertura não acompanha os favoritos');
+      const filters = document.querySelector('[aria-label="Filtros do estoque"]');
+      const select = filters.querySelector('select');
       select.value = select.options[1].value;
       select.dispatchEvent(new window.Event('change', { bubbles: true }));
       await wait(() => document.querySelectorAll('[data-vehicle-id]').length < 6);
       const selected = select.value;
-      assert([...document.querySelectorAll('[data-vehicle-id]')].every(item => item.textContent.toUpperCase().includes(selected.toUpperCase())), 'Filtro lateral não atualiza os veículos');
+      assert([...document.querySelectorAll('[data-vehicle-id]')].every(item => item.textContent.toUpperCase().includes(selected.toUpperCase())), 'Filtro da vitrine não atualiza os veículos');
       button('Limpar filtros').click();
+      await wait(() => document.querySelectorAll('[data-vehicle-id]').length === 6);
+      const search = filters.querySelector('input');
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(search, 'nenhum-veiculo-encontrado');
+      search.dispatchEvent(new window.Event('input', { bubbles: true }));
+      await wait(() => button('Limpar busca'));
+      assert.equal(document.querySelectorAll('[data-vehicle-id]').length, 0);
+      button('Limpar busca').click();
       await wait(() => document.querySelectorAll('[data-vehicle-id]').length === 6);
       const compare = document.querySelector('button[title="Comparar este veículo"]') || document.querySelector('button[title="Remover da comparação"]');
       const before = buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent;

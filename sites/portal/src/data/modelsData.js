@@ -44,7 +44,7 @@ export const modelsList = [
   {
     id: 'popular-dealership',
     title: 'Enterprise Veículos',
-    tagline: 'Exploração interativa · Escolhas lado a lado',
+    tagline: 'Vitrine panorâmica · Escolhas lado a lado',
     tier: 'Completo',
     category: 'Tier 3 • Mais Completo',
     badge: 'Tier 3 • Mais Completo',
@@ -52,9 +52,9 @@ export const modelsList = [
     path: 'popular-dealership/',
     previewImage: 'images/pulse.jpg',
     presentation: 'explorer',
-    description: 'Um espaço de descoberta com filtros laterais, área de resultados e acesso às escolhas salvas. Para o cliente que quer pesquisar, comparar veículos e analisar os detalhes antes de decidir.',
+    description: 'Uma vitrine panorâmica com animação em destaque, espaço para reunir suas escolhas e filtros em uma faixa horizontal. Fotos amplas e comparação de veículos ajudam o cliente a explorar antes de decidir.',
     features: [
-      'Filtros laterais e resultados interativos',
+      'Vídeo panorâmico e filtros na página inicial',
       'Comparação de até três veículos e favoritos',
       'Visualizador 360° incluído nos anúncios compatíveis',
       'Calculadora de custo total e dossiê do veículo',

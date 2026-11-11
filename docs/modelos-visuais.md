@@ -8,21 +8,27 @@ próprias de navegação e apresentação:
 - **DriveNow — showroom editorial:** marca centralizada, abertura cinematográfica
   e coleção em sequência. Fotos amplas e fichas horizontais dão espaço a cada
   veículo. O estoque também usa essa apresentação.
-- **Enterprise — exploração interativa:** abertura compacta, filtros laterais,
-  resultados em duas colunas e acesso a comparação e favoritos junto da busca.
-  O estoque e a vitrine compartilham os mesmos filtros; a inicial limita a
-  apresentação a seis resultados.
+- **Enterprise — vitrine panorâmica:** vídeo largo na abertura, seguido por uma
+  base com título, acesso à vitrine, comparação e favoritos. Os filtros ficam em
+  uma faixa horizontal e os veículos aparecem em duas colunas mais amplas. A
+  página de estoque mantém os filtros laterais. Os dois contextos usam a mesma
+  lógica de busca; a inicial limita a apresentação a seis resultados.
 
 No celular, os conteúdos se empilham, os filtros ficam antes dos resultados e
 os menus podem ser percorridos horizontalmente. A visualização 360° continua
 incluída somente no modelo 3. Atendimento e financiamento permanecem no anúncio.
 
-A animação tem mais espaço nas aberturas do AutoElite e Enterprise: o painel
-ocupa a maior coluna no computador e aparece primeiro no celular. Legendas
-menores e uma camada de escurecimento mais leve preservam os detalhes do vídeo.
-No DriveNow, o título e o texto ocupam menos área da abertura cinematográfica.
+A animação tem mais espaço nas três aberturas. No AutoElite, ocupa a maior
+coluna no computador e aparece primeiro no celular. No Enterprise, ocupa uma
+faixa panorâmica própria e o título fica abaixo, deixando a animação livre.
+Legendas menores e uma camada de escurecimento mais leve preservam os detalhes
+do vídeo. No DriveNow, o título e o texto ocupam menos área da abertura cinematográfica.
 A animação continua acompanhando a rolagem, respeita a preferência por movimento
 reduzido e suspende as atualizações quando um anúncio está aberto.
+
+As miniaturas e a descrição no portal acompanham essas composições. Na inicial
+do Enterprise, comparação e favoritos aparecem somente na base do vídeo; no
+estoque, permanecem na lateral dos filtros, sem repetir os mesmos atalhos na tela.
 
 O painel do lojista é carregado sob demanda nos três modelos, com indicação de
 carregamento. Seus módulos não precisam ser baixados para abrir a vitrine.
