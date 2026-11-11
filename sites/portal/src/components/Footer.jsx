@@ -10,8 +10,8 @@ export const Footer = () => {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="font-bold text-slate-900">Auto-Dealership™ Platform</p>
-            <p className="text-xs text-slate-500">Ecossistema Modular de 3 Edições (Essential, Pro & Enterprise)</p>
+            <p className="font-bold text-slate-900">Explore os modelos</p>
+            <p className="text-xs text-slate-500">Sites para concessionárias e revendas</p>
           </div>
         </div>
 
