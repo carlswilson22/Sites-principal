@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 
 
 export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitToSite }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isDemoMode, switchDemoRole } = useAuth();
   const getRoleLabel = (role) => {
     if (role === 'proprietario') return 'Proprietário';
     if (role === 'gerente') return 'Gerente';
@@ -44,10 +44,22 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitT
 
         {/* Perfil autenticado da equipe */}
         <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-1">
-          <div className="hidden sm:flex flex-col text-right mr-1">
+          {isDemoMode && user?.demo ? <label className="flex items-center">
+            <span className="sr-only">Perfil de acesso</span>
+            <select
+              value={user.role}
+              onChange={event => switchDemoRole(event.target.value)}
+              aria-label="Perfil de acesso"
+              className="min-h-9 w-36 rounded-md border border-slate-600 bg-slate-950 px-2 text-sm font-medium text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              <option value="proprietario">Proprietário</option>
+              <option value="gerente">Gerente</option>
+              <option value="atendente">Atendente</option>
+            </select>
+          </label> : <div className="flex flex-col text-right mr-1">
             <span className="text-xs font-semibold text-slate-200">{user?.name || 'Lojista'}</span>
             <span className="text-[10px] text-slate-400 capitalize">{getRoleLabel(user?.role)}</span>
-          </div>
+          </div>}
 
         </div>
 

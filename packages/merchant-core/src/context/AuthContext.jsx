@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
-import { demoSessionKey, isDemoMode, isStaffUser, isStoreUser, readDemoSession } from '../services/demoConfig';
+import { createDemoUser, demoSessionKey, isDemoMode, isStaffUser, isStoreUser, readDemoSession } from '../services/demoConfig';
 
 const AuthContext = createContext(null);
 function storedSession(storeKey) {
@@ -41,13 +41,17 @@ export function AuthProvider({ children, storeKey = 'default' }) {
     if (result.user?.role !== 'cliente') throw new Error('O cadastro público é exclusivo de clientes.');
     return activate(result.user);
   };
+  const switchDemoRole = nextRole => {
+    if (!isDemoMode || !user?.demo || !isStaffUser(user)) throw new Error('A troca de perfil está disponível apenas para a equipe na demonstração.');
+    return activate(createDemoUser(`${nextRole}@demo.invalid`, 'Demonstracao@2026'));
+  };
   const logout = async () => {
     await apiClient.logout();
     try { sessionStorage.removeItem(demoSessionKey(storeKey)); sessionStorage.removeItem('merchant_demo_user'); localStorage.removeItem('merchant_user'); } catch {}
     setUser(null);
   };
   const hasRole = allowed => isStaffUser(user) && (user.role === 'proprietario' || allowed.includes(user.role));
-  return <AuthContext.Provider value={{ user, role: user?.role || 'visitante', isAuthenticated: !!user, isStaff: isStaffUser(user), hasRole, login, register, logout, loading, isDemoMode }}>
+  return <AuthContext.Provider value={{ user, role: user?.role || 'visitante', isAuthenticated: !!user, isStaff: isStaffUser(user), hasRole, login, register, switchDemoRole, logout, loading, isDemoMode }}>
     {children}
   </AuthContext.Provider>;
 }

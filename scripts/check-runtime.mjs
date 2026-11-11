@@ -131,7 +131,24 @@ for (const [model, scenario] of scenarios) {
     }
     document.querySelector('button[aria-label="Painel do lojista"]').click();
     await wait(() => button('Contratos & Termos'));
-    assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Seletor público de cargos ainda disponível');
+    const profiles = document.querySelector('select[aria-label="Perfil de acesso"]');
+    assert(profiles, 'Painel demonstrativo sem seletor de perfis');
+    assert.deepEqual([...profiles.options].map(option => option.value), ['proprietario', 'gerente', 'atendente']);
+    assert.equal(profiles.value, role, 'Seletor não reflete o perfil autenticado');
+  };
+  const switchStaffRole = async role => {
+    const profiles = document.querySelector('select[aria-label="Perfil de acesso"]');
+    await changeField(profiles, role);
+    await wait(() => JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`))?.user.role === role
+      && document.querySelector('nav[aria-label="Navegação do painel"] button[aria-current="page"]')?.textContent.trim() === 'Início & Indicadores'
+      && document.querySelector('main h1')?.textContent === 'Painel de Controle');
+    const session = JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`));
+    assert.equal(session.user.email, `${role}@demo.invalid`, 'Troca manteve a identidade anterior');
+    assert.equal(session.storeKey, storeKey, 'Troca mudou a loja da sessão');
+    assert.equal(document.querySelector('select[aria-label="Perfil de acesso"]').value, role);
+    assert(button('Simulador de financiamento') && button('Contratos & Termos'), 'Perfil sem ferramentas essenciais de atendimento');
+    if (role !== 'proprietario') for (const label of ['Financeiro & Margens', 'DRE & Comissões Vendedores', 'Auditoria & LGPD']) assert(!button(label), `Perfil ${role} recebeu ${label}`);
+    if (role === 'atendente') for (const label of ['Métricas do Site', 'Consignação Completa', 'Contratos Avançados & Troca', 'Funil de Vendas & Giro']) assert(!button(label), `Atendente recebeu ${label}`);
   };
   const signOut = async () => {
     const staffExit = document.querySelector('button[aria-label="Encerrar Sessão"]');
@@ -147,6 +164,7 @@ for (const [model, scenario] of scenarios) {
     await wait(() => document.querySelector('[data-store-layout]'));
     assert(document.querySelector('#root h1'), `Página em branco: ${model}`);
     assert(button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Primeira visita começou com acesso ao painel');
+    assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Visitante recebeu seletor de perfis da equipe');
     if (model === 'popular-dealership') {
       assert(!document.querySelector('a[href="#explorar-enterprise"]'), 'Atalho de rolagem continua na abertura');
       for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(!buttons().find(item => item.textContent.includes(label)), `Atalho não foi movido para o estoque: ${label}`);
@@ -494,6 +512,7 @@ for (const [model, scenario] of scenarios) {
       await submitLogin(newCustomer.email, newCustomer.password);
       assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.id, registeredUser.id, 'Login criou outra identidade');
       assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente cadastrado recebeu painel');
+      assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Cliente cadastrado recebeu seletor de perfis da equipe');
       if (model === 'popular-dealership') {
         await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
         assert.equal(JSON.parse(window.localStorage.getItem(`customer_favorites_${storeKey}_cliente_${registeredUser.id}`)).length, 1, 'Sair apagou o favorito da nova conta');
@@ -536,7 +555,7 @@ for (const [model, scenario] of scenarios) {
       }
       let checkedRoutes = 0;
       for (const role of ['atendente', 'gerente', 'proprietario']) {
-        if (role !== 'atendente') { await signOut(); await signInStaff(role); }
+        if (role !== 'atendente') await switchStaffRole(role);
         const menu = document.querySelector('nav[aria-label="Navegação do painel"]');
         const labels = [...menu.querySelectorAll('button')].map(item => item.textContent.trim());
         assert.equal(new Set(labels).size, labels.length, 'Itens duplicados no menu do painel');
@@ -547,6 +566,19 @@ for (const [model, scenario] of scenarios) {
           checkedRoutes += 1;
         }
       }
+      await switchStaffRole('gerente');
+      if (model !== 'auto-dealership') {
+        button('Métricas do Site').click();
+        await wait(() => document.querySelector('main h1')?.textContent.includes('Métricas'));
+      }
+      await switchStaffRole('atendente');
+      assert(!document.querySelector('main').textContent.includes('Métricas do Site'), 'Troca de perfil manteve uma tela restrita');
+      button('Ver Vitrine').click();
+      await wait(() => document.querySelector('[data-store-layout]'));
+      document.querySelector('button[aria-label="Painel do lojista"]').click();
+      await wait(() => document.querySelector('select[aria-label="Perfil de acesso"]'));
+      assert.equal(document.querySelector('select[aria-label="Perfil de acesso"]').value, 'atendente', 'Reabrir painel perdeu o perfil escolhido');
+      await switchStaffRole('proprietario');
       if (model === 'popular-dealership') {
         button('Simulador de financiamento').click();
         await wait(() => document.querySelector('main [data-financing-vehicle]'));
@@ -649,6 +681,7 @@ for (const [model, scenario] of scenarios) {
       }
       await signOut();
       assert(!document.querySelector('nav[aria-label="Navegação do painel"]'), 'Painel continuou montado após sair');
+      assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Seletor da equipe continuou disponível após sair');
       console.log(`OK: ${model} (${checkedRoutes} acessos a módulos nos três perfis)`);
     }
     assert.equal(failures.length, 0, failures.join('\n'));

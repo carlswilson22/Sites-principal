@@ -68,9 +68,13 @@ não autentica um funcionário. Contas de teste:
 | Gerente | `gerente@demo.invalid` | `Demonstracao@2026` |
 | Proprietário | `proprietario@demo.invalid` | `Demonstracao@2026` |
 
-Após entrar, **Painel do lojista** aparece no cabeçalho. Não há entrada rápida
-por perfil, senha de funcionário preenchida ou seletor de cargos no painel.
-Para conferir outro cargo, saia da sessão e entre com a outra conta.
+Após entrar, **Painel do lojista** aparece no cabeçalho. Dentro do painel,
+**Perfil de acesso** permite alternar entre Proprietário, Gerente e Atendente
+na demonstração. A troca atualiza a sessão da loja, volta ao início e exibe
+somente os módulos permitidos ao perfil e à edição. O seletor só aparece para
+funcionários já autenticados no modo de demonstração; contas de cliente e
+instalações conectadas à API não oferecem troca de cargo.
+Também é possível sair da sessão e entrar diretamente com a outra conta.
 Não há botão de acesso separado para a equipe. O cadastro público não atribui
 cargos de funcionários, e a recuperação desse acesso orienta procurar o
 administrador da loja.

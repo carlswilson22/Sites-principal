@@ -14,7 +14,6 @@ import {
   FileText,
   DollarSign,
   TrendingUp,
-  Share2,
   Sparkles,
   ShieldAlert,
   X
@@ -139,7 +138,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 lg:top-16 left-0 h-screen lg:h-[calc(100vh-4rem)] w-64 bg-[#080d1a] border-r border-slate-800 flex flex-col z-50 lg:z-20 transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:sticky top-0 lg:top-16 left-0 h-screen lg:h-[calc(100vh-4rem)] w-64 shrink-0 bg-[#080d1a] border-r border-slate-800 flex flex-col z-50 lg:z-20 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -183,14 +182,14 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
                         onSelectTab(item.id);
                         if (onClose) onClose();
                       }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                      className={`w-full min-h-11 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm leading-5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400 ${
                         isActive
                           ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 font-semibold'
                           : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
+                      <Icon aria-hidden="true" className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span className="min-w-0 flex-1 whitespace-normal">{item.label}</span>
                     </button>
                   );
                 })}
