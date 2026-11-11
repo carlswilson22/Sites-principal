@@ -10,6 +10,8 @@ Quantidade de telas no menu não equivale a quantidade de integrações prontas.
 - Página inicial com animação em vídeo e seleção de até seis veículos publicados,
   conforme a disponibilidade do estoque.
 - Páginas de estoque, destaques e Sobre Nós e Contato.
+- Tipografia Inter para textos, títulos, formulários e painel, com pesos normais
+  e itálicos e fontes de sistema como alternativa de carregamento.
 - Busca, filtros e ordenação do catálogo, com opções diferentes em cada modelo.
 - Anúncio em modal, com galeria de fotos, miniaturas, dados do veículo, opcionais,
   ficha técnica e informações de laudo cadastradas pela loja.
@@ -107,7 +109,7 @@ Inclui os cinco módulos do AutoElite e acrescenta:
   visível para visitantes, exige login ou cadastro para abrir a lista e mostra
   a quantidade salva após entrar. Os botões de favoritos e comparação ficam no
   estoque, sem cópias na abertura ou na página Serviços.
-- **Comparador:** abrir uma janela no estoque, buscar e selecionar de dois a
+- **Comparador público, sem login:** abrir uma janela no estoque, buscar e selecionar de dois a
   três veículos, confirmar a seleção e consultar fotos e dados lado a lado.
   O resumo indica menor preço, menor quilometragem e ano mais recente, incluindo
   empates e dados incompletos. As cinco seções expansíveis reúnem preço/FIPE,

@@ -4,6 +4,7 @@ import { apiClient } from '../services/apiClient';
 import { normalizeVehicle } from '../utils/vehicles.js';
 import { createStoryPng, downloadBlob, storyTemplates } from '../utils/storyArt.js';
 import { StoryPreview } from '../components/common/StoryPreview';
+import { StoryPublicationDialog } from '../components/common/StoryPublicationDialog';
 
 export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehicles = [] }) {
   const catalog = vehicles.map(normalizeVehicle);
@@ -17,6 +18,7 @@ export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehi
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
   const [published, setPublished] = useState(null);
+  const [activePublication, setActivePublication] = useState(null);
   const [busy, setBusy] = useState('');
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
@@ -74,7 +76,7 @@ export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehi
           <label className="block text-sm text-slate-300 space-y-2"><span>Enquadramento</span><select className={input} value={framing} onChange={event => setFraming(event.target.value)}><option value="cover">Preencher a foto</option><option value="contain">Manter a foto inteira</option></select></label>
         </section>
         <section className={panel} aria-label="Publicação no Instagram"><div className="flex flex-wrap items-center gap-3"><Instagram aria-hidden="true" className="text-pink-300" /><h2 className="font-semibold text-white">Publicação direta no Instagram</h2><span className="text-xs rounded-full px-3 py-1 bg-cyan-300/10 text-cyan-200">{status?.demo ? 'Conta de exemplo' : status?.configured ? 'Conta conectada' : 'Carregando conta'}</span></div>
-          {status?.demo && <p className="text-sm text-slate-400">@{status.account} · Publique e abra o Story na prévia abaixo. Os envios ficam neste navegador.</p>}
+          {status?.demo && <p className="text-sm text-slate-400">@{status.account} · Publique e use Ver publicação no histórico para abrir o Story. Os envios ficam neste navegador.</p>}
           <label className="block text-sm text-slate-300 space-y-2"><span>Legenda</span><textarea className={input} rows={3} maxLength={2200} value={caption} onChange={event => setCaption(event.target.value)} /></label>
           <div className="flex flex-wrap gap-3"><button type="button" disabled={disabled} onClick={() => exportStory(false)} className="min-h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-slate-800 text-white disabled:opacity-50"><Download className="w-4 h-4" />{busy === 'download' ? 'Gerando PNG…' : 'Baixar PNG 1080 × 1920'}</button><button type="button" disabled={disabled} onClick={() => exportStory(true)} className="min-h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-slate-800 text-white disabled:opacity-50"><Share2 className="w-4 h-4" />Compartilhar arte</button><button type="button" disabled={disabled || !status || (!status.demo && !status.configured)} onClick={publish} className="min-h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold disabled:opacity-50">{busy === 'publish' ? <LoaderCircle className="w-4 h-4 animate-spin" /> : <Instagram className="w-4 h-4" />}{busy === 'publish' ? 'Publicando…' : 'Publicar Story'}</button></div>
           {published && <ol aria-label="Etapas da publicação" className="space-y-2 text-sm text-emerald-200">{['Arte preparada', 'Publicação processada', 'Disponível na prévia da conta'].map(step => <li key={step} className="flex gap-2 items-center"><CheckCircle2 className="w-4 h-4" />{step}</li>)}</ol>}
@@ -83,8 +85,8 @@ export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehi
       <aside className="space-y-3 lg:sticky lg:top-6"><p className="text-sm font-semibold text-slate-300">Prévia da arte · 9:16</p><div className="rounded-3xl border-4 border-slate-700 bg-slate-950 p-2 w-full max-w-[344px] mx-auto"><StoryPreview story={story} /></div></aside>
     </div>
     <section className={panel}><h2 className="text-lg font-semibold text-white">Histórico de publicações</h2>{!history.length && <p className="text-sm text-slate-400">Sua primeira publicação aparecerá aqui. Escolha uma arte e clique em Publicar Story.</p>}
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">{history.map(item => <article key={item.id} className="rounded-xl border border-slate-700 p-4 space-y-2"><p className="font-semibold text-white">{item.story?.vehicle.title || item.vehicle_title}</p><p className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString('pt-BR')}</p><p className="text-xs text-cyan-200">{item.status === 'sample_published' ? 'Publicado na prévia' : item.status}</p>{item.story && <button type="button" onClick={() => setPublished(item)} className="min-h-11 text-sm text-pink-200 underline underline-offset-4">Ver publicação</button>}</article>)}</div>
-      {published?.story && <div data-publication-id={published.id} className="mt-4 rounded-2xl bg-slate-950 p-4 sm:p-6 flex flex-col sm:flex-row gap-6 items-start"><div className="w-full max-w-[280px] shrink-0"><p className="text-xs text-pink-200 mb-3">Instagram · @{published.account} · Exemplo</p><StoryPreview story={published.story} /></div><div className="space-y-3"><h3 className="font-semibold text-white">Publicação de exemplo</h3><p className="text-sm text-slate-300 whitespace-pre-wrap break-words">{published.caption}</p><p className="text-xs text-slate-400">A arte e a legenda ficam registradas como foram publicadas, mesmo depois de editar outro Story.</p><button type="button" className="min-h-11 text-sm text-slate-300" onClick={() => setPublished(null)}>Fechar prévia</button></div></div>}
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">{history.map(item => <article key={item.id} className="rounded-xl border border-slate-700 p-4 space-y-2"><p className="font-semibold text-white">{item.story?.vehicle.title || item.vehicle_title}</p><p className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString('pt-BR')}</p><p className="text-xs text-cyan-200">{item.status === 'sample_published' ? 'Publicado na prévia' : item.status}</p>{item.story && <button type="button" aria-haspopup="dialog" onClick={() => setActivePublication(item)} className="min-h-11 text-sm text-pink-200 underline underline-offset-4">Ver publicação</button>}</article>)}</div>
     </section>
+    {activePublication?.story && <StoryPublicationDialog publication={activePublication} onClose={() => setActivePublication(null)} />}
   </div>;
 }

@@ -81,7 +81,6 @@ function StoreApp() {
 
   React.useEffect(() => {
     if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
-    if (!user) setComparisonOpen(false);
   }, [currentPage, user]);
 
   useSiteAnalytics('apexluxury', currentPage, selectedVehicleForModal);
@@ -201,7 +200,7 @@ function StoreApp() {
       )}
 
       {/* Modal Global de Detalhes com TCO, 360° e Galeria Expandida */}
-      {comparisonOpen && isAuthenticated && <React.Suspense fallback={<p role="status" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-slate-900 p-4 text-cyan-200">Abrindo comparação…</p>}><VehicleComparatorModal key={`${user.role}:${user.id}`} vehicles={publishedVehicles} comparedVehicles={comparedVehicles} onConfirm={replaceCompared} onClose={() => setComparisonOpen(false)} onSelectVehicle={vehicle => { setComparisonOpen(false); openVehicle(vehicle); }} /></React.Suspense>}
+      {comparisonOpen && <React.Suspense fallback={<p role="status" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-slate-900 p-4 text-cyan-200">Abrindo comparação…</p>}><VehicleComparatorModal key={user ? `${user.role}:${user.id}` : 'guest'} vehicles={publishedVehicles} comparedVehicles={comparedVehicles} onConfirm={replaceCompared} onClose={() => setComparisonOpen(false)} onSelectVehicle={vehicle => { setComparisonOpen(false); openVehicle(vehicle); }} /></React.Suspense>}
       {selectedVehicleForModal && (
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}

@@ -4,7 +4,7 @@ import { canAccessSitePage, customerPages } from '../src/utils/siteAccess.js';
 import { canAccessMerchantRoute, merchantPermissions } from '../src/utils/merchantAccess.js';
 
 test('visitante navega pelo catálogo e precisa entrar para usar ferramentas pessoais', () => {
-  for (const page of ['home', 'estoque', 'destaques', 'sobre-contato', 'servicos', 'concierge']) assert.equal(canAccessSitePage(page, null), true);
+  for (const page of ['home', 'estoque', 'destaques', 'sobre-contato', 'servicos', 'concierge', 'comparador']) assert.equal(canAccessSitePage(page, null), true);
   for (const page of Object.keys(customerPages)) {
     assert.equal(canAccessSitePage(page, null), false);
     assert.equal(canAccessSitePage(page, { role: 'desconhecido' }), false);

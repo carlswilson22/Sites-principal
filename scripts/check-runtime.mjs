@@ -161,10 +161,22 @@ for (const [model, scenario] of scenarios) {
         button('Estoque').click();
         await wait(() => buttons().find(item => item.textContent.includes('Comparar escolhas')));
         buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
-        await wait(() => loginForm());
-        assert(!document.querySelector('[data-comparison-stage]'), 'Comparação abriu sem login');
+        await wait(() => document.querySelector('[data-comparison-stage="selection"]'));
+        assert(!loginForm(), 'Comparação ainda exige login');
+        const guestDialog = () => document.querySelector('[data-comparison-stage]');
+        const guestCompare = () => [...guestDialog().querySelectorAll('button')].find(item => /^Comparar veículos \(/.test(item.textContent.trim()));
+        assert(guestCompare().disabled);
+        guestDialog().querySelector('input[type="checkbox"]:not(:checked)').click();
+        await wait(() => guestCompare().textContent.includes('(1)'));
+        guestDialog().querySelector('input[type="checkbox"]:not(:checked)').click();
+        await wait(() => !guestCompare().disabled);
+        guestCompare().click();
+        await wait(() => guestDialog()?.dataset.comparisonStage === 'results');
+        assert.equal(guestDialog().querySelectorAll('[data-comparison-vehicle]').length, 2);
+        assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Comparação pública criou uma sessão');
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
-        await wait(() => !loginForm());
+        await wait(() => !guestDialog());
+        console.log('OK: Enterprise (visitante compara dois veículos sem login)');
         button('Início').click();
         await wait(() => document.querySelector('[data-store-layout]'));
       }
@@ -536,6 +548,17 @@ for (const [model, scenario] of scenarios) {
         }
       }
       if (model === 'popular-dealership') {
+        button('Simulador de financiamento').click();
+        await wait(() => document.querySelector('main [data-financing-vehicle]'));
+        const financing = document.querySelector('main [data-financing-vehicle]');
+        const chosenPrice = Number(financing.querySelector('input[id$="-price"]').value);
+        await changeField(financing.querySelector('input[id$="-entry"]'), '0');
+        await changeField(financing.querySelector('select[id$="-term"]'), '12');
+        await changeField(financing.querySelector('input[id$="-rate"]'), '0');
+        const expectedPayment = (chosenPrice / 12).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        assert(financing.querySelector('strong').textContent.includes(expectedPayment), 'Simulador não atualiza a parcela');
+        const interest = [...financing.querySelectorAll('dl > div')].find(row => row.querySelector('dt').textContent === 'Juros estimados no período');
+        assert(/0,00$/.test(interest.querySelector('dd').textContent), 'Simulador com taxa zero adiciona juros');
         button('Estúdio de Stories 1080p').click();
         await wait(() => button('Publicar Story') && !button('Publicar Story').disabled);
         assert(document.querySelector('main').textContent.includes('Conta de exemplo'));
@@ -544,18 +567,27 @@ for (const [model, scenario] of scenarios) {
         await wait(() => document.querySelector('[data-story-template="showcase_trio"]'));
         assert.equal(document.querySelector('[data-story-template]').querySelectorAll('img').length, 3, 'Layout editorial não mostra três fotos');
         button('Publicar Story').click(); button('Publicar Story')?.click();
-        await wait(() => document.querySelector('[data-publication-id]'));
         const samplesKey = 'store_tool_samples_' + storeKey;
+        await wait(() => button('Ver publicação') && JSON.parse(window.localStorage.getItem(samplesKey))?.stories.length);
+        assert(!document.querySelector('[data-publication-id]'), 'Publicar abriu uma janela sem solicitação');
         const publication = JSON.parse(window.localStorage.getItem(samplesKey)).stories[0];
         assert.equal(JSON.parse(window.localStorage.getItem(samplesKey)).stories.length, 1, 'Clique repetido duplicou a publicação');
         assert.equal(publication.story.template, 'showcase_trio');
         const titleField = [...document.querySelectorAll('label')].find(label => label.textContent.includes('Título da arte')).querySelector('input');
         await changeField(titleField, 'Título editado depois');
         assert.equal(JSON.parse(window.localStorage.getItem(samplesKey)).stories[0].story.vehicle.title, publication.story.vehicle.title, 'Edição alterou a publicação salva');
-        button('Fechar prévia').click();
+        button('Ver publicação').click();
+        await wait(() => document.querySelector('[role="dialog"][data-publication-id]'));
+        assert.equal(document.querySelector('[data-publication-id] h3').textContent, publication.story.vehicle.title);
+        assert.equal(document.body.style.overflow, 'hidden', 'Publicação não abriu uma janela visível');
+        document.querySelector('button[aria-label="Fechar publicação"]').click();
+        await wait(() => !document.querySelector('[data-publication-id]'));
         button('Ver publicação').click();
         await wait(() => document.querySelector('[data-publication-id]'));
-        assert.equal(document.querySelector('[data-publication-id] h3').textContent, publication.story.vehicle.title);
+        assert.equal(document.querySelector('[data-publication-id]').dataset.publicationId, publication.id, 'Botão não reabre a mesma publicação');
+        window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
+        await wait(() => !document.querySelector('[data-publication-id]'));
+        assert.equal(document.body.style.overflow, '');
         button('Consignação Completa').click();
         await wait(() => button('Nova Consignação'));
         button('Nova Consignação').click();
@@ -600,6 +632,8 @@ for (const [model, scenario] of scenarios) {
         button('Ver publicação').click();
         await wait(() => document.querySelector('[data-publication-id]'));
         assert.equal(document.querySelector('[data-publication-id]').dataset.publicationId, publication.id, 'Histórico não foi restaurado');
+        button('Voltar ao histórico').click();
+        await wait(() => !document.querySelector('[data-publication-id]'));
         button('DRE & Comissões Vendedores').click();
         await wait(() => button('Catálogo Portais (CSV)'));
         const downloads = [];

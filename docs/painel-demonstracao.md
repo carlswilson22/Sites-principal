@@ -51,7 +51,8 @@ a instalação do cliente.
 No Enterprise, o coração ao lado da conta aparece também para visitantes,
 solicitando login ou cadastro antes de abrir a lista. Após entrar, mostra a
 quantidade de favoritos e mantém as escolhas da conta. **Comparar escolhas**
-e **Meus favoritos** ficam na página de estoque; os atalhos foram retirados da
+é público: visitantes podem selecionar até três veículos e comparar sem login.
+**Comparar escolhas** e **Meus favoritos** ficam na página de estoque; os atalhos foram retirados da
 abertura e de Serviços. Os outros modelos não exibem o coração, pois não
 possuem favoritos.
 
@@ -110,7 +111,8 @@ sessão fictícia quando a API falha.
   layouts alteram a prévia e o arquivo PNG de 1080 × 1920; há opções de preço,
   foto de abertura e enquadramento. O compartilhamento usa o arquivo gerado.
 - Publicar Story grava uma publicação na conta de exemplo local, com arte,
-  legenda, horário e histórico. Ver publicação reabre a versão salva. Nenhuma
+  legenda, horário e histórico. Ver publicação abre a versão salva em uma janela
+  com a arte e a legenda, inclusive ao reabrir a mesma publicação. Nenhuma
   conta externa recebe o conteúdo neste modo.
 - Consignações registram os dados e recalculam comissão, diárias, repasse e
   vencimento. Contratos avançados usam o veículo selecionado, geram minutas
