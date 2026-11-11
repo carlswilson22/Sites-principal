@@ -1,5 +1,3 @@
-import { StoreConciergePage } from '../../../packages/merchant-core/src/pages/StoreConciergePage';
-import { StoreVisitPage } from '../../../packages/merchant-core/src/pages/StoreVisitPage';
 import { useSiteAnalytics } from '../../../packages/merchant-core/src/hooks/useSiteAnalytics';
 import { dealershipInfo } from './data/dealershipInfo';
 import React, { useState, useEffect } from 'react';
@@ -15,6 +13,8 @@ import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchan
 import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 
+
+const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -34,7 +34,7 @@ export default function App() {
   }, []);
 
   const navigateTo = (page, params = {}) => {
-    setCurrentPage(page);
+    setCurrentPage(page === 'visitas' ? 'sobre-contato' : page);
 
     if (params.term !== undefined || params.category !== undefined) {
       setSearchFilter({
@@ -96,8 +96,7 @@ export default function App() {
         {currentPage === 'sobre-contato' && (
           <AboutContactPage />
         )}
-        {currentPage === 'concierge' && <StoreConciergePage dealership={dealershipInfo} storeKey="autoelite" vehicles={publishedVehicles} onSelectVehicle={setSelectedVehicleForModal} onNavigate={navigateTo} title="Atendimento no site" />}
-        {currentPage === 'visitas' && <StoreVisitPage dealership={dealershipInfo} storeKey="autoelite" onNavigate={navigateTo} />}
+        {currentPage === 'concierge' && <React.Suspense fallback={<p role="status" className="p-6 text-slate-300">Carregando atendimento…</p>}><StoreConciergePage dealership={dealershipInfo} storeKey="autoelite" vehicles={publishedVehicles} onSelectVehicle={setSelectedVehicleForModal} onNavigate={navigateTo} title="Atendimento no site" /></React.Suspense>}
       </main>
 
       {/* Rodapé com Links entre Páginas */}

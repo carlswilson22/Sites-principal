@@ -1,3 +1,5 @@
+import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
+import { vehiclesData } from '../data/vehicles';
 import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 import React, { useState } from 'react';
 import { 
@@ -15,7 +17,7 @@ export function AboutContactPage() {
     nome: '',
     email: '',
     telefone: '',
-    assunto: 'Agendamento de Visita no Showroom Privativo',
+    assunto: 'Dúvidas sobre veículos',
     mensagem: ''
   });
 
@@ -61,11 +63,9 @@ export function AboutContactPage() {
             <Building2 className="w-3.5 h-3.5" />
             <span>Showroom Privativo & Concierge</span>
           </div>
-          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Sobre a {dealershipInfo.nome} & Agendamento
-          </h1>
+          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Sobre Nós e Contato</h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
-            Conheça nossa trajetória na alta gastronomia e engenharia automotiva e reserve uma visita exclusiva com consultor sênior.
+            Conheça nossa loja e converse com a equipe. As visitas podem ser combinadas diretamente pelo WhatsApp.
           </p>
         </div>
       </div>
@@ -89,6 +89,8 @@ export function AboutContactPage() {
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
               Nosso showroom físico possui segurança privada 24 horas, sala de negociação climatizada e um acervo 100% periciado com rastreamento internacional de hodômetro e procedência.
             </p>
+
+            <StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="p-4 rounded-2xl bg-[#0a0b12] border border-white/10 space-y-2">
@@ -125,7 +127,7 @@ export function AboutContactPage() {
           <div className="lg:col-span-6 p-8 rounded-3xl bg-[#0a0b12] border border-amber-500/30 shadow-2xl space-y-6">
             <div className="space-y-1">
               <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">Contato Direto</span>
-              <h3 className="font-heading text-2xl font-bold text-white">Agende sua Visita ou Fale Conosco</h3>
+              <h3 className="font-heading text-2xl font-bold text-white">Fale com a loja</h3>
               <p className="text-xs text-slate-400">Preencha o formulário e receba retorno exclusivo de nosso Concierge.</p>
             </div>
 
@@ -184,7 +186,7 @@ export function AboutContactPage() {
                   onChange={handleFormChange}
                   className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-500"
                 >
-                  <option value="Agendamento de Visita no Showroom Privativo">Agendamento de Visita no Showroom Privativo</option>
+                  <option value="Dúvidas sobre veículos">Dúvidas sobre veículos</option>
                   <option value="Interesse em Superesportivo Específico">Interesse em Superesportivo Específico</option>
                   <option value="Simulação de Financiamento Private">Simulação de Financiamento Private</option>
                   <option value="Avaliação de Veículo Blindado / Troca">Avaliação de Veículo Blindado / Troca</option>
@@ -198,7 +200,7 @@ export function AboutContactPage() {
                   name="mensagem"
                   required
                   rows="3"
-                  placeholder="Informe detalhes sobre o veículo desejado ou sua preferência de data/horário para a visita..."
+                  placeholder="Conte como a equipe pode ajudar com o veículo de seu interesse..."
                   value={contactForm.mensagem}
                   onChange={handleFormChange}
                   className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-500 resize-none"

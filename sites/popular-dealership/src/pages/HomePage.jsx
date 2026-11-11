@@ -1,4 +1,3 @@
-import { StatsSection } from '../components/home/StatsSection';
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { HeroSection } from '../components/home/HeroSection';
@@ -15,7 +14,6 @@ export function HomePage({
   return (
     <div className="space-y-14 sm:space-y-20 pb-16 sm:pb-20">
       <HeroSection onNavigate={onNavigate} />
-      <StatsSection vehicles={vehicles} />
       <section aria-labelledby="home-vehicles-title" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
           <div>

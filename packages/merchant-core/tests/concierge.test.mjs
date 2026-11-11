@@ -18,7 +18,9 @@ test('concierge combina categoria, câmbio e orçamento e omite veículos indisp
   assert.deepEqual(conciergeReply('Picape até 300 mil', vehicles).vehicleIds, [6]);
 });
 test('visita, financiamento e transferência humana são opções explícitas', () => {
-  assert.equal(conciergeReply('Agendar test drive', vehicles).action, 'visit');
+  const visit = conciergeReply('Agendar test drive', vehicles);
+  assert.equal(visit.action, 'visit');
+  assert.match(visit.text, /diretamente com o lojista pelo WhatsApp/);
   assert.equal(conciergeReply('Quero financiar', vehicles).action, 'inventory');
   assert.equal(conciergeReply('Falar com funcionário', vehicles).action, 'human');
   const address = conciergeReply('Endereço e horários', vehicles, { nome: 'Loja Teste', endereco: { cidade: 'Brasília' }, horarios: { semana: 'Segunda a sexta' } });
@@ -33,8 +35,8 @@ test('atendimento no anúncio responde sobre o próprio veículo e mantém finan
   assert.equal(conciergeReply('Agendar visita', vehicles, {}, vehicle).action, 'visit');
   assert.match(conciergeReply('Ver laudo', vehicles, {}, vehicle).text, /não tem um status de laudo informado/);
 });
-test('pedido de visita valida contato, datas impossíveis e período sem prometer reserva', () => {
-  const request = { name: ' Cliente ', phone: '(61) 99999-8888', visitDate: '2026-11-11', period: 'manha' };
-  assert.deepEqual(validateStoreRequest(request, '2026-11-10'), { name: 'Cliente', phone: '(61) 99999-8888' });
-  for (const updates of [{ name: 'A' }, { phone: '123' }, { visitDate: '2026-11-09' }, { visitDate: '2027-02-30' }, { period: 'madrugada' }]) assert.throws(() => validateStoreRequest({ ...request, ...updates }, '2026-11-10'));
+test('registro de preferência valida nome e telefone do contato', () => {
+  const request = { name: ' Cliente ', phone: '(61) 99999-8888' };
+  assert.deepEqual(validateStoreRequest(request), { name: 'Cliente', phone: '(61) 99999-8888' });
+  for (const updates of [{ name: 'A' }, { name: '  ' }, { phone: '123' }, { phone: '1234567890123456' }]) assert.throws(() => validateStoreRequest({ ...request, ...updates }));
 });

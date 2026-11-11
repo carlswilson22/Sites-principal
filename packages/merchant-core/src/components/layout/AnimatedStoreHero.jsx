@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { VehicleImage } from '../common/VehicleImage';
 import { resolveAssetUrl } from '../../utils/assets';
+import { subscribeDialogActivity } from '../../utils/dialogActivity';
 
 const tones = {
   blue: { background: 'bg-slate-950', overlay: 'from-slate-950 via-slate-950/80 to-slate-950/65', tint: 'bg-blue-950/10' },
@@ -13,6 +14,7 @@ export function AnimatedStoreHero({ children, tone = 'amber' }) {
   const [mobile, setMobile] = useState(false);
   const [readySource, setReadySource] = useState(null);
   const [failedSource, setFailedSource] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const contentRef = useRef(null);
@@ -20,6 +22,7 @@ export function AnimatedStoreHero({ children, tone = 'amber' }) {
   const poster = resolveAssetUrl('/images/hero-video-poster.jpg');
   const source = resolveAssetUrl(`/videos/${mobile ? 'hero-scrub-720.mp4' : 'hero-scrub.mp4'}`);
   const showVideo = !reducedMotion && failedSource !== source;
+  useEffect(() => subscribeDialogActivity(setDialogOpen), []);
 
   useEffect(() => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -38,7 +41,7 @@ export function AnimatedStoreHero({ children, tone = 'amber' }) {
     const video = videoRef.current;
     const container = containerRef.current;
     const content = contentRef.current;
-    if (!video || !container || !content || !showVideo || readySource !== source) return;
+    if (!video || !container || !content || !showVideo || readySource !== source || dialogOpen) return;
     let frame = null;
     let targetTime = 0;
     const seek = () => {
@@ -65,7 +68,7 @@ export function AnimatedStoreHero({ children, tone = 'amber' }) {
       window.removeEventListener('resize', update);
       if (frame !== null) cancelAnimationFrame(frame);
     };
-  }, [source, showVideo, readySource]);
+  }, [source, showVideo, readySource, dialogOpen]);
 
   return <section ref={containerRef} data-testid="hero-video-scrub-container" className={`relative ${showVideo ? 'h-[320vh]' : ''} ${palette.background}`}>
     <div ref={contentRef} className={`${showVideo ? 'sticky top-0 min-h-screen' : 'min-h-[65vh] sm:min-h-[70vh]'} relative flex items-center overflow-hidden`}>

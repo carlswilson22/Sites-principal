@@ -1,3 +1,5 @@
+import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
+import { vehiclesData } from '../data/vehicles';
 import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 ﻿import React, { useState } from 'react';
 import { 
@@ -50,11 +52,9 @@ export function AboutContactPage() {
             <Building2 className="w-3.5 h-3.5" />
             <span>Institucional & Showroom</span>
           </div>
-          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Sobre Nós & Atendimento
-          </h1>
+          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Sobre Nós e Contato</h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
-            Conheça a DriveNow Motors, nosso padrão de periciamento digital e venha tomar um café em nossa mega-loja no SIA.
+            Conheça a {dealershipInfo.nome}, nosso padrão de periciamento digital e venha tomar um café em nossa mega-loja no SIA.
           </p>
         </div>
       </div>
@@ -77,6 +77,8 @@ export function AboutContactPage() {
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
               Todos os nossos veículos possuem Laudo Cautelar Digital com 100% de aprovação, 1 ano de garantia total e aprovação bancária em até 15 minutos com os principais bancos do país.
             </p>
+
+            <StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-2">
@@ -173,7 +175,6 @@ export function AboutContactPage() {
                   className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-cyan-400"
                 >
                   <option value="Dúvidas sobre Veículos e Financiamento">Dúvidas sobre Veículos e Financiamento</option>
-                  <option value="Agendamento de Test-Drive">Agendamento de Test-Drive no Showroom</option>
                   <option value="Simulação de Crédito Bancário">Simulação de Crédito Bancário</option>
                   <option value="Avaliação de Usado na Troca">Avaliação de Usado na Troca</option>
                   <option value="Outros Assuntos">Outros Assuntos</option>

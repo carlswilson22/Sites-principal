@@ -1,34 +1,51 @@
-# Experiência do anúncio e recursos por edição
+# Experiência do anúncio e informações da loja
 
 O visualizador 360° é incluído somente no modelo 3. Os modelos 1 e 2 começam
-com `dealershipInfo.features.vehicle360: false`. O recurso consta na lista de
-ferramentas à la carte do portal e pode ser configurado na implantação de uma
-loja que o contratar. Ativá-lo também exige um conjunto próprio de imagens por
-veículo; fotos de outro carro nunca são usadas como substitutas.
+com `dealershipInfo.features.vehicle360: false`. A configuração continua
+permitindo ativação por loja, com imagens próprias do veículo. O portal não
+exibe mais a seção de ferramentas à la carte.
 
-Os cards mostram combustível, motor e potência, além do ano, quilometragem e
-preço já existentes. A transmissão abreviada sai do resumo. O acesso se chama
-“Visualizar anúncio”, e a ação de interesse no anúncio se chama “Tenho interesse”.
+Os cards mostram combustível, motor e potência, além de ano, quilometragem e
+preço. O acesso se chama “Visualizar anúncio”, e a ação de interesse se chama
+“Tenho interesse”.
 
 O atendimento e o simulador ficam depois dos detalhes do veículo. “Tirar dúvidas”
-abre o chat no próprio modal. Conversas são separadas por loja e
-veículo; respostas, pedidos de visita e encaminhamento ao funcionário mantêm o
-veículo de interesse. O chat pode abrir o simulador, que é a última seção do
-conteúdo. O cabeçalho não tem mais atalho para a página de atendimento.
+abre o chat no próprio anúncio. As conversas são separadas por loja e veículo.
+O chat pode abrir o simulador, que é a última seção do conteúdo. Combinar uma
+visita exige uma ação explícita para conversar com o lojista pelo WhatsApp;
+não há formulário de pedido de visita no site.
 
-## Quatro informações na página inicial
+## Navegação institucional
 
-1. Carros entregues com sucesso: histórico de atendimento da loja.
-2. Veículos periciados: sinal de procedência e acesso à documentação.
-3. Pré-análise de crédito: informa a possibilidade de atendimento financeiro,
-   sem prometer aprovação ou prazo. A interface informa “Sob análise”.
-4. Veículos disponíveis: quantidade calculada a partir do estoque publicado,
-   excluindo vendidos e ocultos.
+Os três modelos têm “Sobre Nós e Contato” no menu superior, com apresentação,
+endereço, horários, canais de contato e uma foto local de um veículo do catálogo.
+A foto é identificada como ilustrativa e mantém os créditos. A antiga rota
+interna `visitas` encaminha para essa página.
 
-A escolha é uma decisão de UX apoiada na relevância de transparência, clareza
-financeira e redução de atrito descrita pela
-[pesquisa Drivers of Car Shopping Satisfaction, da Cox Automotive](https://www.coxautoinc.com/press-releases/cox-automotive-unveils-key-insights-into-successful-car-deals-in-new-study-drivers-of-car-shopping-satisfaction/).
-O estudo trata do mercado dos EUA; serve como referência de experiência, não
-como fonte de indicadores das lojas deste projeto. Os exemplos de entregas e
-perícia continuam demonstrativos, configurados em `homeHighlights`; precisam
-ser substituídos por dados comprovados em uma implantação comercial.
+Os indicadores de carros entregues, veículos periciados, pré-análise de crédito
+e veículos disponíveis foram removidos das páginas iniciais e de sua configuração.
+
+## Desempenho dos anúncios
+
+- O chat só é montado após ser solicitado e tem carregamento separado de código.
+- O simulador fechado não monta os controles nem executa seus cálculos. Após a
+  primeira expansão, preserva os valores ao recolher. A abertura pelo comparador
+  mantém o simulador expandido no veículo escolhido.
+- As miniaturas fora da faixa visível só recebem imagens ao se aproximarem dela.
+  Todas as fotos continuam acessíveis pelos botões e pelas setas da galeria.
+- As imagens usam decodificação assíncrona. A foto principal tem prioridade alta.
+- Os anúncios não aplicam desfoque de tela inteira. A animação do banner deixa
+  de atualizar o vídeo enquanto um diálogo está aberto, retomando ao fechar o último.
+- O foco inicial evita medir cada campo do anúncio. Diálogos sobrepostos mantêm
+  o bloqueio de rolagem até o último fechar e somente o superior captura Tab.
+
+## Conferência manual
+
+Abra os três modelos e confira “Sobre Nós e Contato” no computador e no celular.
+Em cada anúncio, navegue pelas fotos, role a faixa de miniaturas e abra/recolha
+chat e simulador. Confira a preservação dos campos e a seleção do veículo.
+No chat, “Visitar a loja” deve oferecer continuar no WhatsApp, sem pedir data
+ou período. No modelo 3, confira também o visualizador 360° e os diálogos sobrepostos.
+
+Os testes de renderização verificam estrutura e montagem sob demanda. A fluidez
+em um dispositivo real depende da conferência manual; não foi medida por esses testes.

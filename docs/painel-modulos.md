@@ -37,15 +37,15 @@ Os números pertencem ao navegador utilizado. Não são visitantes únicos nem u
 ### Atendimento e financiamento
 
 - AutoElite Seminovos, DriveNow Multimarcas e Enterprise Veículos usam seus nomes no cabeçalho, rodapé e painel.
-- Visitas ficam na navegação superior. O atendimento fica dentro do anúncio. O rodapé contém os dados da loja; não há botão de voltar ao topo.
+- Sobre Nós e Contato fica na navegação superior, com informações da loja e foto de veículo. O atendimento fica dentro do anúncio. O rodapé contém os dados da loja; não há botão de voltar ao topo.
 - O anúncio tem atendimento contextual e, no final, um simulador expansível com o próprio veículo selecionado. Abrir a simulação pelo comparador também abre esse anúncio, sem trocar para a página de financiamento.
 - O simulador do painel está disponível aos três perfis nas três edições. Menu e rota usam as mesmas regras de acesso; as restrições dos demais módulos foram mantidas.
 - O chat é um assistente automático baseado no catálogo publicado. Responde sobre veículos, orçamento, financiamento, endereço e horários. A conversa fica na sessão do navegador, separada por loja.
-- Preferências e pedidos de visita são registrados como contatos no painel local. Datas inválidas são rejeitadas e visitas ficam aguardando confirmação. O registro não equivale a uma reserva ou envio para outro dispositivo.
+- Preferências são registradas como contatos no painel local. Visitas são combinadas diretamente com o lojista pelo WhatsApp; o site não cria pedidos de visita. Contatos antigos permanecem preservados.
 - A transferência para um funcionário no WhatsApp é uma ação explícita do usuário. O chat não representa uma pessoa conectada nem envia mensagens automaticamente.
 - A comunicação centralizada entre cliente e funcionário ainda depende de um serviço no servidor; esta entrega mantém a arquitetura de persistência local existente.
 
-Na conferência manual, abra um anúncio, expanda o simulador e ajuste entrada, prazo e taxa. Confira o chat e registre um pedido de visita; depois, no perfil atendente, confira o contato e abra o simulador do painel. Repita nos três modelos.
+Na conferência manual, abra um anúncio, expanda o simulador e ajuste entrada, prazo e taxa. Confira o chat, registre uma preferência e confira a opção de combinar visita pelo WhatsApp; depois, no perfil atendente, confira o contato e abra o simulador do painel. Repita nos três modelos.
 
 1. Execute `npm run dev` e abra um modelo pelo portal.
 2. No painel do Modelo 2 ou 3, use o perfil proprietário e abra **Financeiro & Margens**. Registre a aquisição e outro gasto; alterne entre veículos e recarregue para verificar a persistência.

@@ -1,4 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { hasOpenDialogs, isTopDialog, registerDialog } from '../../utils/dialogActivity.js';
+
+let previousOverflow = '';
 
 export function useDialog() {
   const ref = useRef(null);
@@ -6,13 +9,14 @@ export function useDialog() {
     const dialog = ref.current;
     if (!dialog) return;
     const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
+    if (!hasOpenDialogs()) previousOverflow = document.body.style.overflow;
+    const unregister = registerDialog(dialog);
     const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
       .filter(element => element.getClientRects().length > 0);
     document.body.style.overflow = 'hidden';
-    (focusable()[0] || dialog).focus();
+    (dialog.querySelector('button:not([disabled])') || dialog).focus({ preventScroll: true });
     const trapFocus = event => {
-      if (event.key !== 'Tab') return;
+      if (event.key !== 'Tab' || !isTopDialog(dialog)) return;
       const items = focusable();
       const first = items[0];
       const last = items.at(-1);
@@ -26,8 +30,10 @@ export function useDialog() {
     dialog.addEventListener('keydown', trapFocus);
     return () => {
       dialog.removeEventListener('keydown', trapFocus);
-      document.body.style.overflow = previousOverflow;
-      if (previousFocus?.isConnected) previousFocus.focus();
+      const wasTop = isTopDialog(dialog);
+      unregister();
+      if (!hasOpenDialogs()) document.body.style.overflow = previousOverflow;
+      if (wasTop && previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     };
   }, []);
   return ref;

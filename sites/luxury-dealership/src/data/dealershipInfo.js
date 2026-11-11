@@ -1,6 +1,5 @@
 export const dealershipInfo = {
   features: { vehicle360: false },
-  homeHighlights: { deliveries: '+1.200', inspection: '100%' },
   nome: "DriveNow Multimarcas",
   slogan: "Experiência Digital Avançada, Financiamento e Trade-In Online",
   cnpj: "42.880.192/0001-90",

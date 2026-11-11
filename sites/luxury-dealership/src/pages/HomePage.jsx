@@ -1,4 +1,3 @@
-import { StatsSection } from '../components/home/StatsSection';
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { HeroVideoScrub } from '../components/home/HeroVideoScrub';
@@ -31,7 +30,6 @@ export function HomePage({ vehicles = [], onNavigate, onSelectVehicle }) {
           </div>
         </div>
       </HeroVideoScrub>
-      <StatsSection vehicles={vehicles} />
 
       <section aria-labelledby="home-selection-title" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">

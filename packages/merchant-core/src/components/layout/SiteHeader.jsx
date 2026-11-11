@@ -1,7 +1,7 @@
 import React from 'react';
 
 export function SiteHeader({ currentPage, onNavigate, links, name, whatsappUrl, Logo }) {
-  const activePage = currentPage === 'sobre-contato' ? 'visitas' : currentPage;
+  const activePage = currentPage;
   return <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-700 shadow-lg">
     <div className="max-w-7xl mx-auto px-4 sm:px-6">
       <div className="min-h-20 flex items-center justify-between gap-4 py-3">

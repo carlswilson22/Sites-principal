@@ -1,3 +1,4 @@
+import { VehicleThumbnails } from '../../../../../packages/merchant-core/src/components/common/VehicleThumbnails';
 import { VehicleAdServices } from '../../../../../packages/merchant-core/src/components/common/VehicleAdServices';
 import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
 import { dealershipInfo } from '../../data/dealershipInfo';
@@ -5,7 +6,7 @@ import { VehiclePhotoCredit } from '../../../../../packages/merchant-core/src/co
 import { getVehicleGallery, getVehicle360Images, galleryIndex } from '../../../../../packages/merchant-core/src/utils/vehicleGallery';
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   X, ShieldCheck, CheckCircle2, MessageCircle, Calendar, 
   Gauge, Cog, Fuel, Award, ChevronLeft, ChevronRight, Share2, Mail,
@@ -21,8 +22,8 @@ import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false }) {
   const dialogRef = useDialog();
   const servicesRef = useRef(null);
-  const images = getVehicleGallery(vehicle);
-  const orbitalImages = hasVehicle360(dealershipInfo) ? getVehicle360Images(vehicle) : [];
+  const images = useMemo(() => getVehicleGallery(vehicle), [vehicle]);
+  const orbitalImages = useMemo(() => hasVehicle360(dealershipInfo) ? getVehicle360Images(vehicle) : [], [vehicle]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const imageIndex = galleryIndex(currentIndex, images.length);
 
@@ -67,14 +68,14 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
 
 
   return (
-    <div data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md animate-fade-in font-sans">
+    <div data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 animate-fade-in font-sans">
       {/* Container do Modal */}
       <div 
         className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header do Modal */}
-        <div className="flex items-center justify-between p-5 sm:px-8 border-b border-slate-800 bg-slate-950/60 sticky top-0 z-20 backdrop-blur-md">
+        <div className="flex items-center justify-between p-5 sm:px-8 border-b border-slate-800 bg-slate-950/60 sticky top-0 z-20 ">
           <div className="flex items-center gap-3">
             <InspectionBadge text="Perícia Cautelar Certificada" compact={true} />
             <Badge variant="blue" size="xs">Cód. {vehicle.laudoCautelar?.codigoLaudo || 'AMT-AUTO'}</Badge>
@@ -162,6 +163,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
               <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
                 <VehicleImage
                   src={currentImage}
+                  fetchPriority="high"
                   alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
                   className="w-full h-full object-cover transition-all duration-300"
                 />
@@ -171,7 +173,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
                   <>
                     <button
                       onClick={handlePrevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
                       title="Foto anterior"
                     >
                       <ChevronLeft className="w-5 h-5" />
@@ -179,14 +181,14 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
 
                     <button
                       onClick={handleNextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center border border-slate-700/60 shadow-lg opacity-80 group-hover:opacity-100 transition-all hover:scale-110"
                       title="Próxima foto"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </>
                 )}
-                  <div role="status" aria-live="polite" className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-slate-700 text-xs font-semibold text-white">
+                  <div role="status" aria-live="polite" className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-700 text-xs font-semibold text-white">
                     {images.length ? `Foto ${imageIndex + 1} de ${images.length}` : 'Sem fotos cadastradas'}
                   </div>
 
@@ -195,25 +197,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
               <VehiclePhotoCredit src={currentImage} />
 
               {/* Fila de Miniaturas (Thumbnails) */}
-              {images.length > 1 && (
-                <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5">
-                  {images.map((img, idx) => (
-                    <button
-                      key={img}
-                      aria-label={`Ver foto ${idx + 1} de ${images.length} de ${vehicle.nome}`}
-                      aria-pressed={imageIndex === idx}
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`relative w-20 sm:w-24 h-14 sm:h-16 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
-                        imageIndex === idx
-                          ? 'border-blue-500 ring-2 ring-blue-500/30 scale-105 shadow-md shadow-blue-500/20' 
-                          : 'border-slate-800 opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <VehicleImage src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
+              <VehicleThumbnails images={images} imageIndex={imageIndex} onSelect={setCurrentIndex} vehicleName={vehicle.nome} />
             </div>
           )}
 

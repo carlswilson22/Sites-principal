@@ -1,5 +1,3 @@
-import { StoreConciergePage } from '../../../packages/merchant-core/src/pages/StoreConciergePage';
-import { StoreVisitPage } from '../../../packages/merchant-core/src/pages/StoreVisitPage';
 import { useSiteAnalytics } from '../../../packages/merchant-core/src/hooks/useSiteAnalytics';
 import React, { useState } from 'react';
 import { Navbar } from './components/layout/Navbar';
@@ -19,6 +17,8 @@ import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/ve
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
 
+const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
@@ -36,7 +36,7 @@ export default function App() {
   }, []);
 
   const navigateTo = (page, params = {}) => {
-    setCurrentPage(page);
+    setCurrentPage(page === 'visitas' ? 'sobre-contato' : page);
 
     if (params.vehicle) {
       setFinancingPreselectedVehicle(params.vehicle);
@@ -106,8 +106,7 @@ export default function App() {
         {currentPage === 'sobre-contato' && (
           <AboutContactPage />
         )}
-        {currentPage === 'concierge' && <StoreConciergePage dealership={dealershipInfo} storeKey="drivenow" vehicles={publishedVehicles} onSelectVehicle={setSelectedVehicleForModal} onNavigate={navigateTo} title="Concierge VIP" />}
-        {currentPage === 'visitas' && <StoreVisitPage dealership={dealershipInfo} storeKey="drivenow" onNavigate={navigateTo} />}
+        {currentPage === 'concierge' && <React.Suspense fallback={<p role="status" className="p-6 text-slate-300">Carregando atendimento…</p>}><StoreConciergePage dealership={dealershipInfo} storeKey="drivenow" vehicles={publishedVehicles} onSelectVehicle={setSelectedVehicleForModal} onNavigate={navigateTo} title="Concierge VIP" /></React.Suspense>}
       </main>
 
       {/* Rodapé com Links entre Páginas */}

@@ -62,10 +62,3 @@ export const modelsList = [
     techStack: ['React 18', 'AI Engine', 'Local Storage', 'Tailwind CSS', 'Vite']
   }
 ];
-
-export const aLaCarteTools = [{
-  id: 'vehicle360',
-  title: 'Visualizador 360° do veículo',
-  description: 'Explore os ângulos do veículo a partir de um conjunto próprio de imagens. Disponível como ferramenta adicional para os modelos 1 e 2.',
-  included: 'Incluído no modelo 3',
-}];

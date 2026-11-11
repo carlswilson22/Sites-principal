@@ -1,6 +1,5 @@
 export const dealershipInfo = {
   features: { vehicle360: false },
-  homeHighlights: { deliveries: '+1.200', inspection: '100%' },
   nome: "AutoElite Seminovos",
   slogan: "Seminovos selecionados com galeria de fotos e atendimento personalizado",
   cnpj: "12.345.678/0001-90",

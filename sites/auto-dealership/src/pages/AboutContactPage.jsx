@@ -1,5 +1,6 @@
+import { StoreVehiclePhoto } from '../../../../packages/merchant-core/src/components/layout/StoreVehiclePhoto';
+import { vehiclesData } from '../data/vehicles';
 import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
-import { VehicleImage } from '../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState } from 'react';
 import { WhyUsSection } from '../components/home/WhyUsSection';
 import { 
@@ -74,9 +75,7 @@ export function AboutContactPage() {
             <Building2 className="w-3.5 h-3.5" />
             <span>Institucional & Atendimento</span>
           </div>
-          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Sobre Nós & Contato
-          </h1>
+          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Sobre Nós e Contato</h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
             Conheça nossa trajetória, nosso compromisso com a perícia automotiva digital e venha tomar um café em nosso showroom no SIA.
           </p>
@@ -130,21 +129,7 @@ export function AboutContactPage() {
             </div>
           </div>
 
-          {/* Imagem Showroom / Estrutura */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl bg-slate-950">
-              <VehicleImage
-                src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80"
-                alt="Showroom AutoElite Motors"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
-              <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-white/10 text-xs">
-                <p className="font-bold text-white">Showroom no SIA Trecho 3 — Brasília/DF</p>
-                <p className="text-slate-400 text-[11px] mt-0.5">Espaço climatizado com mais de 100 veículos em exposição</p>
-              </div>
-            </div>
-          </div>
+          <div className="lg:col-span-5"><StoreVehiclePhoto vehicle={vehiclesData[0]} storeName={dealershipInfo.nome} /></div>
         </div>
       </section>
 
@@ -272,7 +257,6 @@ export function AboutContactPage() {
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="Dúvidas sobre Veículos">Dúvidas sobre Veículos do Estoque</option>
-                  <option value="Agendamento de Test-Drive">Agendamento de Test-Drive</option>
                   <option value="Simulação de Financiamento">Simulação de Financiamento</option>
                   <option value="Avaliação de Veículo Usado">Avaliação de Veículo Usado</option>
                   <option value="Outros Assuntos">Outros Assuntos</option>

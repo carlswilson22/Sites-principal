@@ -9,7 +9,7 @@ export function conciergeReply(message, vehicles = [], dealership = {}, vehicle 
     const address = dealership.endereco || {};
     return { text: `${dealership.nome}: ${[address.logradouro, address.bairro, address.cidade, address.uf].filter(Boolean).join(', ')}. ${Object.values(dealership.horarios || {}).join('. ')}.`, action: 'visit' };
   }
-  if (/visita|agendar|test.?drive/.test(query)) return { text: vehicle ? `Prepare aqui um pedido de visita para conhecer o ${vehicle.nome || vehicle.title}. A equipe da loja confirma a disponibilidade do horário.` : 'Você pode escolher um dia e período na área de visitas, sem sair do site. O pedido depende de confirmação pela equipe da loja.', action: 'visit' };
+  if (/visita|agendar|test.?drive/.test(query)) return { text: `Combine o dia e horário diretamente com o lojista pelo WhatsApp${vehicle ? ` para conhecer o ${vehicle.nome || vehicle.title}` : ''}. Use a opção abaixo para continuar com a equipe.`, action: 'visit' };
   if (/financia|parcela|entrada|simula/.test(query)) return { text: vehicle ? 'O simulador está no final deste anúncio. Ajuste entrada, prazo e taxa para consultar uma estimativa, sem sair daqui.' : 'Abra um anúncio e escolha “Simular financiamento deste veículo”. Você ajusta entrada, prazo e taxa sem sair do anúncio.', action: vehicle ? 'financing' : 'inventory' };
   if (vehicle) {
     const name = vehicle.nome || vehicle.title;
@@ -46,21 +46,12 @@ export function conciergeReply(message, vehicles = [], dealership = {}, vehicle 
       ? { text: 'Estas opções do estoque combinam com o que você informou. Abra o anúncio para ver as fotos, os detalhes e simular as parcelas.', vehicleIds: matches.map(vehicle => vehicle.id) }
       : { text: 'Não encontrei opções cadastradas com esses critérios. Você pode ajustar o orçamento ou registrar sua preferência para conversar com a loja.', action: 'request' };
   }
-  return { text: 'Posso consultar veículos por modelo, categoria ou orçamento, orientar uma simulação e preparar um pedido de visita. Por exemplo: “Quero um SUV até 150 mil”. Serviços e condições especiais precisam de confirmação de um funcionário.', action: 'inventory' };
+  return { text: 'Posso consultar veículos por modelo, categoria ou orçamento e orientar uma simulação. Por exemplo: “Quero um SUV até 150 mil”. Para combinar uma visita, converse com o lojista pelo WhatsApp.', action: 'inventory' };
 }
 
-export function localDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
-export function validateStoreRequest({ name, phone, visitDate, period }, today = localDateKey()) {
+export function validateStoreRequest({ name, phone }) {
   if (String(name || '').trim().length < 2) throw new Error('Informe seu nome.');
   const digits = String(phone || '').replace(/\D/g, '');
   if (digits.length < 10 || digits.length > 15) throw new Error('Informe um telefone com DDD.');
-  if (visitDate !== undefined) {
-    const parsed = new Date(`${visitDate}T12:00:00`);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(visitDate) || Number.isNaN(parsed.getTime()) || localDateKey(parsed) !== visitDate || visitDate < today) throw new Error('Escolha uma data válida a partir de hoje.');
-    if (!['manha', 'tarde'].includes(period)) throw new Error('Escolha o período da visita.');
-  }
   return { name: name.trim(), phone: phone.trim() };
 }

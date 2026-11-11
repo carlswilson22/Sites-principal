@@ -1,6 +1,5 @@
 export const dealershipInfo = {
   features: { vehicle360: true },
-  homeHighlights: { deliveries: '+1.200', inspection: '100%' },
   nome: "Enterprise Veículos",
   slogan: "A Suíte Mais Completa com Inteligência Artificial, Comparador e Dossiê",
   cnpj: "38.991.024/0001-55",
