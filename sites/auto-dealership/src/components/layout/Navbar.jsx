@@ -2,7 +2,6 @@ import React from 'react';
 import { SiteHeader } from '../../../../../packages/merchant-core/src/components/layout/SiteHeader';
 import AutomatchLogo from '../ui/AutomatchLogo';
 import { dealershipInfo } from '../../data/dealershipInfo';
-import { buildGeneralWhatsappLink } from '../../utils/whatsapp';
 
 export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, comparedCount = 0 }) {
   const navLinks = [
@@ -11,5 +10,5 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'destaques', label: 'Destaques' },
     { id: 'sobre-contato', label: 'Sobre Nós e Contato' }
   ];
-  return <SiteHeader currentPage={currentPage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} whatsappUrl={buildGeneralWhatsappLink()} Logo={AutomatchLogo} />;
+  return <SiteHeader currentPage={currentPage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} Logo={AutomatchLogo} />;
 }

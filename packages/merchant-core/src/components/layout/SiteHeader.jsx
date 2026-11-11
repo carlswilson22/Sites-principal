@@ -1,7 +1,7 @@
 import React from 'react';
 import { SiteAccountControls } from './SiteAccountControls';
 
-export function SiteHeader({ currentPage, onNavigate, links, name, whatsappUrl, Logo, variant = 'classic' }) {
+export function SiteHeader({ currentPage, onNavigate, links, name, Logo, variant = 'classic' }) {
   const editorial = variant === 'editorial';
   const workspace = variant === 'workspace';
   const brand = <button type="button" aria-label={`${name}: início`} onClick={() => onNavigate('home')} className="text-left min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">{Logo ? <Logo size="sm" theme="dark" name={name} showIcon={false} /> : <span className="text-lg font-bold text-white">{name}</span>}</button>;
@@ -16,7 +16,7 @@ export function SiteHeader({ currentPage, onNavigate, links, name, whatsappUrl, 
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 min-h-20 py-3">{models}<div className="flex justify-center min-w-0">{brand}</div>{account}</div>
         {nav}
       </> : workspace ? <>
-        <div className="flex items-center justify-between gap-4 min-h-20 py-3"><div className="flex items-center gap-4 min-w-0">{models}{brand}</div><div className="flex items-center gap-2 shrink-0">{account}<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="hidden lg:inline-flex items-center min-h-11 px-4 rounded-xl text-sm font-semibold text-cyan-200 bg-cyan-950/60">Falar com a equipe</a></div></div>
+        <div className="flex items-center justify-between gap-4 min-h-20 py-3"><div className="flex items-center gap-4 min-w-0">{models}{brand}</div><div className="shrink-0">{account}</div></div>
         <div className="rounded-t-xl bg-slate-900/80 px-1">{nav}</div>
       </> : <div className="flex flex-wrap xl:flex-nowrap items-center justify-between gap-x-5 py-2">
         <div className="flex items-center gap-4 min-w-0 min-h-16">{models}{brand}</div>
