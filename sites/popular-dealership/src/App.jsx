@@ -10,7 +10,6 @@ import { FeaturedPage } from './pages/FeaturedPage';
 import { FinancingPage } from './pages/FinancingPage';
 import { TradeInPage } from './pages/TradeInPage';
 import { FavoritesPage } from './pages/FavoritesPage';
-import { ComparatorPage } from './pages/ComparatorPage';
 import { AIConsultantPage } from './pages/AIConsultantPage';
 import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
@@ -29,6 +28,7 @@ import { StoreAccessProvider, useStoreAccess } from '../../../packages/merchant-
 import { canAccessSitePage } from '../../../packages/merchant-core/src/utils/siteAccess';
 
 const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
+const VehicleComparatorModal = React.lazy(() => import('./components/vehicles/VehicleComparatorModal').then(module => ({ default: module.VehicleComparatorModal })));
 
 
 export default function App() {
@@ -42,10 +42,10 @@ function StoreApp() {
   const publishedVehicles = vehicles.filter(isPublishedVehicle);
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
-  const [adFinancingOpen, setAdFinancingOpen] = useState(false);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
   const [dossierVehicle, setDossierVehicle] = useState(null);
   const [priceAlertVehicle, setPriceAlertVehicle] = useState(null);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const { 
     toggleFavorite, 
@@ -56,6 +56,7 @@ function StoreApp() {
 
   const { 
     toggleCompare, 
+    replaceCompared,
     isComparing, 
     clearCompared, 
     comparisonNotice,
@@ -64,6 +65,7 @@ function StoreApp() {
   } = useComparator(publishedVehicles);
 
   const navigateTo = (page, params = {}) => authorizeNavigation(page, () => {
+    if (page === 'comparador') { setComparisonOpen(true); return; }
     setCurrentPage(page === 'visitas' ? 'sobre-contato' : page);
 
     if (params.vehicle) {
@@ -75,14 +77,11 @@ function StoreApp() {
 
   const openPriceAlert = vehicle => requireLogin(() => setPriceAlertVehicle(vehicle), 'Entre para solicitar um aviso de condição de preço.');
 
-  const handleOpenFinancingFromModal = vehicle => {
-    setAdFinancingOpen(true);
-    setSelectedVehicleForModal(vehicle);
-  };
-  const openVehicle = vehicle => { setAdFinancingOpen(false); setSelectedVehicleForModal(vehicle); };
+  const openVehicle = vehicle => setSelectedVehicleForModal(vehicle);
 
   React.useEffect(() => {
     if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
+    if (!user) setComparisonOpen(false);
   }, [currentPage, user]);
 
   useSiteAnalytics('apexluxury', currentPage, selectedVehicleForModal);
@@ -170,15 +169,6 @@ function StoreApp() {
           <TradeInPage vehicles={publishedVehicles} />
         )}
 
-        {currentPage === 'comparador' && isAuthenticated && (
-          <ComparatorPage
-            comparedVehicles={comparedVehicles}
-            onRemoveFromCompare={toggleCompare}
-            onNavigate={navigateTo}
-            onOpenFinancing={handleOpenFinancingFromModal}
-          />
-        )}
-
         {currentPage === 'favoritos' && isAuthenticated && (
           <FavoritesPage
             favoriteVehicles={favoriteVehicles}
@@ -211,11 +201,11 @@ function StoreApp() {
       )}
 
       {/* Modal Global de Detalhes com TCO, 360° e Galeria Expandida */}
+      {comparisonOpen && isAuthenticated && <React.Suspense fallback={<p role="status" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-slate-900 p-4 text-cyan-200">Abrindo comparação…</p>}><VehicleComparatorModal key={`${user.role}:${user.id}`} vehicles={publishedVehicles} comparedVehicles={comparedVehicles} onConfirm={replaceCompared} onClose={() => setComparisonOpen(false)} onSelectVehicle={vehicle => { setComparisonOpen(false); openVehicle(vehicle); }} /></React.Suspense>}
       {selectedVehicleForModal && (
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
-          initialFinancing={adFinancingOpen}
           onOpenDossier={(v) => { setSelectedVehicleForModal(null); setDossierVehicle(v); }}
           onOpenPriceAlert={openPriceAlert}
           isFavorite={isFavorite(selectedVehicleForModal.id)}

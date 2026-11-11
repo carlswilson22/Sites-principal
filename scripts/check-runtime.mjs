@@ -126,7 +126,9 @@ for (const [model, scenario] of scenarios) {
     await submitLogin(`${role}@demo.invalid`, 'Demonstracao@2026');
     assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.role, role, 'Login único identificou um perfil incorreto');
     assert(document.querySelector('button[aria-label="Painel do lojista"]'), 'Equipe autenticada sem acesso ao painel');
-    if (model === 'popular-dealership') assert(document.querySelector('button[aria-label="Minha conta"]').compareDocumentPosition(favoriteShortcut()) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Favoritos não foi movido para depois do perfil');
+    if (model === 'popular-dealership') {
+      for (const target of [document.querySelector('button[aria-label="Minha conta"]'), document.querySelector('button[aria-label="Painel do lojista"]')]) assert(favoriteShortcut().compareDocumentPosition(target) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Favoritos deve ficar à esquerda do painel e do perfil');
+    }
     document.querySelector('button[aria-label="Painel do lojista"]').click();
     await wait(() => button('Contratos & Termos'));
     assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Seletor público de cargos ainda disponível');
@@ -149,13 +151,22 @@ for (const [model, scenario] of scenarios) {
       assert(!document.querySelector('a[href="#explorar-enterprise"]'), 'Atalho de rolagem continua na abertura');
       for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(!buttons().find(item => item.textContent.includes(label)), `Atalho não foi movido para o estoque: ${label}`);
       assert(favoriteShortcut() && favoriteShortcut().dataset.favoritesCount === '0', 'Visitante não recebeu o atalho de favoritos vazio');
-      assert(button('Entrar').compareDocumentPosition(favoriteShortcut()) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Atalho de favoritos não fica após o login');
+      assert(favoriteShortcut().compareDocumentPosition(button('Entrar')) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Atalho de favoritos deve ficar à esquerda do login');
       if (fullFlow) {
         favoriteShortcut().click();
         await wait(() => loginForm());
         assert(document.querySelector('[data-store-layout]') && !document.querySelector('h1').textContent.includes('Meus Veículos Salvos'), 'Atalho abriu favoritos sem login');
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
         await wait(() => !loginForm());
+        button('Estoque').click();
+        await wait(() => buttons().find(item => item.textContent.includes('Comparar escolhas')));
+        buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
+        await wait(() => loginForm());
+        assert(!document.querySelector('[data-comparison-stage]'), 'Comparação abriu sem login');
+        window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
+        await wait(() => !loginForm());
+        button('Início').click();
+        await wait(() => document.querySelector('[data-store-layout]'));
       }
     } else assert(!favoriteShortcut(), 'Atalho de favoritos apareceu em modelo sem essa função');
     if (scenario === 'legacy-favorites') {
@@ -357,7 +368,63 @@ for (const [model, scenario] of scenarios) {
       assert(buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent.endsWith('3'), 'Limite de comparação foi ultrapassado');
       assert(document.querySelector('[role="status"]').textContent.includes('Você pode comparar até 3'), 'Comparação não explicou o limite');
       buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
-      await wait(() => document.querySelector('h1')?.textContent.includes('Comparador de Veículos'));
+      const comparisonDialog = () => document.querySelector('[data-comparison-stage]');
+      const submitComparison = () => buttons().find(item => /^Comparar veículos \(/.test(item.textContent.trim()));
+      await wait(() => comparisonDialog()?.dataset.comparisonStage === 'selection');
+      assert(document.querySelector('main h1').textContent.includes('Explore as possibilidades'), 'Comparação retirou o usuário do estoque');
+      assert.equal(document.body.style.overflow, 'hidden', 'Janela não bloqueia a rolagem de fundo');
+      const removeChoice = () => comparisonDialog().querySelector('button[aria-label^="Remover "]');
+      removeChoice().click();
+      await wait(() => submitComparison().textContent.includes('(2)'));
+      button('Cancelar').click();
+      await wait(() => !comparisonDialog());
+      assert(buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent.endsWith('3'), 'Cancelar alterou as escolhas anteriores');
+      buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
+      await wait(() => comparisonDialog()?.dataset.comparisonStage === 'selection');
+      removeChoice().click();
+      await wait(() => submitComparison().textContent.includes('(2)'));
+      removeChoice().click();
+      await wait(() => submitComparison().disabled);
+      const choose = () => comparisonDialog().querySelector('input[type="checkbox"]:not(:checked):not(:disabled)');
+      choose().click();
+      await wait(() => !submitComparison().disabled);
+      const comparisonSearch = comparisonDialog().querySelector('input[type="search"]');
+      await changeField(comparisonSearch, 'nenhum-veiculo-comparavel');
+      assert(comparisonDialog().textContent.includes('Nenhum veículo encontrado'));
+      assert.equal(comparisonDialog().querySelectorAll('input[type="checkbox"]').length, 0);
+      button('Limpar busca da comparação').click();
+      await wait(() => choose());
+      submitComparison().click();
+      await wait(() => comparisonDialog()?.dataset.comparisonStage === 'results');
+      assert.equal(comparisonDialog().querySelectorAll('[data-comparison-vehicle]').length, 2);
+      assert.equal(comparisonDialog().querySelectorAll('details').length, 5);
+      assert(comparisonDialog().querySelector('details').open, 'Preço não começa expandido');
+      assert(comparisonDialog().textContent.includes('Resumo das escolhas'));
+      buttons().find(item => item.textContent.includes('Adicionar 3º veículo')).click();
+      await wait(() => comparisonDialog()?.dataset.comparisonStage === 'selection');
+      choose().click();
+      await wait(() => submitComparison().textContent.includes('(3)'));
+      assert([...comparisonDialog().querySelectorAll('input[type="checkbox"]:not(:checked)')].every(field => field.disabled), 'Seleção ultrapassa três veículos');
+      submitComparison().click();
+      await wait(() => comparisonDialog()?.querySelectorAll('[data-comparison-vehicle]').length === 3);
+      comparisonDialog().querySelectorAll('summary')[1].click();
+      assert(comparisonDialog().querySelectorAll('details')[1].open, 'Seção de quilometragem não expande');
+      comparisonDialog().querySelector('button').focus();
+      window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
+      await wait(() => !comparisonDialog());
+      assert.equal(document.body.style.overflow, '', 'Fechar comparação manteve a página bloqueada');
+      buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
+      await wait(() => submitComparison());
+      submitComparison().click();
+      await wait(() => comparisonDialog()?.dataset.comparisonStage === 'results');
+      const chosenId = comparisonDialog().querySelector('[data-comparison-vehicle]').dataset.comparisonVehicle;
+      button('Ver anúncio').click();
+      await wait(() => document.querySelector('[role="dialog"][data-vehicle-id]'));
+      assert(!comparisonDialog(), 'Anúncio abriu sobre outra janela de comparação');
+      assert.equal(document.querySelector('[role="dialog"][data-vehicle-id]').dataset.vehicleId, chosenId);
+      document.querySelector('button[title="Fechar (Esc)"]').click();
+      await wait(() => !document.querySelector('[role="dialog"]'));
+      console.log('OK: Enterprise (comparação em janela, seleção, limite, cancelamento, análise e anúncio)');
     }
     if (fullFlow) {
       await signOut();

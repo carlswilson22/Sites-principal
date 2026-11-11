@@ -19,6 +19,7 @@ import PortalApp from './sites/portal/src/App.jsx';
 import AutoApp from './sites/auto-dealership/src/App.jsx';
 import LuxuryApp from './sites/luxury-dealership/src/App.jsx';
 import PopularApp from './sites/popular-dealership/src/App.jsx';
+import { VehicleComparatorModal } from './sites/popular-dealership/src/components/vehicles/VehicleComparatorModal.jsx';
 import { AboutContactPage as AutoAbout } from './sites/auto-dealership/src/pages/AboutContactPage.jsx';
 import { AboutContactPage as LuxuryAbout } from './sites/luxury-dealership/src/pages/AboutContactPage.jsx';
 import { AboutContactPage as PopularAbout } from './sites/popular-dealership/src/pages/AboutContactPage.jsx';
@@ -36,6 +37,7 @@ function AboutWithFooter({ Page, dealership }) {
 }
 for (const [name, Component, props] of [
   ['portal', PortalApp], ['modelo-1', AutoApp], ['modelo-2', LuxuryApp], ['modelo-3', PopularApp],
+  ['selecao-comparacao', VehicleComparatorModal, { vehicles: popularVehicles, comparedVehicles: [], onClose: () => {}, onConfirm: () => {}, onSelectVehicle: () => {} }],
   ['servicos-modelo-2', StoreServicesPage, { premium: true, onNavigate: () => {} }],
   ['servicos-modelo-3', StoreServicesPage, { onNavigate: () => {} }],
   ['sobre-modelo-1', AboutWithFooter, { Page: AutoAbout, dealership: autoInfo }],

@@ -102,12 +102,18 @@ Inclui os cinco módulos do AutoElite e acrescenta:
   por preço, quilometragem ou recomendação; filtros laterais na página completa.
 - Financiamento em página própria e no anúncio; formulário de veículo na troca.
 - **Favoritos:** salvar/remover veículos e consultar a lista pessoal após login,
-  com separação por conta e loja no navegador. O coração ao lado do perfil é
+  com separação por conta e loja no navegador. O coração à esquerda do login,
+  do painel e do perfil é
   visível para visitantes, exige login ou cadastro para abrir a lista e mostra
   a quantidade salva após entrar. Os botões de favoritos e comparação ficam no
   estoque, sem cópias na abertura ou na página Serviços.
-- **Comparador:** selecionar até três veículos, consultar dados lado a lado,
-  remover escolhas e iniciar financiamento do veículo escolhido.
+- **Comparador:** abrir uma janela no estoque, buscar e selecionar de dois a
+  três veículos, confirmar a seleção e consultar fotos e dados lado a lado.
+  O resumo indica menor preço, menor quilometragem e ano mais recente, incluindo
+  empates e dados incompletos. As cinco seções expansíveis reúnem preço/FIPE,
+  uso, laudo, documentação e especificações. Permite alterar escolhas, adicionar
+  a terceira opção e abrir o anúncio, onde ficam atendimento e financiamento.
+  Cancelar a seleção preserva as escolhas anteriores. Os dados vêm do anúncio.
 - **Visualizador 360°:** incluído neste modelo para anúncios com sequência
   orbital cadastrada; não gera imagens 360° a partir de uma foto comum.
 - **TCO no anúncio:** estimar despesas anuais/mensais com combustível, seguro,

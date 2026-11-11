@@ -13,7 +13,7 @@ export function useDialog(onClose) {
     const previousFocus = document.activeElement;
     if (!hasOpenDialogs()) previousOverflow = document.body.style.overflow;
     const unregister = registerDialog(dialog);
-    const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+    const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex="0"]')]
       .filter(element => element.getClientRects().length > 0);
     document.body.style.overflow = 'hidden';
     (dialog.querySelector('button:not([disabled])') || dialog).focus({ preventScroll: true });
@@ -23,9 +23,10 @@ export function useDialog(onClose) {
       const first = items[0];
       const last = items.at(-1);
       if (!first) { event.preventDefault(); dialog.focus(); return; }
-      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+      const unlistedFocus = !items.includes(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || unlistedFocus)) {
         event.preventDefault(); last.focus();
-      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog)) {
+      } else if (!event.shiftKey && (document.activeElement === last || unlistedFocus)) {
         event.preventDefault(); first.focus();
       }
     };
