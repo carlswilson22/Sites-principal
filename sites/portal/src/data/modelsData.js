@@ -9,9 +9,9 @@ export const modelsList = [
     status: 'available',
     path: 'auto-dealership/',
     previewImage: 'images/tracker.jpg',
-    description: 'Interface limpa, rápida e objetiva focada na captação de leads. Conta com vitrine de ofertas da semana, catálogo completo de seminovos periciados, modal de ficha técnica com galeria expandida, botão direto de WhatsApp e Visualizador 360° Orbital Interativo.',
+    description: 'Interface limpa e objetiva com vitrine de ofertas, catálogo de seminovos, galeria de fotos, atendimento dentro do anúncio e contato com a equipe da loja.',
     features: [
-      'Visualizador 360° Orbital Interativo do Veículo (Novo)',
+      'Galeria de Fotos e Atendimento Dentro do Anúncio',
       'Catálogo de Seminovos Periciados com Filtro Rápido (4 Páginas)',
       'Modal de Ficha Técnica Pericial com Galeria HD',
       'Conversão Instantânea para WhatsApp com Dados do Veículo',
@@ -41,7 +41,7 @@ export const modelsList = [
   },
   {
     id: 'popular-dealership',
-    title: 'Auto-Dealership Enterprise',
+    title: 'Enterprise Veículos',
     tagline: 'Ecossistema Completo com Inteligência Artificial e Comparador Técnico',
     tier: 'Completo',
     category: 'Tier 3 • Mais Completo',
@@ -52,6 +52,7 @@ export const modelsList = [
     description: 'A suíte definitiva com a inteligência máxima da plataforma. Consultor Virtual com Inteligência Artificial para recomendações personalizadas, Comparador Técnico lado a lado de até 3 veículos com barra flutuante, Dossiê Cautelar IA com verificação de leilão/sinistros, Calculadora TCO anual e alertas de preço.',
     features: [
       'Tudo dos Tiers Essential e Pro +',
+      'Visualizador 360° Orbital Interativo Incluído',
       'Consultor Virtual com Inteligência Artificial (Chatbot IA)',
       'Comparador Técnico de Veículos Lado a Lado (Até 3 Carros)',
       'Dossiê Cautelar IA (Histórico, Leilão, Sinistro e Pintura)',
@@ -61,3 +62,10 @@ export const modelsList = [
     techStack: ['React 18', 'AI Engine', 'Local Storage', 'Tailwind CSS', 'Vite']
   }
 ];
+
+export const aLaCarteTools = [{
+  id: 'vehicle360',
+  title: 'Visualizador 360° do veículo',
+  description: 'Explore os ângulos do veículo a partir de um conjunto próprio de imagens. Disponível como ferramenta adicional para os modelos 1 e 2.',
+  included: 'Incluído no modelo 3',
+}];

@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { ShieldCheck, Bot, Zap, ArrowLeftRight } from 'lucide-react';
+import { dealershipInfo } from '../../data/dealershipInfo';
 
 export function WhyUsSection() {
   const pillars = [
@@ -28,7 +29,7 @@ export function WhyUsSection() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center max-w-2xl mx-auto mb-12">
-        <span className="text-xs uppercase tracking-widest text-cyan-400 font-bold block mb-2">Diferenciais DriveNow</span>
+        <span className="text-xs uppercase tracking-widest text-cyan-400 font-bold block mb-2">Diferenciais da {dealershipInfo.nome}</span>
         <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white">
           A Maneira Mais Segura e Inteligente de Comprar
         </h2>

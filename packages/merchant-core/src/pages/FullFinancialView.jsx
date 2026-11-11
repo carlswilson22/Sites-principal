@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Users, Download, Building, ShieldCheck, PieChart, FileSpreadsheet } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
 
-export function FullFinancialView() {
+export function FullFinancialView({ dealership = {} }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,7 @@ export function FullFinancialView() {
     const content = `
 =====================================================
 RELATÓRIO CONSOLIDADO PARA INSTITUIÇÃO FINANCEIRA
-EMISSOR: ${report.storeName}
+EMISSOR: ${dealership.nome || report.storeName}
 DATA DE EMISSÃO: ${new Date(report.generatedAt).toLocaleDateString('pt-BR')}
 =====================================================
 1. POSIÇÃO PATRIMONIAL DO ESTOQUE
@@ -50,7 +50,7 @@ DATA DE EMISSÃO: ${new Date(report.generatedAt).toLocaleDateString('pt-BR')}
 - Lucro Operacional Líquido Realizado: ${formatBrl(report.last12MonthsNetProfit)}
 - Rating de Saúde Financeira: ${report.financialHealthIndex}
 =====================================================
-Este documento foi gerado pelo sistema de gestão Auto-Dealership Enterprise.
+Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'}.
     `;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -77,9 +77,6 @@ Este documento foi gerado pelo sistema de gestão Auto-Dealership Enterprise.
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-100">DRE & Comissionamento</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              Tier 3 Enterprise
-            </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Controle gerencial de estoque próprio vs. consignado, comissões de atendentes e relatório bancário anual.

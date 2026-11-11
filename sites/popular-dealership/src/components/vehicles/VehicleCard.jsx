@@ -1,3 +1,4 @@
+import { VehicleCardFacts } from '../../../../../packages/merchant-core/src/components/common/VehicleCardFacts';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
 import { Heart, Scale, ShieldCheck, Zap, ArrowRight, MessageCircle, RotateCw, Bell } from 'lucide-react';
@@ -17,7 +18,7 @@ export function VehicleCard({
   const fipe = calculateFipeDiff(vehicle.preco, vehicle.fipeReferencia);
 
   return (
-    <div className="group rounded-3xl bg-[#090d16] border border-slate-800 hover:border-cyan-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-cyan-950/20 relative">
+    <div data-vehicle-id={vehicle.id} className="group rounded-3xl bg-[#090d16] border border-slate-800 hover:border-cyan-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-cyan-950/20 relative">
       {/* Imagem com Overlay */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-950 cursor-pointer" onClick={() => onSelect(vehicle)}>
         <VehicleImage
@@ -82,7 +83,6 @@ export function VehicleCard({
         <div>
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-cyan-400 uppercase tracking-wider font-semibold">{vehicle.marca}</span>
-            <span className="text-slate-500 text-[11px]">{vehicle.cambio}</span>
           </div>
 
           <h3 
@@ -93,17 +93,7 @@ export function VehicleCard({
           </h3>
           <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{vehicle.versao}</p>
 
-          {/* Destaques Rápidos: Consumo e TCO */}
-          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-800/80 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <Zap className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-              <span>{vehicle.potencia}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span>1 Ano Garantia</span>
-            </div>
-          </div>
+          <VehicleCardFacts vehicle={vehicle} />
         </div>
 
         {/* Preço e Botões */}
@@ -131,7 +121,7 @@ export function VehicleCard({
               onClick={() => onSelect(vehicle)}
               className="px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 hover:border-cyan-500/40"
             >
-              <span>Detalhes & TCO</span>
+              <span>Visualizar anúncio</span>
               <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
             </button>
 

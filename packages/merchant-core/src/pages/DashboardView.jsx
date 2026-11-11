@@ -22,9 +22,11 @@ import { TierGate } from '../components/common/TierGate';
 import { apiClient } from '../services/apiClient';
 import { storeSync } from '../services/storeSync';
 import { useTier } from '../context/TierContext';
+import { useAuth } from '../context/AuthContext';
 
 export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
   const { tier } = useTier();
+  const { hasRole } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncKey, setSyncKey] = useState(0);
@@ -189,49 +191,11 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         </div>
       </div>
 
-      {/* 4. I5: Métricas do Site (Exclusivo Nível 2 e 3) */}
       <TierGate requiredTier={2}>
-        <div className="rounded-2xl bg-slate-900/60 border border-amber-500/20 p-5 sm:p-6 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm sm:text-base font-bold text-white">Métricas de Engajamento do Site</h2>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold">
-                    Tier 2+ Pro
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400">Tráfego anônimo e intenções de compra nos últimos 30 dias</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
-            <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs text-slate-400">Visitas Totais</span>
-              <div className="text-lg sm:text-xl font-bold text-white mt-1">3.420</div>
-              <span className="text-[11px] text-emerald-400 font-semibold">+14.7% vs anterior</span>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs text-slate-400">Carros Vistos</span>
-              <div className="text-lg sm:text-xl font-bold text-white mt-1">8.950</div>
-              <span className="text-[11px] text-emerald-400 font-semibold">+17.8% vs anterior</span>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs text-slate-400">Cliques WhatsApp</span>
-              <div className="text-lg sm:text-xl font-bold text-white mt-1">284</div>
-              <span className="text-[11px] text-emerald-400 font-semibold">+35.2% vs anterior</span>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
-              <span className="text-xs text-slate-400">Simulações de Crédito</span>
-              <div className="text-lg sm:text-xl font-bold text-white mt-1">156</div>
-              <span className="text-[11px] text-emerald-400 font-semibold">+30.0% vs anterior</span>
-            </div>
-          </div>
-        </div>
+        {hasRole(['gerente']) && <button type="button" onClick={() => onNavigateTo('analytics')} className="w-full p-5 rounded-2xl bg-slate-900 border border-amber-500/30 text-left hover:bg-slate-800">
+          <span className="font-bold text-white block">Métricas do site</span>
+          <span className="text-sm text-slate-400">Veja as interações registradas na vitrine por período e por veículo.</span>
+        </button>}
       </TierGate>
 
       {/* 5. A5: Funil de Conversão e Alertas de Preço (Exclusivo Nível 3) */}
@@ -244,9 +208,6 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm sm:text-base font-bold text-white">Funil de Vendas & Análise de Giro</h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">
-                  Tier 3 Enterprise
-                </span>
               </div>
               <p className="text-xs text-slate-400">Eficiência de conversão etapa por etapa e tempo médio de resposta (14 min)</p>
             </div>

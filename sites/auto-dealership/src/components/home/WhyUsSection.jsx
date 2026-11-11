@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Award, Zap, Wrench, FileCheck, ThumbsUp } from 'lucide-react';
+import { dealershipInfo } from '../../data/dealershipInfo';
 
 export function WhyUsSection() {
   const differentials = [
@@ -28,8 +29,8 @@ export function WhyUsSection() {
       icon: Zap,
       color: 'text-purple-400',
       bgColor: 'bg-purple-950/60 border-purple-500/30',
-      title: 'Aprovação de Crédito em 15 Minutos',
-      description: 'Parceria com os principais bancos e financeiras garantindo taxas competitivas e até 60 dias para a primeira parcela.'
+      title: 'Simulação de Financiamento',
+      description: 'Estime entrada e parcelas no anúncio. A pré-aprovação e as condições finais dependem da análise de crédito pela instituição financeira.'
     }
   ];
 
@@ -40,7 +41,7 @@ export function WhyUsSection() {
           Transparência & Confiabilidade
         </span>
         <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white">
-          Por que comprar na AutoElite Motors?
+          Por que comprar na {dealershipInfo.nome}?
         </h2>
         <p className="text-slate-400 text-sm">
           Aliamos o padrão dos melhores showrooms do país à tecnologia de perícia automotiva digital para garantir uma compra 100% segura.

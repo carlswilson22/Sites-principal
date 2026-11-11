@@ -68,9 +68,6 @@ export function MarketPricingView() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-100">Precificador de Mercado & Leilão</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              Tier 3 Enterprise
-            </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Avaliação comparativa com anúncios manuais, depreciação de histórico de leilão e teto máximo de compra.

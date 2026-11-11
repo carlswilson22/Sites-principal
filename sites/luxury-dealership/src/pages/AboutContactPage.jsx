@@ -1,9 +1,11 @@
+import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 import React, { useState } from 'react';
 import { 
   Building2, Shield, Award, MapPin, Phone, Mail, Clock, 
   MessageCircle, Send, CheckCircle2, Crown, Eye 
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { WhyUsSection } from '../components/home/WhyUsSection';
 import { dealershipInfo } from '../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../utils/whatsapp';
 import { storeSync } from '../../../../packages/merchant-core/src';
@@ -44,6 +46,7 @@ export function AboutContactPage() {
       `• *Mensagem:* ${contactForm.mensagem}`;
 
     const url = `https://wa.me/${dealershipInfo.whatsapp}?text=${encodeURIComponent(text)}`;
+    siteAnalytics.track('drivenow', { type: 'whatsapp_click', page: 'sobre-contato' });
     window.open(url, '_blank', 'noopener,noreferrer');
     setMessageSent(true);
     setTimeout(() => setMessageSent(false), 5000);
@@ -59,7 +62,7 @@ export function AboutContactPage() {
             <span>Showroom Privativo & Concierge</span>
           </div>
           <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Sobre a Apex & Agendamento
+            Sobre a {dealershipInfo.nome} & Agendamento
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
             Conheça nossa trajetória na alta gastronomia e engenharia automotiva e reserve uma visita exclusiva com consultor sênior.
@@ -80,7 +83,7 @@ export function AboutContactPage() {
             </div>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
-              A <strong className="text-white font-semibold">Apex Luxury Motors</strong> foi concebida para atender entusiastas e colecionadores que encaram o automóvel como uma obra de arte e um ativo de alta relevância.
+              A <strong className="text-white font-semibold">{dealershipInfo.nome}</strong> foi concebida para atender entusiastas e colecionadores que encaram o automóvel como uma obra de arte e um ativo de alta relevância.
             </p>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
@@ -209,12 +212,13 @@ export function AboutContactPage() {
                 icon={Send}
                 className="w-full py-4 text-center justify-center font-bold"
               >
-                Enviar Solicitação ao Concierge VIP
+                Falar com funcionário no WhatsApp
               </Button>
             </form>
           </div>
         </div>
       </section>
+      <WhyUsSection />
     </div>
   );
 }

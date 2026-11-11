@@ -1,4 +1,5 @@
-﻿export const vehiclesData = [
+import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/catalogMedia.js';
+﻿const catalogVehicles = [
   {
     id: 1,
     nome: "Porsche 911 GT3 RS",
@@ -372,3 +373,5 @@
     }
   }
 ];
+
+export const vehiclesData = catalogVehicles.map(applyCatalogMedia);

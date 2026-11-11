@@ -1,266 +1,127 @@
-/**
- * packages/merchant-core/src/pages/FinancialView.jsx
- * Controle Financeiro Básico, Despesas por Carro e Margens (I8 - Nível 2)
- * VISÍVEL APENAS PARA O PROPRIETÁRIO (Regra Estrita RBAC)
- */
-import React, { useState, useEffect } from 'react';
-import { DollarSign, Plus, Lock, TrendingUp, AlertTriangle, ShieldCheck, Car, Calendar, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { DollarSign, Plus, Lock, Car, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { storeSync } from '../services/storeSync';
+import { expenseCategories, summarizeVehicleFinancial, validateExpense } from '../utils/financial';
 
-export function FinancialView() {
-  const { user, hasRole } = useAuth();
-  const [selectedVehicleId, setSelectedVehicleId] = useState(1);
-  const [expenses, setExpenses] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newExpense, setNewExpense] = useState({
-    category: 'estetica',
-    description: '',
-    amount: 350,
-    expense_date: new Date().toISOString().split('T')[0]
-  });
+const money = value => Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const blankExpense = () => {
+  const date = new Date();
+  return { category: 'compra', description: '', amount: '', expense_date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` };
+};
+const inputClass = 'mt-1 w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-400';
 
-  const vehicles = [
-    { id: 1, title: 'Chevrolet Tracker 1.2 Premier', salePrice: 119900, purchasePrice: 98000, status: 'disponivel' },
-    { id: 2, title: 'Toyota Corolla Cross 2.0 XRE', salePrice: 139900, purchasePrice: 118000, status: 'disponivel' },
-    { id: 4, title: 'Volkswagen Polo 1.0 TSI', salePrice: 84900, purchasePrice: 68000, status: 'vendido' }
-  ];
-
-  const currentVehicle = vehicles.find(v => v.id === selectedVehicleId) || vehicles[0];
-
-  useEffect(() => {
-    setExpenses([
-      { id: 1, vehicle_id: 1, category: 'compra', categoryLabel: 'Aquisição', description: 'Compra direta na troca', amount: 98000, date: '10/10/2026' },
-      { id: 2, vehicle_id: 1, category: 'estetica', categoryLabel: 'Estética', description: 'Higienização e polimento técnico', amount: 450, date: '12/10/2026' },
-      { id: 3, vehicle_id: 1, category: 'documentacao', categoryLabel: 'Documentação', description: 'Laudo cautelar e taxa de transferência', amount: 380, date: '14/10/2026' }
-    ]);
-  }, [selectedVehicleId]);
-
-  // Bloqueio de Segurança para Perfis Não Proprietários (I8)
-  if (!hasRole(['proprietario'])) {
-    return (
-      <div className="p-8 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-center max-w-lg mx-auto my-12 space-y-3">
-        <Lock className="w-10 h-10 text-rose-400 mx-auto" />
-        <h2 className="text-base font-bold text-white">Acesso Restrito ao Proprietário</h2>
-        <p className="text-xs text-slate-300">
-          O DRE financeiro, custos de aquisição e margens líquidas são informações confidenciais acessíveis exclusivamente pelo titular da concessionária.
-        </p>
-      </div>
-    );
-  }
-
-  const totalExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const projectedProfit = currentVehicle.salePrice - totalExpenses;
-  const marginPct = Math.round((projectedProfit / currentVehicle.salePrice) * 1000) / 10;
-
-  const handleAddExpense = (e) => {
-    e.preventDefault();
-    if (!newExpense.amount) return;
-
-    const added = {
-      id: Date.now(),
-      vehicle_id: selectedVehicleId,
-      category: newExpense.category,
-      categoryLabel: newExpense.category.toUpperCase(),
-      description: newExpense.description || 'Despesa operacional',
-      amount: parseFloat(newExpense.amount),
-      date: newExpense.expense_date
-    };
-
-    setExpenses(prev => [added, ...prev]);
-    setIsModalOpen(false);
-  };
-
-  const getCategoryColor = (cat) => {
-    const map = {
-      compra: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-      documentacao: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-      funilaria: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-      mecanica: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-      estetica: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-      pecas: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
-      outros: 'bg-slate-700 text-slate-300 border-slate-600'
-    };
-    return map[cat] || map.outros;
-  };
-
-  return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* 1. Cabeçalho */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-              <DollarSign className="w-6 h-6 text-emerald-400" />
-              Financeiro & Margens por Veículo (I8)
-            </h1>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">
-              Proprietário
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Lançamento de gastos categorizados, custo total acumulado e margem de lucro por veículo.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          Lançar Despesa
-        </button>
-      </div>
-
-      {/* 2. Seletor de Veículo para Análise Financeira */}
-      <div className="flex items-center gap-3 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
-        <Car className="w-5 h-5 text-slate-400" />
-        <span className="text-xs font-semibold text-slate-300">Veículo Selecionado:</span>
-        <select
-          value={selectedVehicleId}
-          onChange={(e) => setSelectedVehicleId(parseInt(e.target.value, 10))}
-          className="flex-1 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm focus:border-emerald-500 focus:outline-none"
-        >
-          {vehicles.map(v => (
-            <option key={v.id} value={v.id}>
-              {v.title} — Venda: R$ {v.salePrice?.toLocaleString('pt-BR')} ({v.status})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* 3. Indicadores de Custo e Lucro do Carro */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs text-slate-400 font-semibold uppercase">Preço de Venda do Anúncio</span>
-          <div className="text-2xl font-extrabold text-white mt-1">
-            R$ {currentVehicle.salePrice?.toLocaleString('pt-BR')}
-          </div>
-          <span className="text-[11px] text-slate-500">Valor cadastrado na vitrine</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs text-slate-400 font-semibold uppercase">Custo Total Acumulado</span>
-          <div className="text-2xl font-extrabold text-rose-400 mt-1">
-            R$ {totalExpenses.toLocaleString('pt-BR')}
-          </div>
-          <span className="text-[11px] text-slate-500">Aquisição + reformas e taxas</span>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-950 border border-emerald-500/30 shadow-lg">
-          <span className="text-xs text-emerald-400 font-semibold uppercase">
-            {currentVehicle.status === 'vendido' ? 'Lucro Realizado' : 'Lucro Líquido Previsto'}
-          </span>
-          <div className="text-2xl font-extrabold text-emerald-300 mt-1">
-            R$ {projectedProfit.toLocaleString('pt-BR')}
-          </div>
-          <span className="text-[11px] text-emerald-400 font-semibold">
-            Margem de {marginPct}% sobre a venda
-          </span>
-        </div>
-      </div>
-
-      {/* 4. Tabela de Despesas Lançadas */}
-      <div className="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden">
-        <div className="p-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-            Detalhamento de Custos e Reformas (I8)
-          </h3>
-          <span className="text-xs text-slate-400">Total: {expenses.length} lançamentos</span>
-        </div>
-
-        <div className="divide-y divide-slate-800/80">
-          {expenses.map(item => (
-            <div key={item.id} className="p-4 flex items-center justify-between text-xs hover:bg-slate-800/30 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getCategoryColor(item.category)}`}>
-                  {item.category}
-                </span>
-                <div>
-                  <span className="font-semibold text-white block">{item.description}</span>
-                  <span className="text-[11px] text-slate-500">{item.date}</span>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <span className="font-bold text-rose-400 block text-sm">
-                  - R$ {item.amount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Modal de Lançamento de Despesa */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-2xl">
-            <h3 className="font-bold text-white text-base">
-              Lançar Gasto no Veículo
-            </h3>
-
-            <form onSubmit={handleAddExpense} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Categoria (I8)</label>
-                <select
-                  value={newExpense.category}
-                  onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none"
-                >
-                  <option value="compra">Compra / Aquisição</option>
-                  <option value="documentacao">Documentação / Despachante / Laudo</option>
-                  <option value="funilaria">Funilaria e Pintura</option>
-                  <option value="mecanica">Mecânica e Revisão Geral</option>
-                  <option value="pecas">Peças e Pneus</option>
-                  <option value="estetica">Estética Automotiva / Higienização</option>
-                  <option value="outros">Outros Gastos Operacionais</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Descrição</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Troca de pastilhas de freio e óleo"
-                  value={newExpense.description}
-                  onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Valor da Despesa (R$)</label>
-                <input
-                  type="number"
-                  required
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20"
-                >
-                  Lançar Despesa
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+export function FinancialView({ storeKey = 'autoelite', vehicles = [] }) {
+  const { hasRole } = useAuth();
+  if (!hasRole(['proprietario'])) return <div className="p-8 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-center max-w-lg mx-auto my-12 space-y-3">
+    <Lock className="w-10 h-10 text-rose-400 mx-auto" />
+    <h2 className="text-lg font-bold text-white">Acesso restrito ao proprietário</h2>
+    <p className="text-sm text-slate-300">Custos de aquisição e resultados financeiros são acessíveis apenas pelo proprietário da loja.</p>
+  </div>;
+  return <FinancialWorkspace key={storeKey} storeKey={storeKey} vehicles={vehicles} />;
 }
 
+function FinancialWorkspace({ storeKey, vehicles }) {
+  const [selectedId, setSelectedId] = useState('');
+  const [records, setRecords] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(blankExpense);
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const currentVehicle = vehicles.find(vehicle => String(vehicle.id) === selectedId) || vehicles[0] || null;
+  const summary = summarizeVehicleFinancial(currentVehicle, records);
+
+  useEffect(() => {
+    try { setRecords(storeSync.getRecords(storeKey, 'expenses')); }
+    catch { setError('Não foi possível carregar os gastos salvos. Os dados existentes foram preservados.'); }
+    return storeSync.subscribe(storeKey, detail => {
+      if (detail.type === 'EXPENSES_UPDATED') setRecords(detail.expenses);
+    });
+  }, [storeKey]);
+
+  useEffect(() => {
+    setShowForm(false); setEditingId(null); setForm(blankExpense()); setFeedback('');
+  }, [currentVehicle?.id]);
+
+  const saveExpense = event => {
+    event.preventDefault();
+    try {
+      const expense = validateExpense(form, currentVehicle?.id);
+      const original = editingId === null ? {} : records.find(record => record.id === editingId);
+      if (!original) throw new Error('Este lançamento foi removido em outra aba. Cancele a edição e atualize a lista.');
+      setRecords(storeSync.saveRecord(storeKey, 'expenses', { ...original, ...expense }));
+      setError(''); setFeedback(editingId === null ? 'Gasto registrado.' : 'Gasto atualizado.');
+      setShowForm(false); setEditingId(null); setForm(blankExpense());
+    } catch (failure) { setError(failure.message || 'Não foi possível salvar o gasto. Verifique o armazenamento do navegador.'); }
+  };
+
+  const removeExpense = expense => {
+    if (!window.confirm(`Remover o lançamento “${expense.description}”?`)) return;
+    try {
+      setRecords(storeSync.deleteRecord(storeKey, 'expenses', expense.id));
+      if (expense.id === editingId) { setShowForm(false); setEditingId(null); }
+      setError(''); setFeedback('Gasto removido.');
+    } catch (failure) { setError(failure.message || 'Não foi possível remover o lançamento.'); }
+  };
+
+  return <div className="space-y-6">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div>
+        <h1 className="text-2xl font-bold text-white flex items-center gap-2"><DollarSign className="w-6 h-6 text-emerald-400" />Financeiro por veículo</h1>
+        <p className="mt-2 text-sm text-slate-400">Registre a aquisição e os gastos da loja. Os lançamentos ficam salvos neste navegador, separados por loja.</p>
+      </div>
+      <button type="button" disabled={!currentVehicle} onClick={() => { setEditingId(null); setForm(blankExpense()); setShowForm(true); setError(''); setFeedback(''); }} className="shrink-0 self-start min-h-11 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center gap-2 disabled:opacity-50"><Plus className="w-4 h-4" />Lançar gasto</button>
+    </div>
+    {error && <p role="alert" className="p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 text-sm text-rose-200">{error}</p>}
+    {feedback && <p role="status" className="text-sm text-emerald-300">{feedback}</p>}
+    {!currentVehicle ? <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900 text-slate-300">Cadastre um veículo no estoque para começar a registrar custos.</div> : <>
+      <label className="block p-4 rounded-2xl border border-slate-800 bg-slate-900 text-sm text-slate-300">
+        <span className="flex items-center gap-2 font-semibold"><Car className="w-4 h-4" />Veículo</span>
+        <select value={String(currentVehicle.id)} onChange={event => setSelectedId(event.target.value)} className={inputClass}>
+          {vehicles.map(vehicle => <option key={vehicle.id} value={String(vehicle.id)}>{vehicle.title || vehicle.nome} — {vehicle.status === 'vendido' ? 'Vendido' : 'Em estoque'}</option>)}
+        </select>
+      </label>
+
+      {showForm && <section className="p-5 rounded-2xl border border-emerald-600/40 bg-slate-900">
+        <h2 className="text-lg font-semibold text-white mb-4">{editingId === null ? 'Novo lançamento' : 'Editar lançamento'}</h2>
+        <form onSubmit={saveExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label className="text-sm text-slate-300">Categoria<select required value={form.category} onChange={event => setForm({ ...form, category: event.target.value })} className={inputClass}>{Object.entries(expenseCategories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+          <label className="text-sm text-slate-300">Data<input required type="date" value={form.expense_date} onChange={event => setForm({ ...form, expense_date: event.target.value })} className={inputClass} /></label>
+          <label className="sm:col-span-2 text-sm text-slate-300">Descrição<input required maxLength={300} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} className={inputClass} placeholder="Ex.: aquisição do veículo ou revisão de entrega" /></label>
+          <label className="text-sm text-slate-300">Valor (R$)<input required type="number" inputMode="decimal" min="0.01" step="0.01" value={form.amount} onChange={event => setForm({ ...form, amount: event.target.value })} className={inputClass} /></label>
+          <div className="flex justify-end items-end gap-3 sm:col-span-2">
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 min-h-11 rounded-xl border border-slate-600 text-slate-200">Cancelar</button>
+            <button type="submit" className="px-4 min-h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">Salvar lançamento</button>
+          </div>
+        </form>
+      </section>}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Metric label={summary.hasConfirmedSale ? 'Valor efetivo da venda' : 'Preço anunciado'} value={money(summary.salePrice)} detail={summary.hasConfirmedSale ? 'Venda confirmada no cadastro' : 'Valor cadastrado no estoque'} />
+        <Metric label="Custos registrados" value={money(summary.totalCost)} detail={`Aquisição: ${money(summary.acquisition)} · Outros: ${money(summary.operatingCosts)}`} />
+        <Metric label={summary.hasConfirmedSale ? 'Resultado realizado' : 'Resultado estimado'} value={summary.profit === null ? 'Aguardando dados' : money(summary.profit)} detail={summary.marginPct === null ? 'Registre a aquisição e o valor de venda para calcular.' : `Margem de ${summary.marginPct.toLocaleString('pt-BR')}% sobre a venda; considera apenas custos registrados.`} />
+      </div>
+      {!summary.hasPurchase && <p className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-sm text-amber-200">O custo de aquisição ainda não foi registrado. O resultado não será calculado até que haja um lançamento de compra.</p>}
+      {currentVehicle.status === 'vendido' && !summary.hasConfirmedSale && <p className="text-sm text-amber-200">Este veículo está vendido, mas não possui valor efetivo de venda confirmado. O resultado mostrado continua sendo uma estimativa pelo preço anunciado.</p>}
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between gap-3"><h2 className="font-semibold text-white">Lançamentos do veículo</h2><span className="text-sm text-slate-400">{summary.expenses.length} registro(s)</span></div>
+        {!summary.expenses.length && <p className="p-5 text-sm text-slate-400">Nenhum gasto registrado para este veículo.</p>}
+        <ul className="divide-y divide-slate-800">{summary.expenses.map(expense => <li key={expense.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0"><p className="font-medium text-white break-words">{expense.description}</p><p className="text-sm text-slate-400 mt-1">{expenseCategories[expense.category] || expense.category} · {displayDate(expense.expense_date || expense.date)}</p></div>
+          <div className="flex items-center gap-3 shrink-0"><span className="text-rose-300 font-semibold">{money(expense.amount)}</span><button type="button" aria-label={`Editar ${expense.description}`} onClick={() => { setEditingId(expense.id); setForm({ category: expense.category, description: expense.description, amount: expense.amount, expense_date: expense.expense_date || '' }); setShowForm(true); setError(''); setFeedback(''); }} className="p-2.5 rounded-lg border border-slate-600 text-slate-200 hover:bg-slate-800"><Pencil className="w-4 h-4" /></button><button type="button" aria-label={`Remover ${expense.description}`} onClick={() => removeExpense(expense)} className="p-2.5 rounded-lg border border-rose-500/30 text-rose-300 hover:bg-rose-500/10"><Trash2 className="w-4 h-4" /></button></div>
+        </li>)}</ul>
+      </section>
+    </>}
+  </div>;
+}
+
+function Metric({ label, value, detail }) {
+  return <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900"><h2 className="text-sm text-slate-400">{label}</h2><p className="mt-2 text-2xl font-bold text-white">{value}</p><p className="mt-2 text-xs text-slate-400 leading-relaxed">{detail}</p></div>;
+}
+
+function displayDate(value) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return value.split('-').reverse().join('/');
+  return value || 'Sem data';
+}

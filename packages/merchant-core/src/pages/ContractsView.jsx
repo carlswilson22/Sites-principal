@@ -15,9 +15,11 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
 
   const [formData, setFormData] = useState({
     type: 'compra_venda',
+    clientId: null,
     clientName: '',
     clientCpf: '',
     clientPhone: '',
+    clientAddress: '',
     vehicleTitle: '',
     vehiclePrice: 0,
     vehicleYear: '',
@@ -35,9 +37,18 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
 
   useEffect(() => {
     if (!selectedClient) return;
-    setFormData(previous => ({ ...previous, clientName: selectedClient.name, clientCpf: selectedClient.cpfMasked || '', clientPhone: selectedClient.phone || '', clientAddress: selectedClient.address || '' }));
+    setFormData(previous => ({ ...previous, clientId: selectedClient.id ?? null, clientName: selectedClient.name, clientCpf: selectedClient.cpfMasked || '', clientPhone: selectedClient.phone || '', clientAddress: selectedClient.address || '' }));
     setIsModalOpen(true);
   }, [selectedClient]);
+
+  const handleClientChange = (field, value) => {
+    setFormData(previous => ({
+      ...previous,
+      [field]: value,
+      clientId: null,
+      ...(previous.clientId != null ? { clientCpf: '', clientAddress: '' } : {})
+    }));
+  };
 
   const handleGenerate = (e) => {
     e.preventDefault();
@@ -65,7 +76,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
       typeLabel: formData.type === 'compra_venda' ? 'Compra e Venda' : formData.type === 'recibo_sinal' ? 'Recibo de Sinal' : 'Termo de Vistoria',
       clientName: formData.clientName,
       clientPhone: formData.clientPhone,
-      clientId: selectedClient?.id,
+      clientId: formData.clientId,
       vehicleTitle: formData.vehicleTitle,
       value: formData.type === 'recibo_sinal' ? formData.signalValue : formData.vehiclePrice,
       status: 'emitido',
@@ -118,9 +129,6 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
               <FileText className="w-6 h-6 text-amber-400" />
               Contratos & Vistorias (I7)
             </h1>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold">
-              Tier 2+ Pro
-            </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
             Emissão de Compra e Venda, Recibo de Sinal e Termo de Vistoria com conferência de itens.
@@ -245,14 +253,14 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
                   type="text"
                   required
                   value={formData.clientName}
-                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                  onChange={(e) => handleClientChange('clientName', e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:border-amber-500 focus:outline-none"
                 />
               </div>
 
               <label className="block text-xs text-slate-300">
                 Telefone do cliente
-                <input type="tel" value={formData.clientPhone} onChange={event => setFormData({ ...formData, clientPhone: event.target.value })} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700" />
+                <input type="tel" value={formData.clientPhone} onChange={event => handleClientChange('clientPhone', event.target.value)} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700" />
               </label>
 
               <div>

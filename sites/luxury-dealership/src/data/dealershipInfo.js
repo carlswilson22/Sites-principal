@@ -1,4 +1,6 @@
 export const dealershipInfo = {
+  features: { vehicle360: false },
+  homeHighlights: { deliveries: '+1.200', inspection: '100%' },
   nome: "DriveNow Multimarcas",
   slogan: "Experiência Digital Avançada, Financiamento e Trade-In Online",
   cnpj: "42.880.192/0001-90",
@@ -19,8 +21,8 @@ export const dealershipInfo = {
     domingo: "Domingo: Plantão Online"
   },
   beneficios: [
-    { titulo: "Visualizador 360°", desc: "Inspeção orbital milimétrica de cada ângulo do veículo." },
-    { titulo: "Simulação Price/SAC", desc: "Cálculo instantâneo de parcelas com taxas bancárias reais." },
+    { titulo: "Galeria de Fotos", desc: "Fotos e detalhes do veículo dentro do anúncio." },
+    { titulo: "Simulação de Financiamento", desc: "Estimativa pela Tabela Price com taxa ilustrativa ajustável." },
     { titulo: "Avaliação Trade-In", desc: "Proposta rápida para entrada com seu veículo usado." },
     { titulo: "Perícia Certificada", desc: "Laudo cautelar 100% aprovado e garantia estendida." }
   ]

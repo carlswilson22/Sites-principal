@@ -1,3 +1,4 @@
+import { siteAnalytics } from '../../../../../packages/merchant-core/src/services/siteAnalytics.js';
 import React, { useState } from 'react';
 import { ArrowLeftRight, Shield, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -37,6 +38,7 @@ export function TradeInEvaluation({ vehicles = [] }) {
       });
     } catch {}
     const url = buildTradeInWhatsappLink(formData);
+    siteAnalytics.track('drivenow', { type: 'whatsapp_click', page: 'troca' });
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

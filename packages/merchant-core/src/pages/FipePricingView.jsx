@@ -77,9 +77,6 @@ export function FipePricingView() {
               <Tag className="w-6 h-6 text-amber-400" />
               Precificador Inteligente FIPE
             </h1>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold">
-              Tier 2+ Pro
-            </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
             Consulte a Tabela FIPE oficial com cache local e calcule proposta máxima de compra e margem de venda.

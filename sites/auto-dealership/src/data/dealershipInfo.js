@@ -1,6 +1,8 @@
 export const dealershipInfo = {
+  features: { vehicle360: false },
+  homeHighlights: { deliveries: '+1.200', inspection: '100%' },
   nome: "AutoElite Seminovos",
-  slogan: "Seminovos Selecionados com Perícia Cautelar 100% Aprovada e Visão 360°",
+  slogan: "Seminovos selecionados com galeria de fotos e atendimento personalizado",
   cnpj: "12.345.678/0001-90",
   whatsapp: "5561999998888",
   whatsappFormatado: "(61) 99999-8888",
@@ -18,11 +20,5 @@ export const dealershipInfo = {
     semana: "Segunda a Sexta: 08:30 às 18:30",
     sabado: "Sábado: 08:30 às 15:00",
     domingo: "Domingo: Plantão Online via WhatsApp"
-  },
-  metricas: [
-    { valor: "+1.200", label: "Carros Entregues com Sucesso" },
-    { valor: "100%", label: "Perícia Cautelar Aprovada" },
-    { valor: "360°", label: "Visualização Orbital Interativa" },
-    { valor: "15 min", label: "Pré-Aprovação de Crédito" }
-  ]
+  }
 };

@@ -1,145 +1,34 @@
-﻿import React from 'react';
-import { HeroSection } from '../components/home/HeroSection';
 import { StatsSection } from '../components/home/StatsSection';
-import { WhyUsSection } from '../components/home/WhyUsSection';
+import React from 'react';
+import { HeroSection } from '../components/home/HeroSection';
 import { VehicleCard } from '../components/vehicles/VehicleCard';
 import { Button } from '../components/ui/Button';
-import { ArrowRight, Sparkles, MessageCircle, CalendarCheck, ShieldCheck } from 'lucide-react';
-import { dealershipInfo } from '../data/dealershipInfo';
-import { buildGeneralWhatsappLink } from '../utils/whatsapp';
+import { ArrowRight } from 'lucide-react';
 
-export function HomePage({ vehicles, onNavigate, onSelectVehicle }) {
-  // 3 veículos em maior destaque para a home
-  const topVehicles = vehicles.filter(v => v.destaque).slice(0, 3);
-
-  const handleHeroSearch = ({ term, category }) => {
-    onNavigate('estoque', { term, category });
-  };
-
-  const whatsappUrl = buildGeneralWhatsappLink();
+export function HomePage({ vehicles = [], onNavigate, onSelectVehicle }) {
+  const featuredVehicles = vehicles.filter(vehicle => vehicle.destaque);
+  const selection = (featuredVehicles.length ? featuredVehicles : vehicles).slice(0, 3);
 
   return (
-    <div className="space-y-16 sm:space-y-24">
-      {/* Hero com busca rápida */}
-      <HeroSection onSearch={handleHeroSearch} />
-
-      {/* Régua de Estatísticas */}
-
-      {/* Vitrine de Destaques Rápidos */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+    <div className="space-y-12 sm:space-y-16 pb-16">
+      <HeroSection onNavigate={onNavigate} />
+      <StatsSection vehicles={vehicles} />
+      <section aria-labelledby="home-vehicles-title" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Seleção da Semana</span>
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white">
-              Veículos em Destaque
-            </h2>
-            <p className="text-slate-400 text-sm mt-1">
-              Modelos com laudo cautelar 100% aprovado, revisados e pronta entrega.
-            </p>
+            <h2 id="home-vehicles-title" className="font-heading text-2xl sm:text-3xl font-extrabold text-white">Uma seleção para você</h2>
+            <p className="mt-2 text-sm text-slate-400">Conheça alguns veículos da loja. O catálogo completo está no estoque.</p>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="md"
-              icon={Sparkles}
-              onClick={() => onNavigate('destaques')}
-            >
-              Ver Todos os Destaques
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              icon={ArrowRight}
-              onClick={() => onNavigate('estoque')}
-            >
-              Estoque Completo ({vehicles.length})
-            </Button>
+          <Button variant="outline" size="md" icon={ArrowRight} onClick={() => onNavigate('estoque')} className="self-start sm:self-auto">Ver estoque completo</Button>
+        </div>
+        {selection.length ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {selection.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={onSelectVehicle} show360Badge={false} />)}
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topVehicles.map(vehicle => (
-            <VehicleCard
-              key={vehicle.id}
-              vehicle={vehicle}
-              onSelect={onSelectVehicle}
-            />
-          ))}
-        </div>
+        ) : (
+          <p className="p-6 rounded-2xl border border-slate-800 bg-slate-900 text-slate-300">Novos veículos serão apresentados aqui em breve.</p>
+        )}
       </section>
-
-      {/* Banners Duplos de Ação Rápida (Destaques & Contato Comercial) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Card Destaques & Oportunidades */}
-          <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-950/60 via-slate-900 to-slate-900 border border-blue-500/30 flex flex-col justify-between space-y-6 shadow-xl">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <h3 className="font-heading text-2xl font-bold text-white">
-                Oportunidades & Ofertas Especiais
-              </h3>
-              <p className="text-sm text-slate-300 font-light leading-relaxed">
-                Descubra os veículos selecionados da nossa frota com preços promocionais, condições facilitadas e laudo cautelar liberado para consulta.
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              size="md"
-              icon={ArrowRight}
-              onClick={() => onNavigate('destaques')}
-              className="w-full sm:w-auto self-start"
-            >
-              Conferir Ofertas Especiais
-            </Button>
-          </div>
-
-          {/* Card Atendimento & Agendamento */}
-          <div className="p-8 rounded-3xl bg-gradient-to-br from-emerald-950/60 via-slate-900 to-slate-900 border border-emerald-500/30 flex flex-col justify-between space-y-6 shadow-xl">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-                <CalendarCheck className="w-6 h-6" />
-              </div>
-              <h3 className="font-heading text-2xl font-bold text-white">
-                Agende um Test-Drive ou Visite o Showroom
-              </h3>
-              <p className="text-sm text-slate-300 font-light leading-relaxed">
-                Venha conhecer nosso showroom físico no SIA, tomar um café e fazer um test-drive no modelo de sua preferência com nossa equipe.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="whatsapp"
-                size="md"
-                icon={MessageCircle}
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto"
-              >
-                Falar com Vendedor
-              </Button>
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() => onNavigate('sobre-contato')}
-                className="w-full sm:w-auto"
-              >
-                Sobre & Contato
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Por que escolher a AutoElite */}
-      <WhyUsSection />
-      <StatsSection />
     </div>
   );
 }

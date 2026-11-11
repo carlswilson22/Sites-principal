@@ -6,11 +6,9 @@ import { isDemoMode } from '../services/demoConfig';
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, Mail, ArrowRight, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useTier } from '../context/TierContext';
 
-export function LoginView({ onLoginSuccess, onCancel }) {
+export function LoginView({ onLoginSuccess, onCancel, storeName = 'Loja' }) {
   const { login } = useAuth();
-  const { tierName } = useTier();
   const [email, setEmail] = useState(isDemoMode ? 'proprietario@demo.invalid' : '');
   const [password, setPassword] = useState(isDemoMode ? 'Demonstracao@2026' : '');
   const [isRecovering, setIsRecovering] = useState(false);
@@ -54,7 +52,7 @@ export function LoginView({ onLoginSuccess, onCancel }) {
             Painel do Lojista
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            {isDemoMode ? 'Demonstração do painel' : 'Área de Gestão Restrita'} • <span className="text-blue-400 font-semibold">{tierName}</span>
+            {storeName}
           </p>
         </div>
 

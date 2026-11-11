@@ -1,4 +1,3 @@
-import { isDemoMode } from '../../services/demoConfig';
 /**
  * packages/merchant-core/src/components/layout/MerchantShell.jsx
  * Shell principal do Painel do Lojista unificando Navbar, Sidebar e Área de Conteúdo.
@@ -25,10 +24,10 @@ export function MerchantShell({
         onExitToSite={onExitToSite}
       />
 
-      {isDemoMode && <div role="status" className="px-4 py-3 text-sm text-center bg-amber-950 text-amber-100 border-b border-amber-700">Demonstração interativa · Dados fictícios neste navegador. Não informe dados pessoais reais.</div>}
       {/* 2. Corpo com Sidebar Lateral e Área de Trabalho */}
       <div className="flex-1 flex flex-row relative">
         <MerchantSidebar
+          storeName={storeName}
           activeTab={activeTab}
           onSelectTab={onSelectTab}
           isOpen={mobileMenuOpen}

@@ -10,6 +10,29 @@
 
 const EVENT_PREFIX = 'merchant_store_update_';
 import { normalizeVehicle } from '../utils/vehicles.js';
+import { reconcileCatalogMedia } from '../utils/catalogMedia.js';
+const RECORD_COLLECTIONS = ['clients', 'contracts', 'expenses'];
+
+function readLeadsForMutation(storeKey, fallback) {
+  const raw = localStorage.getItem(`store_leads_${storeKey}`);
+  if (raw === null) return fallback();
+  let list;
+  try { list = JSON.parse(raw); } catch {
+    throw new Error('Os contatos salvos estão inválidos. Os dados anteriores foram preservados.');
+  }
+  if (!Array.isArray(list) || list.some(lead => !lead || typeof lead !== 'object' || Array.isArray(lead))) {
+    throw new Error('Os contatos salvos estão inválidos. Os dados anteriores foram preservados.');
+  }
+  return list;
+}
+
+function persistLeads(storeKey, leads) {
+  try { localStorage.setItem(`store_leads_${storeKey}`, JSON.stringify(leads)); } catch {
+    throw new Error('Não foi possível salvar o contato neste navegador. Verifique o armazenamento e tente novamente.');
+  }
+  window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, { detail: { type: 'LEADS_UPDATED', leads } }));
+  return leads;
+}
 
 function readVehicles(storeKey, fallbackData) {
   const raw = localStorage.getItem(`store_vehicles_${storeKey}`);
@@ -21,7 +44,7 @@ function readVehicles(storeKey, fallbackData) {
   if (!Array.isArray(parsed) || parsed.some(vehicle => !vehicle || typeof vehicle !== 'object' || Array.isArray(vehicle))) {
     throw new Error('O estoque salvo está inválido. Os dados existentes foram preservados.');
   }
-  return parsed.map(normalizeVehicle);
+  return reconcileCatalogMedia(parsed, fallbackData).map(normalizeVehicle);
 }
 
 function persistVehicles(storeKey, vehicles) {
@@ -38,12 +61,12 @@ function persistVehicles(storeKey, vehicles) {
 
 export const storeSync = {
   getRecords(storeKey, collection, fallback = []) {
-    if (!['clients', 'contracts'].includes(collection)) throw new Error('Coleção inválida.');
+    if (!RECORD_COLLECTIONS.includes(collection)) throw new Error('Coleção inválida.');
     if (typeof window === 'undefined') return fallback;
     const raw = localStorage.getItem(`store_${collection}_${storeKey}`);
     if (raw === null) return fallback;
     const records = JSON.parse(raw);
-    if (!Array.isArray(records)) throw new Error('Dados locais inválidos.');
+    if (!Array.isArray(records) || records.some(record => !record || typeof record !== 'object' || Array.isArray(record))) throw new Error('Dados locais inválidos.');
     return records;
   },
 
@@ -56,6 +79,16 @@ export const storeSync = {
       updated_at: new Date().toISOString()
     };
     const updated = [saved, ...records.filter(item => item.id !== saved.id)];
+    localStorage.setItem(`store_${collection}_${storeKey}`, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
+      detail: { type: `${collection.toUpperCase()}_UPDATED`, [collection]: updated }
+    }));
+    return updated;
+  },
+
+  deleteRecord(storeKey, collection, recordId) {
+    const records = this.getRecords(storeKey, collection);
+    const updated = records.filter(record => record.id !== recordId);
     localStorage.setItem(`store_${collection}_${storeKey}`, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
       detail: { type: `${collection.toUpperCase()}_UPDATED`, [collection]: updated }
@@ -168,7 +201,7 @@ export const storeSync = {
    * Registra um novo lead (capturado do site público ou criado no painel)
    */
   addLead(storeKey, lead) {
-    const list = this.getLeads(storeKey);
+    const list = readLeadsForMutation(storeKey, () => this.getLeads(storeKey));
     const newLead = {
       ...lead,
       vehicle_id: lead.vehicle_id ?? lead.vehicleId,
@@ -180,35 +213,18 @@ export const storeSync = {
     };
     const updated = [newLead, ...list];
 
-    try {
-      localStorage.setItem(`store_leads_${storeKey}`, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
-        detail: { type: 'LEADS_UPDATED', leads: updated }
-      }));
-    } catch (e) {
-      console.warn('Erro ao persistir lead no storage:', e);
-    }
-
-    return updated;
+    return persistLeads(storeKey, updated);
   },
 
   /**
    * Atualiza status ou dados de um lead
    */
   updateLead(storeKey, leadId, updates) {
-    const list = this.getLeads(storeKey);
+    const list = readLeadsForMutation(storeKey, () => this.getLeads(storeKey));
+    if (!list.some(lead => lead.id === leadId)) throw new Error('Este contato não está mais disponível. Atualize a lista.');
     const updated = list.map(l => l.id === leadId ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l);
 
-    try {
-      localStorage.setItem(`store_leads_${storeKey}`, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent(`${EVENT_PREFIX}${storeKey}`, {
-        detail: { type: 'LEADS_UPDATED', leads: updated }
-      }));
-    } catch (e) {
-      console.warn('Erro ao atualizar lead:', e);
-    }
-
-    return updated;
+    return persistLeads(storeKey, updated);
   },
 
   /**
@@ -222,7 +238,7 @@ export const storeSync = {
     window.addEventListener(`${EVENT_PREFIX}${storeKey}`, handler);
     const storageHandler = (event) => {
       if (event.storageArea && event.storageArea !== window.localStorage) return;
-      const collections = ['vehicles', 'leads', 'clients', 'contracts'];
+      const collections = ['vehicles', 'leads', ...RECORD_COLLECTIONS, 'analytics'];
       const collection = collections.find(name => event.key === `store_${name}_${storeKey}`);
       if (event.key !== null && !collection) return;
       try {

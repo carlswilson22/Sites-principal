@@ -26,6 +26,21 @@ Este projeto (Auto-Dealership) utiliza e adapta componentes de interface sob lic
 
 ---
 
+## 3. Fotografias ilustrativas do catálogo
+
+As fotografias em `sites/*/public/images/catalog/` são distribuídas sob as
+licenças Creative Commons indicadas individualmente em
+`docs/media/catalog-sources.json`. Esse registro contém os nomes dos autores,
+as páginas originais no Wikimedia Commons, os endereços dos arquivos e os
+links das licenças. São arquivos originais ou miniaturas redimensionadas do
+Commons, conforme o registro, sem outras alterações nos arquivos. A interface
+pode recortar sua exibição.
+Os créditos e links de licença também aparecem na galeria de cada anúncio.
+As licenças individuais das imagens permanecem válidas, independentemente
+da licença do código do projeto.
+
+---
+
 MIT License (MicroKit UI):
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

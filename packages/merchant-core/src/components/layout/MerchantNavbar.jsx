@@ -3,20 +3,12 @@
  * Barra superior do Painel do Lojista.
  */
 import React from 'react';
-import { ShieldCheck, LogOut, ExternalLink, Menu, Bell } from 'lucide-react';
+import { ShieldCheck, LogOut, ExternalLink, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTier } from '../../context/TierContext';
 
-export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealership', onExitToSite }) {
+
+export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitToSite }) {
   const { user, logout, switchRole, isDemoMode } = useAuth();
-  const { tier, tierName } = useTier();
-
-  const getTierColor = () => {
-    if (tier === 3) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
-    if (tier === 2) return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-    return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-  };
-
   const getRoleLabel = (role) => {
     if (role === 'proprietario') return 'Proprietário';
     if (role === 'gerente') return 'Gerente';
@@ -24,7 +16,7 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
   };
 
   return (
-    <header className="h-16 bg-[#0b1324] border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
+    <header className="min-h-16 bg-[#0b1324] border-b border-slate-800 px-4 sm:px-6 py-2 flex flex-wrap sm:flex-nowrap gap-2 items-center justify-between sticky top-0 z-30">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -42,9 +34,6 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-white text-sm sm:text-base tracking-tight">{storeName}</span>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getTierColor()}`}>
-                {tierName}
-              </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">Painel de Gestão da Concessionária</p>
           </div>
@@ -52,18 +41,6 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Notificações (Apenas Tier 2 e 3) */}
-        {tier >= 2 && (
-          <button
-            type="button"
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 relative transition-colors"
-            title="Avisos e Notificações"
-            aria-label="Notificações"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-          </button>
-        )}
 
         {/* Perfil do Usuário com Seletor Rápido de Teste RBAC */}
         <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-1">
@@ -71,11 +48,11 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Auto-Dealershi
             <span className="text-xs font-semibold text-slate-200">{user?.name || 'Lojista'}</span>
             <span className="text-[10px] text-slate-400 capitalize">{getRoleLabel(user?.role)}</span>
           </div>
-          {isDemoMode && <select aria-label="Perfil da demonstracao"
+          {isDemoMode && <select aria-label="Perfil de acesso"
             value={user?.role || 'atendente'}
             onChange={(e) => switchRole && switchRole(e.target.value)}
             className="bg-slate-800 text-slate-200 text-[11px] font-semibold py-1 px-1.5 rounded-lg border border-slate-600 focus:outline-none cursor-pointer"
-            title="Alternar Perfil para Teste de Permissões (RBAC)"
+            title="Alternar perfil de acesso"
           >
             <option value="proprietario">👑 Proprietário</option>
             <option value="gerente">👔 Gerente</option>

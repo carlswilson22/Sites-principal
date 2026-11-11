@@ -1,3 +1,4 @@
+import { merchantPermissions, canAccessMerchantRoute } from '../../utils/merchantAccess';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTier } from '../../context/TierContext';
@@ -18,25 +19,14 @@ import { MarketPricingView } from '../../pages/MarketPricingView';
 import { SalesFunnelView } from '../../pages/SalesFunnelView';
 import { StoryStudioView } from '../../pages/StoryStudioView';
 import { AuditLgpdView } from '../../pages/AuditLgpdView';
+import { AnalyticsView } from '../../pages/AnalyticsView';
+import { FinancingView } from '../../pages/FinancingView';
 
-export const merchantRoutes = {
-  dashboard: { component: DashboardView, tier: 1 },
-  inventory: { component: InventoryView, tier: 1 },
-  leads: { component: LeadsView, tier: 1 },
-  clients: { component: ClientsView, tier: 2 },
-  financing: { tier: 2, roles: ['gerente'] },
-  fipe: { component: FipePricingView, tier: 2 },
-  contracts: { component: ContractsView, tier: 2, roles: ['gerente'] },
-  financial: { component: FinancialView, tier: 2, roles: [] },
-  analytics: { component: DashboardView, tier: 2, roles: ['gerente'] },
-  consignments: { component: ConsignmentsView, tier: 3, roles: ['gerente'] },
-  contracts_adv: { component: AdvancedContractsView, tier: 3, roles: ['gerente'] },
-  financial_full: { component: FullFinancialView, tier: 3, roles: [] },
-  market_pricing: { component: MarketPricingView, tier: 3 },
-  funnel: { component: SalesFunnelView, tier: 3, roles: ['gerente'] },
-  stories: { component: StoryStudioView, tier: 3 },
-  audit_lgpd: { component: AuditLgpdView, tier: 3, roles: [] },
-};
+const merchantViews = { dashboard: DashboardView, inventory: InventoryView, leads: LeadsView, clients: ClientsView,
+  financing: FinancingView, fipe: FipePricingView, contracts: ContractsView, financial: FinancialView, analytics: AnalyticsView,
+  consignments: ConsignmentsView, contracts_adv: AdvancedContractsView, financial_full: FullFinancialView,
+  market_pricing: MarketPricingView, funnel: SalesFunnelView, stories: StoryStudioView, audit_lgpd: AuditLgpdView };
+export const merchantRoutes = Object.fromEntries(Object.entries(merchantViews).map(([id, component]) => [id, { component, ...merchantPermissions[id] }]));
 
 class PanelErrorBoundary extends React.Component {
   state = { error: false };
@@ -50,8 +40,8 @@ class PanelErrorBoundary extends React.Component {
   }
 }
 
-export function MerchantPanel({ storeKey, dealership, defaultVehicles, FinancingComponent, onExitToSite }) {
-  const { isAuthenticated, loading, hasRole } = useAuth();
+export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToSite }) {
+  const { isAuthenticated, loading, role } = useAuth();
   const { tier } = useTier();
   const [tab, setTab] = useState('dashboard');
   const [client, setClient] = useState(null);
@@ -60,11 +50,10 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, Financing
     if (detail.type === 'VEHICLES_UPDATED') setVehicles(detail.vehicles);
   }), [storeKey]);
   if (loading) return <p role="status" className="p-8 text-white bg-slate-950 min-h-screen">Carregando acesso ao painel…</p>;
-  if (!isAuthenticated) return <LoginView onLoginSuccess={() => setTab('dashboard')} onCancel={onExitToSite} />;
-  const route = merchantRoutes[tab];
-  const allowed = route && tier >= route.tier && (!route.roles || hasRole(route.roles));
+  if (!isAuthenticated) return <LoginView storeName={dealership.nome} onLoginSuccess={() => setTab('dashboard')} onCancel={onExitToSite} />;
+  const allowed = canAccessMerchantRoute(tab, tier, role);
   const active = allowed ? tab : 'dashboard';
-  const View = active === 'financing' ? FinancingComponent : merchantRoutes[active].component;
+  const View = merchantRoutes[active].component;
   return <MerchantShell storeName={dealership.nome} activeTab={active} onSelectTab={setTab} onExitToSite={onExitToSite}>
     <PanelErrorBoundary key={`${active}-${storeKey}`} onRecover={() => setTab('dashboard')}>
       {View ? <View storeKey={storeKey} defaultVehicles={defaultVehicles} vehicles={vehicles}

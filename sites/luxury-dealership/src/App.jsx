@@ -1,5 +1,7 @@
+import { StoreConciergePage } from '../../../packages/merchant-core/src/pages/StoreConciergePage';
+import { StoreVisitPage } from '../../../packages/merchant-core/src/pages/StoreVisitPage';
+import { useSiteAnalytics } from '../../../packages/merchant-core/src/hooks/useSiteAnalytics';
 import React, { useState } from 'react';
-import { MessageCircle } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
@@ -7,15 +9,14 @@ import { InventoryPage } from './pages/InventoryPage';
 import { FeaturedPage } from './pages/FeaturedPage';
 import { FinancingPage } from './pages/FinancingPage';
 import { TradeInPage } from './pages/TradeInPage';
-import { ConciergePage } from './pages/ConciergePage';
 import { AboutContactPage } from './pages/AboutContactPage';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { dealershipInfo } from './data/dealershipInfo';
-import { buildGeneralWhatsappLink } from './utils/whatsapp';
 import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchant-core/src';
 import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
+import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
 
 export default function App() {
@@ -44,19 +45,16 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenFinancingFromModal = (vehicle) => {
-    setSelectedVehicleForModal(null);
-    navigateTo('simulador', { vehicle });
-  };
 
-  const floatingWhatsappUrl = buildGeneralWhatsappLink();
+
+  useSiteAnalytics('drivenow', currentPage, selectedVehicleForModal);
 
   // Renderização Dedicada da Área Restrita do Lojista (Tier 2 Pro)
   if (currentPage === 'painel-lojista') {
     return (
       <AuthProvider>
         <TierProvider tier={2}>
-          <MerchantPanel storeKey="drivenow" dealership={dealershipInfo} defaultVehicles={vehiclesData} FinancingComponent={FinancingPage} onExitToSite={() => navigateTo('home')} />
+          <MerchantPanel storeKey="drivenow" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
         </TierProvider>
       </AuthProvider>
     );
@@ -64,7 +62,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#050508] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black relative">
-      {/* Barra de Navegação no Topo (7 Abas) */}
+      {/* Navegacao principal e atendimento da loja */}
       <Navbar currentPage={currentPage} onNavigate={navigateTo} />
 
       {/* Conteúdo Dinâmico da Página Ativa */}
@@ -92,6 +90,8 @@ export default function App() {
           />
         )}
 
+        {currentPage === 'servicos' && <StoreServicesPage premium onNavigate={navigateTo} />}
+
         {currentPage === 'simulador' && (
           <FinancingPage
             vehicles={publishedVehicles}
@@ -103,13 +103,11 @@ export default function App() {
           <TradeInPage vehicles={publishedVehicles} />
         )}
 
-        {currentPage === 'concierge' && (
-          <ConciergePage />
-        )}
-
         {currentPage === 'sobre-contato' && (
           <AboutContactPage />
         )}
+        {currentPage === 'concierge' && <StoreConciergePage dealership={dealershipInfo} storeKey="drivenow" vehicles={publishedVehicles} onSelectVehicle={setSelectedVehicleForModal} onNavigate={navigateTo} title="Concierge VIP" />}
+        {currentPage === 'visitas' && <StoreVisitPage dealership={dealershipInfo} storeKey="drivenow" onNavigate={navigateTo} />}
       </main>
 
       {/* Rodapé com Links entre Páginas */}
@@ -120,25 +118,9 @@ export default function App() {
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
-          onOpenFinancing={handleOpenFinancingFromModal}
         />
       )}
 
-      {/* Botão Flutuante de Concierge WhatsApp VIP */}
-      <a
-        href={floatingWhatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold shadow-xl shadow-amber-950/80 hover:shadow-amber-500/30 border border-amber-300/50 transition-all duration-300 hover:scale-105 group"
-        title="Falar com o Concierge VIP"
-      >
-        <div className="relative">
-          <MessageCircle className="w-5 h-5 fill-black" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-200"></span>
-        </div>
-        <span className="text-xs font-black uppercase tracking-wider hidden sm:inline">Concierge VIP</span>
-      </a>
     </div>
   );
 }

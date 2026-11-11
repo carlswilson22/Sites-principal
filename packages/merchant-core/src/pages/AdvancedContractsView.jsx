@@ -78,9 +78,6 @@ export function AdvancedContractsView() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-100">Contratos Avançados & Aditivos</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              Tier 3 Enterprise
-            </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Geração de instrumentos formais de consignação, compra e venda com troca, e termos aditivos numerados.

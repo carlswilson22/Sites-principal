@@ -1,5 +1,7 @@
+import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 import { VehicleImage } from '../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState } from 'react';
+import { WhyUsSection } from '../components/home/WhyUsSection';
 import { 
   Building2, ShieldCheck, Award, MapPin, Phone, Mail, Clock, 
   MessageCircle, Send, CheckCircle2, Users, Wrench 
@@ -49,7 +51,7 @@ export function AboutContactPage() {
     }
 
     const text = 
-      `📩 *Nova Mensagem via Site - Auto-Dealership Essential*\n\n` +
+      `📩 *Nova Mensagem via Site - ${dealershipInfo.nome}*\n\n` +
       `• *Nome:* ${contactForm.nome}\n` +
       `• *Telefone:* ${contactForm.telefone}\n` +
       `• *E-mail:* ${contactForm.email}\n` +
@@ -57,6 +59,7 @@ export function AboutContactPage() {
       `• *Mensagem:* ${contactForm.mensagem}`;
 
     const url = `https://wa.me/${dealershipInfo.whatsapp}?text=${encodeURIComponent(text)}`;
+    siteAnalytics.track('autoelite', { type: 'whatsapp_click', page: 'sobre-contato' });
     window.open(url, '_blank', 'noopener,noreferrer');
     setMessageSent(true);
     setTimeout(() => setMessageSent(false), 5000);
@@ -340,6 +343,7 @@ export function AboutContactPage() {
           </div>
         </div>
       </section>
+      <WhyUsSection />
     </div>
   );
 }

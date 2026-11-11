@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { normalizeVehicle, isPublishedVehicle } from '../src/utils/vehicles.js';
 import { resolveAssetUrl } from '../src/utils/assets.js';
 
@@ -20,6 +21,10 @@ test('todos os veículos iniciais funcionam no painel e suas fotos locais existe
       const vehicle = normalizeVehicle(raw);
       assert.doesNotThrow(() => [vehicle.title, vehicle.version, vehicle.color].map(value => value.toLowerCase()));
       assert.equal(vehicle.title, vehicle.nome);
+      assert(vehicle.imagens.length >= 2, `${site}: galeria incompleta de ${vehicle.nome}`);
+      assert(vehicle.imagens.every(image => image.startsWith('/images/')), `${site}: foto inicial depende de link externo`);
+      const hashes = vehicle.imagens.map(image => createHash('sha256').update(readFileSync(new URL(`../../../sites/${site}/public${image}`, import.meta.url))).digest('hex'));
+      assert.equal(new Set(hashes).size, vehicle.imagens.length, `${site}: fotos repetidas de ${vehicle.nome}`);
       const edited = normalizeVehicle({ ...vehicle, title: 'Editado no painel', price: 45000, photos: ['/images/placeholder-carro.jpg'], cover_photo: '/images/placeholder-carro.jpg' });
       assert.equal(edited.nome, 'Editado no painel');
       assert.equal(edited.preco, 45000);

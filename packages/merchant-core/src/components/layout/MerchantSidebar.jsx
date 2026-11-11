@@ -1,3 +1,4 @@
+import { canAccessMerchantRoute } from '../../utils/merchantAccess';
 /**
  * packages/merchant-core/src/components/layout/MerchantSidebar.jsx
  * Menu lateral de navegação com filtragem estrita de Nível Cumulativo (Tier Gate) e Perfil (RBAC).
@@ -21,9 +22,9 @@ import {
 import { useTier } from '../../context/TierContext';
 import { useAuth } from '../../context/AuthContext';
 
-export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
+export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, storeName }) {
   const { tier } = useTier();
-  const { hasRole } = useAuth();
+  const { role } = useAuth();
 
   // Definição dos itens de menu com restrição de tier mínimo e papéis permitidos
   const menuSections = [
@@ -34,125 +35,93 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
           id: 'dashboard',
           label: 'Início & Indicadores',
           icon: LayoutDashboard,
-          minTier: 1,
-          roles: ['proprietario', 'gerente', 'atendente']
         },
         {
           id: 'inventory',
           label: 'Estoque de Veículos',
           icon: Car,
-          minTier: 1,
-          roles: ['proprietario', 'gerente', 'atendente']
+        },
+        {
+          id: 'financing',
+          label: 'Simulador de financiamento',
+          icon: Calculator,
         },
         {
           id: 'leads',
           label: 'Contatos & WhatsApp',
           icon: MessageSquare,
-          minTier: 1,
-          roles: ['proprietario', 'gerente', 'atendente']
         }
       ]
     },
     {
-      title: 'Gestão & Negócios (Tier 2+)',
+      title: 'Gestão',
       minTier: 2,
       items: [
         {
           id: 'clients',
           label: 'Clientes (CRM)',
           icon: Users,
-          minTier: 2,
-          roles: ['proprietario', 'gerente', 'atendente']
-        },
-        {
-          id: 'financing',
-          label: 'Simulador Financiamento',
-          icon: Calculator,
-          minTier: 2,
-          roles: ['proprietario', 'gerente']
         },
         {
           id: 'fipe',
           label: 'Precificador FIPE',
           icon: Tag,
-          minTier: 2,
-          roles: ['proprietario', 'gerente', 'atendente']
         },
         {
           id: 'contracts',
           label: 'Contratos & Termos',
           icon: FileText,
-          minTier: 2,
-          roles: ['proprietario', 'gerente']
         },
         {
           id: 'financial',
           label: 'Financeiro & Margens',
           icon: DollarSign,
-          minTier: 2,
-          roles: ['proprietario'] // Visível apenas para o proprietário (I8)
         },
         {
           id: 'analytics',
           label: 'Métricas do Site',
           icon: TrendingUp,
-          minTier: 2,
-          roles: ['proprietario', 'gerente']
         }
       ]
     },
     {
-      title: 'Inteligência & Expansão (Tier 3)',
+      title: 'Ferramentas',
       minTier: 3,
       items: [
         {
           id: 'consignments',
           label: 'Consignação Completa',
           icon: FileText,
-          minTier: 3,
-          roles: ['proprietario', 'gerente']
         },
         {
           id: 'contracts_adv',
           label: 'Contratos Avançados & Troca',
           icon: FileText,
-          minTier: 3,
-          roles: ['proprietario', 'gerente']
         },
         {
           id: 'financial_full',
           label: 'DRE & Comissões Vendedores',
           icon: DollarSign,
-          minTier: 3,
-          roles: ['proprietario']
         },
         {
           id: 'market_pricing',
           label: 'Precificador Mercado & Leilão',
           icon: Tag,
-          minTier: 3,
-          roles: ['proprietario', 'gerente', 'atendente']
         },
         {
           id: 'funnel',
           label: 'Funil de Vendas & Giro',
           icon: TrendingUp,
-          minTier: 3,
-          roles: ['proprietario', 'gerente']
         },
         {
           id: 'stories',
           label: 'Estúdio de Stories 1080p',
           icon: Sparkles,
-          minTier: 3,
-          roles: ['proprietario', 'gerente', 'atendente']
         },
         {
           id: 'audit_lgpd',
           label: 'Auditoria & LGPD',
           icon: ShieldAlert,
-          minTier: 3,
-          roles: ['proprietario']
         }
       ]
     }
@@ -194,16 +163,13 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
 
             // Filtra os itens da seção por tier e por role
             const visibleItems = section.items.filter(
-              item => tier >= item.minTier && hasRole(item.roles)
+              item => canAccessMerchantRoute(item.id, tier, role)
             );
 
             if (visibleItems.length === 0) return null;
 
             return (
               <div key={idx} className="space-y-1">
-                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-                  {section.title}
-                </p>
                 {visibleItems.map(item => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -234,7 +200,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose }) {
 
         {/* Rodapé do Menu com versão e tier */}
         <div className="p-4 border-t border-slate-800/60 text-[11px] text-slate-500 text-center">
-          Auto-Dealership OS v1.0 • Tier {tier}
+          {storeName} · Painel do lojista
         </div>
       </aside>
     </>

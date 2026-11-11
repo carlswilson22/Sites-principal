@@ -9,10 +9,9 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'home', label: 'Início' },
     { id: 'estoque', label: 'Estoque' },
     { id: 'destaques', label: 'Destaques' },
-    { id: 'simulador', label: 'Financiamento' },
-    { id: 'troca', label: 'Avaliação de Troca' },
-    { id: 'concierge', label: 'Concierge' },
-    { id: 'sobre-contato', label: 'Contato' }
+    { id: 'servicos', label: 'Serviços' },
+    { id: 'visitas', label: 'Visitas e showroom' }
   ];
-  return <SiteHeader currentPage={currentPage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} whatsappUrl={buildGeneralWhatsappLink()} Logo={AutomatchLogo} />;
+  const activePage = ['simulador', 'troca'].includes(currentPage) ? 'servicos' : currentPage;
+  return <SiteHeader currentPage={activePage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} whatsappUrl={buildGeneralWhatsappLink()} Logo={AutomatchLogo} />;
 }

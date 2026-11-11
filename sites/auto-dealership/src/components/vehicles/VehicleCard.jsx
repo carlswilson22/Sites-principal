@@ -1,5 +1,8 @@
+import { VehicleCardFacts } from '../../../../../packages/merchant-core/src/components/common/VehicleCardFacts';
+import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
+import { dealershipInfo } from '../../data/dealershipInfo';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Gauge, Fuel, Cog, MessageCircle, Eye, Sparkles } from 'lucide-react';
 import { InspectionBadge } from './InspectionBadge';
 import { Button } from '../ui/Button';
@@ -7,13 +10,14 @@ import { Badge } from '../ui/Badge';
 import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
-export function VehicleCard({ vehicle, onSelect }) {
+export function VehicleCard({ vehicle, onSelect, show360Badge = true }) {
   const [imgSrc, setImgSrc] = useState(vehicle.imagemPrincipal);
+  useEffect(() => setImgSrc(vehicle.imagemPrincipal), [vehicle.imagemPrincipal]);
 
   const whatsappUrl = buildVehicleWhatsappLink(vehicle);
 
   return (
-    <div className="group rounded-2xl bg-slate-900/70 border border-slate-800/80 hover:border-blue-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-950/20 flex flex-col overflow-hidden backdrop-blur-md">
+    <div data-vehicle-id={vehicle.id} className="group rounded-2xl bg-slate-900/70 border border-slate-800/80 hover:border-blue-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-950/20 flex flex-col overflow-hidden backdrop-blur-md">
       {/* Container de Imagem */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
         <VehicleImage
@@ -34,9 +38,9 @@ export function VehicleCard({ vehicle, onSelect }) {
 
         {/* Badge de Categoria ou Destaque */}
         <div className="absolute top-3 right-3 z-10 flex gap-1.5 items-center">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-600 text-white shadow-sm backdrop-blur-md">
+          {show360Badge && hasVehicle360(dealershipInfo) && vehicle.imagens360?.length > 0 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-600 text-white shadow-sm backdrop-blur-md">
             360°
-          </span>
+          </span>}
           {vehicle.destaque && (
             <Badge variant="amber" size="xs" icon={Sparkles}>
               Destaque
@@ -71,17 +75,7 @@ export function VehicleCard({ vehicle, onSelect }) {
             </p>
           </div>
 
-          {/* Grid de Specs Rápidas */}
-          <div className="grid grid-cols-2 gap-2 mb-4 p-2.5 rounded-xl bg-slate-950/50 border border-slate-800/60 text-xs text-slate-300">
-            <div className="flex items-center gap-1.5 truncate">
-              <Cog className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              <span className="truncate">{vehicle.cambio}</span>
-            </div>
-            <div className="flex items-center gap-1.5 truncate">
-              <Fuel className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              <span className="truncate">{vehicle.combustivel}</span>
-            </div>
-          </div>
+          <VehicleCardFacts vehicle={vehicle} />
         </div>
 
         {/* Bloco de Preços & Ações */}
@@ -117,7 +111,7 @@ export function VehicleCard({ vehicle, onSelect }) {
               onClick={() => onSelect(vehicle)}
               className="w-full"
             >
-              Ficha & Laudo
+              Visualizar anúncio
             </Button>
             <Button
               variant="whatsapp"

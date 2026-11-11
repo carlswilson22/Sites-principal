@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Download, Share2, Instagram, Image as ImageIcon, AlertTriangle, CheckCircle2, Sliders, Smartphone, ExternalLink } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
 
-export function StoryStudioView() {
+export function StoryStudioView({ dealership = {} }) {
   const [selectedVehicle, setSelectedVehicle] = useState({
     id: 1,
     title: 'Porsche 911 Carrera S',
@@ -48,7 +48,7 @@ export function StoryStudioView() {
       const res = await apiClient.publishInstagramStory({
         vehicle_id: selectedVehicle.id,
         imageUrl: selectedPhotos[0],
-        caption: `${selectedVehicle.title} disponível na Apex Luxury.`
+        caption: `${selectedVehicle.title} disponível na ${dealership.nome || 'loja'}.`
       });
       setPublishFeedback(res);
     } finally {
@@ -64,11 +64,11 @@ export function StoryStudioView() {
     if (navigator.share) {
       navigator.share({
         title: selectedVehicle.title,
-        text: `Confira este ${selectedVehicle.title} na Apex Luxury!`,
+        text: `Confira este ${selectedVehicle.title} na ${dealership.nome || 'loja'}!`,
         url: window.location.href
       }).catch(() => {});
     } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(`Confira ${selectedVehicle.title} na Apex Luxury!`)}`, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(`Confira ${selectedVehicle.title} na ${dealership.nome || 'loja'}!`)}`, '_blank');
     }
   };
 
@@ -81,9 +81,6 @@ export function StoryStudioView() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-100">Estúdio de Stories 1080p & Instagram</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              Tier 3 Enterprise
-            </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Geração de criativos verticais em alta definição (1080x1920) e publicação oficial via Instagram Graph API.
@@ -165,7 +162,7 @@ export function StoryStudioView() {
             
             <div className="grid grid-cols-3 gap-3">
               {[
-                { id: 'apex_minimal', name: 'Apex Luxury Clean', desc: 'Serifada elegante e minimalista' },
+                { id: 'apex_minimal', name: 'Visual minimalista', desc: 'Serifada elegante e minimalista' },
                 { id: 'bold_impact', name: 'Dark Bold Impact', desc: 'Contraste grafite e esmeralda' },
                 { id: 'showcase_trio', name: 'Editorial 3 Fotos', desc: 'Grade tripla frontal, interna e lateral' }
               ].map(t => (

@@ -1,3 +1,6 @@
+import { VehicleCardFacts } from '../../../../../packages/merchant-core/src/components/common/VehicleCardFacts';
+import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
+import { dealershipInfo } from '../../data/dealershipInfo';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
 import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, MessageCircle } from 'lucide-react';
@@ -8,7 +11,7 @@ export function VehicleCard({ vehicle, onSelect }) {
   const whatsappUrl = buildVehicleWhatsappLink(vehicle);
 
   return (
-    <div className="group rounded-3xl bg-[#0c0d14]/90 border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-950/20">
+    <div data-vehicle-id={vehicle.id} className="group rounded-3xl bg-[#0c0d14]/90 border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-950/20">
       {/* Imagem com Overlay */}
       <div className="relative aspect-[16/10] overflow-hidden bg-black cursor-pointer" onClick={() => onSelect(vehicle)}>
         <VehicleImage
@@ -33,10 +36,10 @@ export function VehicleCard({ vehicle, onSelect }) {
                 Nível III-A
               </span>
             )}
-            <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-black/70 backdrop-blur-md text-slate-300 border border-white/10 flex items-center gap-1" title="Disponível em 360°">
+            {hasVehicle360(dealershipInfo) && vehicle.imagens360?.length > 0 && <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-black/70 backdrop-blur-md text-slate-300 border border-white/10 flex items-center gap-1" title="Disponível em 360°">
               <RotateCw className="w-3 h-3 text-amber-400" />
               360°
-            </span>
+            </span>}
           </div>
         </div>
 
@@ -64,17 +67,7 @@ export function VehicleCard({ vehicle, onSelect }) {
           </h3>
           <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{vehicle.versao}</p>
 
-          {/* Specs Técnicas Rápidas */}
-          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/5 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>{vehicle.potencia}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <KeyRound className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="truncate">{vehicle.aceleracao || vehicle.cambio}</span>
-            </div>
-          </div>
+          <VehicleCardFacts vehicle={vehicle} />
         </div>
 
         {/* Preço e Botões */}
@@ -91,7 +84,7 @@ export function VehicleCard({ vehicle, onSelect }) {
               onClick={() => onSelect(vehicle)}
               className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 hover:border-amber-500/40"
             >
-              <span>Ver 360° & Laudo</span>
+              <span>Visualizar anúncio</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
             </button>
 
@@ -102,7 +95,7 @@ export function VehicleCard({ vehicle, onSelect }) {
               className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5"
             >
               <MessageCircle className="w-3.5 h-3.5 fill-black" />
-              <span>Atendimento VIP</span>
+              <span>Equipe no WhatsApp</span>
             </a>
           </div>
         </div>

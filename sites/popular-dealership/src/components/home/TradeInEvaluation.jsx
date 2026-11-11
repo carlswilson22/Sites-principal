@@ -1,3 +1,4 @@
+import { siteAnalytics } from '../../../../../packages/merchant-core/src/services/siteAnalytics.js';
 ﻿import React, { useState } from 'react';
 import { ArrowLeftRight, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -28,6 +29,7 @@ export function TradeInEvaluation({ vehicles = [] }) {
       `• *Observações:* ${formData.observacoes || 'Nenhuma'}\n\n` +
       `Gostaria de uma pré-avaliação para troca com troco!`;
     const url = `https://wa.me/${dealershipInfo.whatsapp}?text=${encodeURIComponent(text)}`;
+    siteAnalytics.track('apexluxury', { type: 'whatsapp_click', page: 'troca' });
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

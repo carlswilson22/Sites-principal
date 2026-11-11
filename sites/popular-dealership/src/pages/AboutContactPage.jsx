@@ -1,9 +1,11 @@
+import { siteAnalytics } from '../../../../packages/merchant-core/src/services/siteAnalytics.js';
 ﻿import React, { useState } from 'react';
 import { 
   Building2, ShieldCheck, Award, MapPin, Phone, Mail, Clock, 
   MessageCircle, Send, CheckCircle2, Zap 
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { WhyUsSection } from '../components/home/WhyUsSection';
 import { dealershipInfo } from '../data/dealershipInfo';
 import { buildGeneralWhatsappLink } from '../utils/whatsapp';
 
@@ -34,6 +36,7 @@ export function AboutContactPage() {
       `• *Mensagem:* ${contactForm.mensagem}`;
 
     const url = `https://wa.me/${dealershipInfo.whatsapp}?text=${encodeURIComponent(text)}`;
+    siteAnalytics.track('apexluxury', { type: 'whatsapp_click', page: 'sobre-contato' });
     window.open(url, '_blank', 'noopener,noreferrer');
     setMessageSent(true);
     setTimeout(() => setMessageSent(false), 5000);
@@ -203,6 +206,7 @@ export function AboutContactPage() {
           </div>
         </div>
       </section>
+      <WhyUsSection />
     </div>
   );
 }

@@ -1,6 +1,8 @@
+import { StoreConciergePage } from '../../../packages/merchant-core/src/pages/StoreConciergePage';
+import { StoreVisitPage } from '../../../packages/merchant-core/src/pages/StoreVisitPage';
+import { useSiteAnalytics } from '../../../packages/merchant-core/src/hooks/useSiteAnalytics';
 import { dealershipInfo } from './data/dealershipInfo';
 import React, { useState } from 'react';
-import { MessageCircle, Bot } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { ComparisonFloatingBar } from './components/layout/ComparisonFloatingBar';
@@ -19,10 +21,10 @@ import { PriceAlertModal } from './components/vehicles/PriceAlertModal';
 import { vehiclesData } from './data/vehicles';
 import { useFavorites } from './hooks/useFavorites';
 import { useComparator } from './hooks/useComparator';
-import { buildGeneralWhatsappLink } from './utils/whatsapp';
 import { AuthProvider, TierProvider, storeSync } from '../../../packages/merchant-core/src';
 import { MerchantPanel } from '../../../packages/merchant-core/src/components/layout/MerchantPanel';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
+import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
 
 export default function App() {
@@ -31,6 +33,7 @@ export default function App() {
   const publishedVehicles = vehicles.filter(isPublishedVehicle);
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
+  const [adFinancingOpen, setAdFinancingOpen] = useState(false);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
   const [dossierVehicle, setDossierVehicle] = useState(null);
   const [priceAlertVehicle, setPriceAlertVehicle] = useState(null);
@@ -62,19 +65,20 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenFinancingFromModal = (vehicle) => {
-    setSelectedVehicleForModal(null);
-    navigateTo('simulador', { vehicle });
+  const handleOpenFinancingFromModal = vehicle => {
+    setAdFinancingOpen(true);
+    setSelectedVehicleForModal(vehicle);
   };
+  const openVehicle = vehicle => { setAdFinancingOpen(false); setSelectedVehicleForModal(vehicle); };
 
-  const floatingWhatsappUrl = buildGeneralWhatsappLink();
+  useSiteAnalytics('apexluxury', currentPage, selectedVehicleForModal);
 
   // Renderização Dedicada da Área Restrita do Lojista (Tier 3 Enterprise)
   if (currentPage === 'painel-lojista') {
     return (
       <AuthProvider>
         <TierProvider tier={3}>
-          <MerchantPanel storeKey="apexluxury" dealership={dealershipInfo} defaultVehicles={vehiclesData} FinancingComponent={FinancingPage} onExitToSite={() => navigateTo('home')} />
+          <MerchantPanel storeKey="apexluxury" dealership={dealershipInfo} defaultVehicles={vehiclesData} onExitToSite={() => navigateTo('home')} />
         </TierProvider>
       </AuthProvider>
     );
@@ -82,7 +86,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black relative">
-      {/* Barra de Navegação no Topo (9 Abas + Badges de Favoritos e Comparação) */}
+      {/* Navegacao principal e atendimento da loja */}
       <Navbar 
         currentPage={currentPage} 
         onNavigate={navigateTo} 
@@ -96,7 +100,7 @@ export default function App() {
           <HomePage
             vehicles={publishedVehicles}
             onNavigate={navigateTo}
-            onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            onSelectVehicle={openVehicle}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
@@ -108,7 +112,7 @@ export default function App() {
         {currentPage === 'estoque' && (
           <InventoryPage
             vehicles={publishedVehicles}
-            onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            onSelectVehicle={openVehicle}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
@@ -121,7 +125,7 @@ export default function App() {
           <FeaturedPage
             vehicles={publishedVehicles}
             onNavigate={navigateTo}
-            onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            onSelectVehicle={openVehicle}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
@@ -133,9 +137,11 @@ export default function App() {
         {currentPage === 'consultor-ia' && (
           <AIConsultantPage
             vehicles={publishedVehicles}
-            onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            onSelectVehicle={openVehicle}
           />
         )}
+
+        {currentPage === 'servicos' && <StoreServicesPage onNavigate={navigateTo} favoritesCount={favoriteVehicles.length} comparedCount={comparedVehicles.length} />}
 
         {currentPage === 'simulador' && (
           <FinancingPage
@@ -161,7 +167,7 @@ export default function App() {
           <FavoritesPage
             favoriteVehicles={favoriteVehicles}
             onNavigate={navigateTo}
-            onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            onSelectVehicle={openVehicle}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             isComparing={isComparing}
@@ -173,13 +179,15 @@ export default function App() {
         {currentPage === 'sobre-contato' && (
           <AboutContactPage />
         )}
+        {currentPage === 'concierge' && <StoreConciergePage dealership={dealershipInfo} storeKey="apexluxury" vehicles={publishedVehicles} onSelectVehicle={openVehicle} onNavigate={navigateTo} title="Atendimento no site" />}
+        {currentPage === 'visitas' && <StoreVisitPage dealership={dealershipInfo} storeKey="apexluxury" onNavigate={navigateTo} />}
       </main>
 
       {/* Rodapé Completo */}
       <Footer onNavigate={navigateTo} />
 
       {/* Barra Flutuante de Comparação Ativa */}
-      {currentPage !== 'comparador' && (
+      {['estoque', 'destaques', 'favoritos'].includes(currentPage) && (
         <ComparisonFloatingBar
           comparedVehicles={comparedVehicles}
           onOpenComparator={() => navigateTo('comparador')}
@@ -192,7 +200,7 @@ export default function App() {
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
-          onOpenFinancing={handleOpenFinancingFromModal}
+          initialFinancing={adFinancingOpen}
           onOpenDossier={(v) => { setSelectedVehicleForModal(null); setDossierVehicle(v); }}
           onOpenPriceAlert={(v) => setPriceAlertVehicle(v)}
           isFavorite={isFavorite(selectedVehicleForModal.id)}
@@ -219,21 +227,6 @@ export default function App() {
         />
       )}
 
-      {/* Botão Flutuante de WhatsApp do Plantão */}
-      <a
-        href={floatingWhatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold shadow-xl shadow-emerald-950/80 hover:shadow-emerald-500/30 border border-emerald-300/50 transition-all duration-300 hover:scale-105 group"
-        title="Plantão de Vendas no WhatsApp"
-      >
-        <div className="relative">
-          <MessageCircle className="w-5 h-5 fill-black" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-200"></span>
-        </div>
-        <span className="text-xs font-black uppercase tracking-wider hidden sm:inline">Plantão Online</span>
-      </a>
     </div>
   );
 }

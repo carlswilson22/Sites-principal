@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { Shield, Award, Eye, Truck } from 'lucide-react';
+import { dealershipInfo } from '../../data/dealershipInfo';
 
 export function WhyUsSection() {
   const pillars = [
@@ -30,7 +31,7 @@ export function WhyUsSection() {
       <div className="text-center max-w-2xl mx-auto mb-12">
         <span className="text-xs uppercase tracking-widest text-amber-400 font-bold block mb-2">Padrão de Excelência</span>
         <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white">
-          Por Que Escolher a Apex Motors
+          Por que escolher a {dealershipInfo.nome}
         </h2>
         <p className="text-slate-400 text-sm mt-2">
           Mais do que comercializar veículos, proporcionamos segurança patrimonial, procedência absoluta e discrição para clientes exigentes.

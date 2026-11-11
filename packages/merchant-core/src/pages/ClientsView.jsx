@@ -76,9 +76,6 @@ export function ClientsView({ onOpenContractWithClient, storeKey = 'autoelite' }
               <Users className="w-6 h-6 text-amber-400" />
               Carteira de Clientes (CRM)
             </h1>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold">
-              Tier 2+ Pro
-            </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
             Cadastro salvo neste navegador por loja. Apenas a versão mascarada do CPF é armazenada.

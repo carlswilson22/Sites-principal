@@ -1,3 +1,4 @@
+import { siteAnalytics } from '../../../../../packages/merchant-core/src/services/siteAnalytics.js';
 ﻿import React, { useState } from 'react';
 import { X, Bell, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -15,6 +16,7 @@ export function PriceAlertModal({ vehicle, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = buildPriceAlertWhatsappLink({ vehicle, targetPrice, nome, telefone });
+    siteAnalytics.track('apexluxury', { type: 'whatsapp_click', page: 'alerta-preco', vehicleId: vehicle?.id });
     window.open(url, '_blank', 'noopener,noreferrer');
     setSent(true);
     setTimeout(() => {

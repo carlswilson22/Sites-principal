@@ -1,6 +1,11 @@
+import { VehicleAdServices } from '../../../../../packages/merchant-core/src/components/common/VehicleAdServices';
+import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
+import { dealershipInfo } from '../../data/dealershipInfo';
+import { VehiclePhotoCredit } from '../../../../../packages/merchant-core/src/components/common/VehiclePhotoCredit';
+import { getVehicleGallery, getVehicle360Images, galleryIndex } from '../../../../../packages/merchant-core/src/utils/vehicleGallery';
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, Shield, CheckCircle2, MessageCircle, Calendar, 
   Gauge, Zap, Fuel, Award, ChevronLeft, ChevronRight, RotateCw, Calculator, KeyRound 
@@ -11,10 +16,17 @@ import { Vehicle360Viewer } from './Vehicle360Viewer';
 import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
-export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
+export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false }) {
   const dialogRef = useDialog();
-  const images = vehicle?.imagens && vehicle.imagens.length > 0 ? vehicle.imagens : [vehicle?.imagemPrincipal || ''];
+  const servicesRef = useRef(null);
+  const images = getVehicleGallery(vehicle);
+  const orbitalImages = hasVehicle360(dealershipInfo) ? getVehicle360Images(vehicle) : [];
   const [currentIndex, setCurrentIndex] = useState(0);
+  const imageIndex = galleryIndex(currentIndex, images.length);
+
+  useEffect(() => {
+    setCurrentIndex(previous => galleryIndex(previous, images.length));
+  }, [images.length]);
   const [activeTab, setActiveTab] = useState('galeria'); // '360' | 'galeria' | 'laudo' | 'ficha'
 
   useEffect(() => {
@@ -26,7 +38,8 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
       if (e.key === 'ArrowRight' && activeTab === 'galeria') handleNextImage();
       if (e.key === 'ArrowLeft' && activeTab === 'galeria') handlePrevImage();
     };
@@ -37,18 +50,18 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
   if (!vehicle) return null;
 
   const handleNextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setCurrentIndex(previous => images.length ? (galleryIndex(previous, images.length) + 1) % images.length : 0);
   };
 
   const handlePrevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentIndex(previous => images.length ? (galleryIndex(previous, images.length) - 1 + images.length) % images.length : 0);
   };
 
   const whatsappUrl = buildVehicleWhatsappLink(vehicle);
-  const currentImage = images[currentIndex] || vehicle.imagemPrincipal;
+  const currentImage = images[imageIndex] || '/images/placeholder-carro.jpg';
 
   return (
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
+    <div data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-fade-in">
       <div 
         className="relative w-full max-w-4xl bg-[#090a10] border border-amber-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto"
         onClick={(e) => e.stopPropagation()}
@@ -57,7 +70,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
         <div className="flex items-center justify-between p-5 sm:px-8 border-b border-white/10 bg-black/60 sticky top-0 z-20 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <Badge variant="gold" size="sm">
-              Acervo Apex Exotics
+              {dealershipInfo.nome}
             </Badge>
             {vehicle.blindado && (
               <Badge variant="emerald" size="xs">Blindado Nível III-A</Badge>
@@ -104,8 +117,9 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
 
           {/* Abas Superiores de Mídia: 360° vs. Galeria Expandida */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <button
+            <div className="flex flex-wrap items-center gap-2">
+              {hasVehicle360(dealershipInfo) && (<button
+                data-feature="vehicle-360"
                 onClick={() => setActiveTab('360')}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   activeTab === '360'
@@ -115,7 +129,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
               >
                 <RotateCw className="w-4 h-4" />
                 <span>Experiência 360° Interativa</span>
-              </button>
+              </button>)}
 
               <button
                 onClick={() => setActiveTab('galeria')}
@@ -130,8 +144,8 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
             </div>
 
             {/* Visualizador 360° */}
-            {activeTab === '360' && (
-              <Vehicle360Viewer images={vehicle.imagens360} autoRotate={true} />
+            {hasVehicle360(dealershipInfo) && activeTab === '360' && (
+              <div>{orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-8 rounded-2xl bg-slate-950/60 border border-slate-700 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p>}</div>
             )}
 
             {/* Galeria Expandida com Miniaturas */}
@@ -140,7 +154,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
                 <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-black border border-white/10 group">
                   <VehicleImage
                     src={currentImage}
-                    alt={`${vehicle.nome} - Foto ${currentIndex + 1}`}
+                    alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
                     className="w-full h-full object-cover transition-all duration-300"
                   />
 
@@ -161,22 +175,26 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
                       >
                         <ChevronRight className="w-5 h-5" />
                       </button>
-
-                      <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/10 text-xs font-semibold text-white">
-                        Foto {currentIndex + 1} de {images.length}
-                      </div>
                     </>
                   )}
+                  <div role="status" aria-live="polite" className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/10 text-xs font-semibold text-white">
+                    {images.length ? `Foto ${imageIndex + 1} de ${images.length}` : 'Sem fotos cadastradas'}
+                  </div>
+
                 </div>
+
+                <VehiclePhotoCredit src={currentImage} />
 
                 {images.length > 1 && (
                   <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5">
                     {images.map((img, idx) => (
                       <button
-                        key={idx}
+                        key={img}
+                        aria-label={`Ver foto ${idx + 1} de ${images.length} de ${vehicle.nome}`}
+                        aria-pressed={imageIndex === idx}
                         onClick={() => setCurrentIndex(idx)}
                         className={`relative w-20 sm:w-24 h-14 sm:h-16 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
-                          currentIndex === idx 
+                          imageIndex === idx
                             ? 'border-amber-400 ring-2 ring-amber-400/30 scale-105 shadow-md shadow-amber-500/20' 
                             : 'border-white/10 opacity-60 hover:opacity-100'
                         }`}
@@ -283,6 +301,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
               </div>
             </div>
           </div>
+          <VehicleAdServices ref={servicesRef} key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="drivenow" initialFinancing={initialFinancing} />
         </div>
 
         {/* Rodapé Fixo do Modal com CTAs */}
@@ -291,25 +310,13 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
             <p className="text-xs text-slate-400">Atendimento privativo sob demanda</p>
             <p className="text-xs font-semibold text-amber-400 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-              Consultor Concierge VIP disponível
+              Equipe da loja no WhatsApp
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
-            {onOpenFinancing && (
-              <Button
-                variant="outline"
-                size="md"
-                icon={Calculator}
-                onClick={() => {
-                  onClose();
-                  onOpenFinancing(vehicle);
-                }}
-                className="flex-1 sm:flex-none"
-              >
-                Simular Financiamento
-              </Button>
-            )}
+
+            <Button variant="outline" size="md" icon={MessageCircle} onClick={() => servicesRef.current?.openChat()} className="flex-1 sm:flex-none">Tirar dúvidas</Button>
 
             <Button
               variant="gold"
@@ -320,7 +327,7 @@ export function VehicleDetailModal({ vehicle, onClose, onOpenFinancing }) {
               rel="noopener noreferrer"
               className="flex-1 sm:flex-none"
             >
-              Agendar Atendimento VIP
+              Tenho interesse
             </Button>
           </div>
         </div>
