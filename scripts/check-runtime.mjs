@@ -26,6 +26,7 @@ for (const [model, scenario] of scenarios) {
   const origin = scenario === 'lan-http' ? 'http://192.168.1.10' : 'https://carlswilson22.github.io';
   const dom = new JSDOM(html, { url: `${origin}/Sites-principal/${model}/`, runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
   const { window } = dom;
+  window.TextEncoder = TextEncoder;
   if (scenario === 'lan-http') Object.defineProperty(window, 'crypto', { value: undefined });
   const openedWindows = [];
   window.open = (...args) => { openedWindows.push(args); return null; };
@@ -74,6 +75,8 @@ for (const [model, scenario] of scenarios) {
     assert(predicate(), `Estado não encontrado: ${model} (${scenario})`);
   };
   const loginForm = () => document.querySelector('form[aria-label="Login da loja"]');
+  const registrationForm = () => document.querySelector('form[aria-label="Criar conta de cliente"]');
+  const favoriteShortcut = () => document.querySelector('button[aria-label="Ver carros favoritos"]');
   const setLoginFields = async (email, password) => {
     await wait(() => loginForm());
     const form = loginForm();
@@ -88,6 +91,19 @@ for (const [model, scenario] of scenarios) {
     await setLoginFields(email, password);
     const form = loginForm();
     form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    await wait(() => failure ? form.querySelector('[role="alert"]') : !document.querySelector('button[aria-label="Fechar login"]'));
+  };
+  const submitRegistration = async (values, failure = false) => {
+    await wait(() => registrationForm());
+    const form = registrationForm();
+    for (const [name, value] of Object.entries(values)) {
+      const input = form.elements.namedItem(name);
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, value);
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    }
+    await new Promise(resolve => setTimeout(resolve, 20));
+    form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    if (!failure) form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
     await wait(() => failure ? form.querySelector('[role="alert"]') : !document.querySelector('button[aria-label="Fechar login"]'));
   };
   const signInStaff = async role => {
@@ -123,11 +139,17 @@ for (const [model, scenario] of scenarios) {
     assert(document.querySelector('#root h1'), `Página em branco: ${model}`);
     assert(button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Primeira visita começou com acesso ao painel');
     if (model === 'popular-dealership') {
-      const explore = document.querySelector('a[href="#explorar-enterprise"]');
-      assert(explore && document.getElementById(explore.hash.slice(1)), 'Atalho da abertura não alcança a vitrine');
-      for (const label of ['Comparar escolhas', 'Meus favoritos']) assert.equal(buttons().filter(item => item.textContent.includes(label)).length, 1, `Atalho duplicado na inicial: ${label}`);
-      for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(buttons().find(item => item.textContent.includes(label)).textContent.endsWith('0'), 'Visitante recebeu escolhas pré-selecionadas');
-    }
+      assert(!document.querySelector('a[href="#explorar-enterprise"]'), 'Atalho de rolagem continua na abertura');
+      for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(!buttons().find(item => item.textContent.includes(label)), `Atalho não foi movido para o estoque: ${label}`);
+      assert(favoriteShortcut() && favoriteShortcut().dataset.favoritesCount === '0', 'Visitante não recebeu o atalho de favoritos vazio');
+      if (fullFlow) {
+        favoriteShortcut().click();
+        await wait(() => loginForm());
+        assert(document.querySelector('[data-store-layout]') && !document.querySelector('h1').textContent.includes('Meus Veículos Salvos'), 'Atalho abriu favoritos sem login');
+        window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
+        await wait(() => !loginForm());
+      }
+    } else assert(!favoriteShortcut(), 'Atalho de favoritos apareceu em modelo sem essa função');
     if (scenario === 'legacy-favorites') {
       assert.equal(window.localStorage.getItem('drivenow_favorites_v1'), '[1,"1",999,2]', 'Preferências antigas foram alteradas sem login');
     }
@@ -155,8 +177,8 @@ for (const [model, scenario] of scenarios) {
       document.querySelector('button[aria-label="Ocultar senha"]').click();
       await wait(() => loginForm().elements.namedItem('password').type === 'password');
       button('Criar conta').click();
-      await wait(() => document.querySelector('section[aria-label="Criar conta de cliente"]'));
-      assert(document.querySelector('section[aria-label="Criar conta de cliente"]').textContent.includes('estará disponível'), 'Cadastro promete criar uma conta real na demonstração');
+      await wait(() => registrationForm());
+      assert(registrationForm().elements.namedItem('name') && registrationForm().elements.namedItem('confirmPassword'), 'Formulário de cadastro incompleto');
       assert(!button('Experimentar conta de cliente'), 'Cadastro preservou o atalho da conta fictícia');
       assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Abrir o cadastro criou uma sessão');
       button('Fazer login').click();
@@ -281,9 +303,14 @@ for (const [model, scenario] of scenarios) {
       assert(results.length && results.every(item => item.textContent.includes('HB20')), 'Busca inicial não acompanha o estoque');
     }
     if (fullFlow && model === 'popular-dealership') {
+      button('Serviços').click();
+      await wait(() => document.querySelector('h1')?.textContent === 'Serviços da loja');
+      assert(!button('Favoritos') && !button('Comparar veículos'), 'Serviços preservou cópias dos atalhos do estoque');
+      button('Estoque').click();
+      await wait(() => buttons().find(item => item.textContent.includes('Comparar escolhas')));
       for (let index = 0; index < 2; index += 1) {
         document.querySelector('button[title="Salvar nos favoritos"]').click();
-        await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith(String(index + 1)));
+        await wait(() => favoriteShortcut().dataset.favoritesCount === String(index + 1));
       }
       buttons().find(item => item.textContent.includes('Meus favoritos')).click();
       await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
@@ -291,9 +318,10 @@ for (const [model, scenario] of scenarios) {
       assert(saved > 0, 'Atalho não abriu os veículos favoritos');
       document.querySelector('button[title="Remover dos favoritos"]').click();
       await wait(() => document.querySelectorAll('[data-vehicle-id]').length === saved - 1);
-      button('Início').click();
-      await wait(() => document.querySelector('[data-store-layout]'));
-      assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith(String(saved - 1)), 'Atalho da abertura não acompanha os favoritos');
+      button('Estoque').click();
+      await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')));
+      assert(favoriteShortcut().dataset.favoritesCount === String(saved - 1), 'Atalho do perfil não acompanha os favoritos');
+      assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith(String(saved - 1)), 'Atalho do estoque não acompanha os favoritos');
       const filters = document.querySelector('[aria-label="Filtros do estoque"]');
       const select = filters.querySelector('select');
       select.value = select.options[1].value;
@@ -321,24 +349,71 @@ for (const [model, scenario] of scenarios) {
       assert(buttons().find(item => item.textContent.includes('Comparar escolhas')).textContent.endsWith('3'), 'Limite de comparação foi ultrapassado');
       assert(document.querySelector('[role="status"]').textContent.includes('Você pode comparar até 3'), 'Comparação não explicou o limite');
       buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
-      await wait(() => !document.querySelector('[data-store-layout]'));
+      await wait(() => document.querySelector('h1')?.textContent.includes('Comparador de Veículos'));
     }
     if (fullFlow) {
       await signOut();
       if (model === 'popular-dealership') {
-        for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(buttons().find(item => item.textContent.includes(label)).textContent.endsWith('0'), 'Visitante recebeu as escolhas da conta anterior');
+        assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Visitante recebeu os favoritos da conta anterior');
         document.querySelector('button[title="Salvar nos favoritos"]').click();
         await wait(() => loginForm());
-        assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('0'), 'Favorito foi salvo sem login');
+        assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Favorito foi salvo sem login');
         button('Cadastre-se').click();
-        await wait(() => document.querySelector('section[aria-label="Criar conta de cliente"]'));
+        await wait(() => registrationForm());
         assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Abrir o cadastro iniciou uma sessão fictícia');
         button('Fazer login').click();
         await submitLogin('cliente@demo.invalid', 'Cliente@2026');
-        await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('2'));
+        await wait(() => favoriteShortcut().dataset.favoritesCount === '2');
         assert.equal(JSON.parse(window.localStorage.getItem('customer_favorites_apexluxury_cliente_customer-demo')).length, 2, 'Login não retomou o favorito solicitado na conta correta');
         await signOut();
       }
+      button('Início').click();
+      await wait(() => document.querySelector('[data-store-layout]'));
+      buttons().find(item => item.textContent.includes('Visualizar anúncio')).click();
+      await wait(() => document.querySelector('[role="dialog"]'));
+      const registrationAd = document.querySelector('[role="dialog"]');
+      button('Simular financiamento deste veículo').click();
+      await wait(() => loginForm());
+      button('Criar conta').click();
+      const newCustomer = { name: 'Cliente cadastrado', email: `cliente-${scenario}@example.test`, password: 'NovaSenha@2026', confirmPassword: 'NovaSenha@2026' };
+      await submitRegistration({ ...newCustomer, confirmPassword: 'OutraSenha@2026' }, true);
+      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Confirmação divergente criou sessão');
+      await submitRegistration(newCustomer);
+      await wait(() => document.querySelector('[data-financing-vehicle]'));
+      assert(registrationAd.isConnected && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Cadastro perdeu o anúncio ou liberou o painel');
+      assert.equal(document.querySelector('[data-financing-vehicle]').dataset.financingVehicle, registrationAd.dataset.vehicleId);
+      const registeredUser = JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user;
+      assert.equal(registeredUser.role, 'cliente');
+      const registeredAccounts = window.localStorage.getItem(`demo_customer_accounts_${storeKey}`);
+      assert.equal(JSON.parse(registeredAccounts).length, 1, 'Envio repetido duplicou a conta');
+      assert(!registeredAccounts.includes(newCustomer.password), 'Cadastro guardou senha aberta');
+      document.querySelector('button[title="Fechar (Esc)"]').click();
+      await wait(() => !document.querySelector('[role="dialog"]'));
+      if (model === 'popular-dealership') {
+        assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Nova conta herdou favoritos');
+        document.querySelector('button[title="Salvar nos favoritos"]').click();
+        await wait(() => favoriteShortcut().dataset.favoritesCount === '1');
+      }
+      await signOut();
+      if (model === 'popular-dealership') favoriteShortcut().click();
+      else button('Entrar').click();
+      await wait(() => loginForm());
+      button('Criar conta').click();
+      await submitRegistration(newCustomer, true);
+      assert(registrationForm().querySelector('[role="alert"]').textContent.includes('já possui'), 'Cadastro duplicado não foi explicado');
+      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null);
+      button('Fazer login').click();
+      await submitLogin(newCustomer.email, 'Senha incorreta', true);
+      await submitLogin(newCustomer.email, newCustomer.password);
+      assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.id, registeredUser.id, 'Login criou outra identidade');
+      assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente cadastrado recebeu painel');
+      if (model === 'popular-dealership') {
+        await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
+        assert.equal(JSON.parse(window.localStorage.getItem(`customer_favorites_${storeKey}_cliente_${registeredUser.id}`)).length, 1, 'Sair apagou o favorito da nova conta');
+        await wait(() => document.querySelectorAll('[data-vehicle-id]').length === 1 && favoriteShortcut().dataset.favoritesCount === '1');
+        assert.equal(favoriteShortcut().getAttribute('aria-current'), 'page');
+      }
+      await signOut();
       await signInStaff('atendente');
       assert(!button('Financeiro & Margens'), 'Atendente recebeu acesso financeiro');
       assert(!button('Contratos Avançados & Troca'), 'Atendente recebeu acesso a contratos avançados');

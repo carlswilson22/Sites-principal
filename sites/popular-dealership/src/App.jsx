@@ -157,7 +157,7 @@ function StoreApp() {
           />
         )}
 
-        {currentPage === 'servicos' && <StoreServicesPage onNavigate={navigateTo} favoritesCount={favoriteVehicles.length} comparedCount={comparedVehicles.length} />}
+        {currentPage === 'servicos' && <StoreServicesPage onNavigate={navigateTo} />}
 
         {currentPage === 'simulador' && isAuthenticated && (
           <FinancingPage

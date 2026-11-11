@@ -23,15 +23,23 @@ export function AuthProvider({ children, storeKey = 'default' }) {
     return () => { active = false; };
   }, [storeKey]);
 
+  const activate = account => {
+    if (isDemoMode) {
+      try { sessionStorage.setItem(demoSessionKey(storeKey), JSON.stringify({ storeKey, user: account, expiresAt: Date.now() + 4 * 60 * 60 * 1000 })); } catch {}
+    }
+    setUser(account);
+    return account;
+  };
   const login = async (email, password, { staffOnly = false } = {}) => {
-    const result = await apiClient.login(String(email).trim().toLowerCase(), password);
+    const result = await apiClient.login(String(email).trim().toLowerCase(), password, storeKey);
     if (!isStoreUser(result.user)) throw new Error('Este perfil não tem acesso ao site.');
     if (staffOnly && !isStaffUser(result.user)) throw new Error('O painel é exclusivo da equipe da loja.');
-    if (isDemoMode) {
-      try { sessionStorage.setItem(demoSessionKey(storeKey), JSON.stringify({ storeKey, user: result.user, expiresAt: Date.now() + 4 * 60 * 60 * 1000 })); } catch {}
-    }
-    setUser(result.user);
-    return result.user;
+    return activate(result.user);
+  };
+  const register = async details => {
+    const result = await apiClient.registerCustomer(details, storeKey);
+    if (result.user?.role !== 'cliente') throw new Error('O cadastro público é exclusivo de clientes.');
+    return activate(result.user);
   };
   const logout = async () => {
     await apiClient.logout();
@@ -39,7 +47,7 @@ export function AuthProvider({ children, storeKey = 'default' }) {
     setUser(null);
   };
   const hasRole = allowed => isStaffUser(user) && (user.role === 'proprietario' || allowed.includes(user.role));
-  return <AuthContext.Provider value={{ user, role: user?.role || 'visitante', isAuthenticated: !!user, isStaff: isStaffUser(user), hasRole, login, logout, loading, isDemoMode }}>
+  return <AuthContext.Provider value={{ user, role: user?.role || 'visitante', isAuthenticated: !!user, isStaff: isStaffUser(user), hasRole, login, register, logout, loading, isDemoMode }}>
     {children}
   </AuthContext.Provider>;
 }

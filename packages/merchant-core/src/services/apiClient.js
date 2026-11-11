@@ -1,4 +1,5 @@
 import { isDemoMode, createDemoAccount } from './demoConfig';
+import { loginDemoCustomer, registerDemoCustomer } from './demoCustomerAccounts.js';
 /**
  * packages/merchant-core/src/services/apiClient.js
  * Adaptador de dados híbrido:
@@ -39,8 +40,11 @@ export const apiClient = {
     };
   },
 
-  async login(email, password) {
-    if (isDemoMode) return { user: createDemoAccount(email, password) };
+  async login(email, password, storeKey = 'default') {
+    if (isDemoMode) {
+      try { return { user: createDemoAccount(email, password) }; }
+      catch { return { user: await loginDemoCustomer(storeKey, email, password) }; }
+    }
     const res = await fetch(API_BASE_URL + '/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }), credentials: 'include'
@@ -48,6 +52,10 @@ export const apiClient = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Falha ao autenticar.');
     return data;
+  },
+  async registerCustomer(details, storeKey) {
+    if (!isDemoMode) throw new Error('O cadastro precisa ser conectado ao servidor da loja.');
+    return { user: await registerDemoCustomer(storeKey, details) };
   },
   async getSession() {
     const res = await fetch(API_BASE_URL + '/auth/me', { credentials: 'include' });

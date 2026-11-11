@@ -1,3 +1,5 @@
+import { registeredDemoCustomer } from './demoCustomerAccounts.js';
+
 // Explicit build configuration: API failures never enable demonstration access.
 export const isDemoMode = import.meta.env?.VITE_MERCHANT_DEMO === 'true';
 export const demoRoles = ['proprietario', 'gerente', 'atendente'];
@@ -27,11 +29,12 @@ export function createDemoAccount(email, password) {
 
 export function demoSessionKey(storeKey) { return `store_access_${storeKey}`; }
 
-export function readDemoSession(raw, storeKey, now = Date.now()) {
+export function readDemoSession(raw, storeKey, now = Date.now(), storage = globalThis.localStorage) {
   try {
     const session = JSON.parse(raw);
     if (session?.storeKey !== storeKey || !Number.isFinite(session.expiresAt) || session.expiresAt <= now || session.user?.demo !== true) return null;
     const user = session.user;
+    if (user.role === 'cliente' && user.local === true) return registeredDemoCustomer(storeKey, user.id, user.email, storage);
     if (user.role === 'cliente' && user.email === 'cliente@demo.invalid' && user.id === 'customer-demo') return createDemoCustomer(user.email, 'Cliente@2026');
     if (isStaffUser(user) && user.email === `${user.role}@demo.invalid` && user.id === demoRoles.indexOf(user.role) + 1) return createDemoUser(user.email, 'Demonstracao@2026');
   } catch {}

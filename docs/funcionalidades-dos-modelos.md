@@ -24,7 +24,9 @@ Quantidade de telas no menu não equivale a quantidade de integrações prontas.
 - Login único de cliente ou funcionário, identificado pelas credenciais, com
   visual próprio de cada modelo. O painel só aparece para a equipe autenticada.
 - Demonstração com dados guardados no navegador e separados por loja. Não há
-  autenticação real hospedada, cadastro real de clientes ou envio de e-mails.
+  autenticação real hospedada ou envio de e-mails. O cadastro local de cliente
+  está habilitado, com nome, e-mail, senha e confirmação; após criar, é possível
+  sair e entrar novamente neste navegador. Senhas são salvas como hash scrypt.
 
 ## Modelo 1 — AutoElite Seminovos
 
@@ -94,13 +96,16 @@ Inclui os cinco módulos do AutoElite e acrescenta:
 
 ### Experiência do visitante e cliente
 
-- Vídeo panorâmico, identidade ciano, faixa horizontal de filtros na inicial,
-  cartões amplos em duas colunas e atalhos de favoritos/comparação.
+- Vídeo panorâmico, identidade ciano, faixa horizontal de filtros na inicial e
+  cartões amplos em duas colunas. O atalho que apenas rolava a página foi retirado.
 - Estoque com busca por modelo/marca, filtros de marca e categoria, ordenação
   por preço, quilometragem ou recomendação; filtros laterais na página completa.
 - Financiamento em página própria e no anúncio; formulário de veículo na troca.
 - **Favoritos:** salvar/remover veículos e consultar a lista pessoal após login,
-  com separação por conta e loja no navegador.
+  com separação por conta e loja no navegador. O coração ao lado do perfil é
+  visível para visitantes, exige login ou cadastro para abrir a lista e mostra
+  a quantidade salva após entrar. Os botões de favoritos e comparação ficam no
+  estoque, sem cópias na abertura ou na página Serviços.
 - **Comparador:** selecionar até três veículos, consultar dados lado a lado,
   remover escolhas e iniciar financiamento do veículo escolhido.
 - **Visualizador 360°:** incluído neste modelo para anúncios com sequência

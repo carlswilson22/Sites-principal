@@ -11,6 +11,6 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'servicos', label: 'Serviços' },
     { id: 'sobre-contato', label: 'Sobre Nós e Contato' }
   ];
-  const activePage = ['consultor-ia', 'simulador', 'troca', 'comparador', 'favoritos'].includes(currentPage) ? 'servicos' : currentPage;
-  return <SiteHeader variant="workspace" currentPage={activePage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} Logo={AutomatchLogo} />;
+  const activePage = ['comparador', 'favoritos'].includes(currentPage) ? 'estoque' : ['consultor-ia', 'simulador', 'troca'].includes(currentPage) ? 'servicos' : currentPage;
+  return <SiteHeader variant="workspace" currentPage={activePage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} Logo={AutomatchLogo} favoritesEnabled favoritesCount={favoritesCount} favoritesActive={currentPage === 'favoritos'} />;
 }
