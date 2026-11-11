@@ -38,7 +38,7 @@ function StoreAccess({ storeKey, storeName, children }) {
   };
   return <StoreAccessContext.Provider value={{ ...auth, storeKey, storeName, requestLogin, requireLogin, authorizeNavigation }}>
     {children}
-    {loginRequest && <AccountLoginDialog key={loginRequest.audience} audience={loginRequest.audience} reason={loginRequest.reason} storeName={storeName} onClose={close} onSuccess={onLogin} />}
+    {loginRequest && <AccountLoginDialog key={loginRequest.audience} audience={loginRequest.audience} reason={loginRequest.reason} storeKey={storeKey} storeName={storeName} onClose={close} onSuccess={onLogin} />}
   </StoreAccessContext.Provider>;
 }
 

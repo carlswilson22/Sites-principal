@@ -1,0 +1,47 @@
+const themes = {
+  autoelite: {
+    variant: 'classic',
+    card: 'rounded-3xl border-slate-700/80 bg-slate-900',
+    heading: 'font-bold',
+    accent: 'text-blue-300',
+    focus: 'focus-visible:outline-blue-300',
+    field: 'rounded-xl border-slate-700 bg-slate-950 focus-within:border-blue-400',
+    tabs: 'rounded-2xl border-slate-800 bg-slate-950',
+    active: 'rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20',
+    inactive: 'rounded-xl text-slate-300 hover:bg-slate-800',
+    primary: 'rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/25',
+    note: 'rounded-xl border-slate-700 bg-slate-800/50',
+    divider: 'border-slate-800',
+  },
+  drivenow: {
+    variant: 'editorial',
+    card: 'rounded-xl border-amber-200/20 bg-[#0b0b10]',
+    heading: 'font-medium uppercase tracking-[0.08em]',
+    accent: 'text-amber-200',
+    focus: 'focus-visible:outline-amber-200',
+    field: 'rounded-md border-zinc-800 bg-[#050508] focus-within:border-amber-200',
+    tabs: 'rounded-lg border-zinc-800 bg-[#050508]',
+    active: 'rounded-md bg-amber-200 text-stone-950',
+    inactive: 'rounded-md text-slate-300 hover:bg-zinc-900',
+    primary: 'rounded-md bg-amber-200 text-stone-950 hover:bg-amber-100',
+    note: 'rounded-md border-zinc-800 bg-zinc-900/60',
+    divider: 'border-zinc-800',
+  },
+  apexluxury: {
+    variant: 'workspace',
+    card: 'rounded-2xl border-cyan-300/20 bg-slate-900',
+    heading: 'font-bold tracking-tight',
+    accent: 'text-cyan-200',
+    focus: 'focus-visible:outline-cyan-200',
+    field: 'rounded-lg border-slate-700 bg-slate-950 focus-within:border-cyan-300',
+    tabs: 'rounded-xl border-slate-700 bg-slate-950',
+    active: 'rounded-lg bg-cyan-300 text-slate-950',
+    inactive: 'rounded-lg text-slate-300 hover:bg-slate-800',
+    primary: 'rounded-lg bg-cyan-300 text-slate-950 hover:bg-cyan-200',
+    note: 'rounded-lg border-slate-700 bg-slate-950/60',
+    divider: 'border-slate-700',
+  },
+};
+
+export const getAccountTheme = storeKey => themes[storeKey] || themes.autoelite;
+export const accountFocus = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';

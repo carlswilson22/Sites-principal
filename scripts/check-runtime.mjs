@@ -90,6 +90,15 @@ for (const [model, scenario] of scenarios) {
     button('Entrar').click();
     await wait(() => button('Equipe da loja'));
     button('Equipe da loja').click();
+    if (role === 'atendente') {
+      await wait(() => loginForm('staff'));
+      assert(!button('Criar conta'), 'Cadastro público disponível para funcionários');
+      button('Esqueceu a senha?').click();
+      await wait(() => document.querySelector('section[aria-label="Recuperar acesso"]'));
+      assert(document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('administrador da loja'), 'Recuperação da equipe não orienta procurar o administrador');
+      assert(!document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('Cliente@2026'), 'Recuperação da equipe mostrou credenciais de cliente');
+      button('Voltar ao login').click();
+    }
     await submitLogin('staff', `${role}@demo.invalid`, 'Demonstracao@2026');
     assert(document.querySelector('button[aria-label="Painel do lojista"]'), 'Equipe autenticada sem acesso ao painel');
     document.querySelector('button[aria-label="Painel do lojista"]').click();
@@ -131,6 +140,29 @@ for (const [model, scenario] of scenarios) {
       button('Simular financiamento deste veículo').click();
       await wait(() => loginForm('customer'));
       assert(!document.querySelector('[data-financing-vehicle]') && ad.isConnected, 'Simulador abriu antes do login ou fechou o anúncio');
+      assert.equal(document.querySelector('[data-account-theme]').dataset.accountTheme, { 'auto-dealership': 'classic', 'luxury-dealership': 'editorial', 'popular-dealership': 'workspace' }[model], 'Login não segue a identidade da loja');
+      button('Preencher acesso de teste').click();
+      await wait(() => loginForm('customer').elements.namedItem('password').value === 'Cliente@2026');
+      assert(!document.querySelector('[data-financing-vehicle]'), 'Preencher os campos iniciou uma sessão sem confirmação');
+      document.querySelector('button[aria-label="Mostrar senha"]').click();
+      await wait(() => loginForm('customer').elements.namedItem('password').type === 'text');
+      assert.equal(loginForm('customer').elements.namedItem('password').value, 'Cliente@2026', 'Mostrar senha alterou a credencial');
+      document.querySelector('button[aria-label="Ocultar senha"]').click();
+      await wait(() => loginForm('customer').elements.namedItem('password').type === 'password');
+      button('Criar conta').click();
+      await wait(() => document.querySelector('section[aria-label="Criar conta de cliente"]'));
+      assert(document.querySelector('section[aria-label="Criar conta de cliente"]').textContent.includes('conta fictícia'), 'Cadastro promete criar uma conta real na demonstração');
+      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Abrir o cadastro criou uma sessão');
+      button('Fazer login').click();
+      await wait(() => loginForm('customer'));
+      button('Esqueceu a senha?').click();
+      await wait(() => document.querySelector('section[aria-label="Recuperar acesso"]'));
+      assert(document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('cliente@demo.invalid'), 'Recuperação não oferece o acesso fictício');
+      button('Preencher acesso de teste').click();
+      await wait(() => loginForm('customer'));
+      assert.equal(loginForm('customer').elements.namedItem('email').value, 'cliente@demo.invalid');
+      assert.equal(loginForm('customer').elements.namedItem('password').type, 'password', 'Recuperação deixou a senha exposta');
+      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Recuperação iniciou uma sessão sem confirmação');
       window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
       await wait(() => !loginForm('customer'));
       assert(ad.isConnected && !document.querySelector('[data-financing-vehicle]'), 'Cancelar login abriu a ferramenta');
@@ -290,9 +322,20 @@ for (const [model, scenario] of scenarios) {
         document.querySelector('button[title="Salvar nos favoritos"]').click();
         await wait(() => loginForm('customer'));
         assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('0'), 'Favorito foi salvo sem login');
-        await submitLogin('customer', 'cliente@demo.invalid', 'Cliente@2026');
+        button('Cadastre-se').click();
+        await wait(() => button('Experimentar conta de cliente'));
+        button('Experimentar conta de cliente').click();
         await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('2'));
         assert.equal(JSON.parse(window.localStorage.getItem('customer_favorites_apexluxury_cliente_customer-demo')).length, 2, 'Login não retomou o favorito solicitado na conta correta');
+        await signOut();
+      } else {
+        button('Entrar').click();
+        await wait(() => button('Criar conta'));
+        button('Criar conta').click();
+        await wait(() => button('Experimentar conta de cliente'));
+        button('Experimentar conta de cliente').click();
+        await wait(() => document.querySelector('button[aria-label="Minha conta"]'));
+        assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Experimentar conta de cliente liberou o painel');
         await signOut();
       }
       await signInStaff('atendente');

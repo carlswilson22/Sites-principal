@@ -22,6 +22,18 @@ O botão **Entrar** abre a conta de cliente. Para testar:
 **Preencher acesso de teste** apenas preenche o formulário; ainda é necessário
 confirmar o login. A conta de cliente não mostra o Painel do Lojista.
 
+O formulário segue a identidade de cada site: azul e cantos arredondados no
+AutoElite, tons âmbar e acabamento editorial no DriveNow, ciano e linhas de
+interface no Enterprise. Os campos têm ícones, rótulos visíveis e controle
+para mostrar ou ocultar a senha. O login mantém o anúncio aberto ao fundo.
+
+As abas **Fazer login** e **Criar conta** organizam o acesso de cliente.
+Na demonstração, **Experimentar conta de cliente** inicia a conta fictícia
+acima e retoma a ferramenta solicitada; não registra novos dados nem cria
+uma identidade real. **Esqueceu a senha?** orienta o uso dessas credenciais
+e permite preencher o formulário, sem enviar ou prometer um e-mail.
+Cadastro e recuperação reais ficam para a instalação do cliente.
+
 ## Equipe da loja
 
 No login, escolha **Equipe da loja**. A entrada exige credenciais desse tipo de
@@ -36,6 +48,8 @@ acesso; a senha de cliente não autentica um funcionário. Contas de teste:
 Após entrar, **Painel do lojista** aparece no cabeçalho. Não há entrada rápida
 por perfil, senha de funcionário preenchida ou seletor de cargos no painel.
 Para conferir outro cargo, saia da sessão e entre com a outra conta.
+O acesso da equipe fica separado abaixo do formulário de cliente, sem aba de
+cadastro. A recuperação desse acesso orienta procurar o administrador da loja.
 
 As permissões dos módulos continuam em `merchantAccess.js`; Contratos e Termos
 e o simulador permanecem disponíveis ao atendente nas três edições.
