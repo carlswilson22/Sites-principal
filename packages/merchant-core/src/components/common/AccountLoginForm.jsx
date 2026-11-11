@@ -25,7 +25,7 @@ export function AccountLoginForm({ staffOnly = false, onSuccess, theme = getAcco
   const link = `min-h-11 inline-flex items-center justify-center text-xs font-semibold ${theme.accent} ${accountFocus} ${theme.focus}`;
   const primary = `min-h-12 w-full px-5 py-3 inline-flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-wait ${theme.primary} ${accountFocus} ${theme.focus}`;
   const field = `flex items-center gap-3 border px-3 transition-colors ${theme.field}`;
-  const input = `min-w-0 w-full min-h-12 bg-transparent py-3 text-sm text-white placeholder:text-slate-500 ${accountFocus} ${theme.focus}`;
+  const input = 'min-w-0 w-full min-h-12 bg-transparent py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none';
   return <div className="space-y-6">
     {!staffOnly && <div role="group" aria-label="Acesso à conta" className={`grid grid-cols-2 gap-1 border p-1 ${theme.tabs}`}>
       {[['login', 'Fazer login'], ['create', 'Criar conta']].map(([value, label]) => <button key={value} type="button" disabled={loading} aria-pressed={mode === value || (mode === 'recover' && value === 'login')} onClick={() => changeMode(value)} className={`min-h-11 px-3 text-sm font-semibold transition-colors ${mode === value || (mode === 'recover' && value === 'login') ? theme.active : theme.inactive} ${accountFocus} ${theme.focus}`}>{label}</button>)}
