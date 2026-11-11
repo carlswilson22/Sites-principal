@@ -6,12 +6,16 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, AlertTriangle, Clock, CheckCircle2, DollarSign, Calendar, ShieldCheck, X } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { isDemoMode } from '../services/demoConfig';
 
-export function ConsignmentsView() {
+export function ConsignmentsView({ storeKey = 'apexluxury', vehicles = [] }) {
   const [consignments, setConsignments] = useState([]);
   const [alerts, setAlerts] = useState({ uncontractedVehicles: [], expiringConsignments: [] });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState('');
 
   const [form, setForm] = useState({
     vehicle_id: '',
@@ -31,33 +35,42 @@ export function ConsignmentsView() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [storeKey, vehicles]);
 
   const loadData = async () => {
     setLoading(true);
+    setError('');
     try {
       const [list, alertData] = await Promise.all([
-        apiClient.getConsignments(),
-        apiClient.getConsignmentAlerts()
+        apiClient.getConsignments(storeKey, vehicles),
+        apiClient.getConsignmentAlerts(storeKey, vehicles)
       ]);
       setConsignments(list || []);
       setAlerts(alertData || { uncontractedVehicles: [], expiringConsignments: [] });
-    } finally {
+    } catch (failure) { setError(failure.message); } finally {
       setLoading(false);
     }
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    await apiClient.saveConsignment(form);
-    setIsModalOpen(false);
-    loadData();
+    if (saving) return;
+    setSaving(true); setError('');
+    try {
+      await apiClient.saveConsignment(form, storeKey, vehicles);
+      setIsModalOpen(false);
+      setFeedback('Consignação registrada. Os valores e prazos já estão na tabela.');
+      await loadData();
+    } catch (failure) { setError(failure.message); }
+    finally { setSaving(false); }
   };
 
   const formatBrl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <div className="space-y-6">
+      {error && !isModalOpen && <p role="alert" className="p-4 rounded-xl bg-rose-950 text-rose-200">{error}</p>}
+      {feedback && <p role="status" className="p-4 rounded-xl bg-emerald-950 text-emerald-200">{feedback}</p>}
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -185,17 +198,18 @@ export function ConsignmentsView() {
             </div>
 
             <form onSubmit={handleSave} className="space-y-4">
+                {error && <p role="alert" className="p-3 rounded-xl bg-rose-950 text-rose-200 text-sm">{error}</p>}
+                {isDemoMode && <button type="button" onClick={() => setForm({ ...form, vehicle_id: String(vehicles[0]?.id || ''), owner_name: 'Fernando Prado — exemplo', owner_cpf: '000.000.000-00', owner_bank_data: 'Banco de exemplo · Agência 0000 · Conta 00000-0' })} className="min-h-11 text-sm text-emerald-200 underline underline-offset-4">Preencher dados de exemplo</button>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">ID do Veículo em Estoque</label>
-                  <input
-                    type="number"
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Veículo em estoque</label>
+                  <select
+                    aria-label="Veículo em consignação"
                     required
                     value={form.vehicle_id}
                     onChange={e => setForm({ ...form, vehicle_id: e.target.value })}
-                    placeholder="Ex: 3"
                     className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
-                  />
+                  ><option value="">Selecione um veículo</option>{vehicles.map(vehicle => <option key={vehicle.id} value={vehicle.id}>{vehicle.title || vehicle.nome} · {vehicle.year || vehicle.ano}</option>)}</select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Nome do Consignante (Dono)</label>
@@ -218,7 +232,7 @@ export function ConsignmentsView() {
                     required
                     value={form.owner_cpf}
                     onChange={e => setForm({ ...form, owner_cpf: e.target.value })}
-                    placeholder="000.000.000-00 (criptografado em repouso)"
+                    placeholder="000.000.000-00"
                     className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -333,9 +347,10 @@ export function ConsignmentsView() {
                 </button>
                 <button
                   type="submit"
+                  disabled={saving}
                   className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-semibold rounded-xl transition-colors"
                 >
-                  Registrar Consignação
+                  {saving ? 'Registrando…' : 'Registrar Consignação'}
                 </button>
               </div>
             </form>

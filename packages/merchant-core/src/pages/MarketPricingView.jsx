@@ -23,6 +23,7 @@ export function MarketPricingView() {
 
   const [calcResult, setCalcResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleAddCompetitor = () => {
     setCompetitors([
@@ -43,6 +44,7 @@ export function MarketPricingView() {
 
   const handleCalculate = async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await apiClient.calculateMarketPricing({
         fipePrice: Number(fipePrice),
@@ -54,7 +56,7 @@ export function MarketPricingView() {
         desiredMarginPercent: Number(desiredMarginPercent)
       });
       setCalcResult(res);
-    } finally {
+    } catch (failure) { setError(failure.message); setCalcResult(null); } finally {
       setLoading(false);
     }
   };
@@ -63,6 +65,7 @@ export function MarketPricingView() {
 
   return (
     <div className="space-y-6">
+      {error && <p role="alert" className="p-4 rounded-xl bg-rose-950 text-rose-200">{error}</p>}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -244,7 +247,7 @@ export function MarketPricingView() {
                   <div className="text-2xl font-black text-emerald-400 font-mono mt-1">
                     {formatBrl(calcResult.maxBuyPrice)}
                   </div>
-                  <span className="text-[10px] text-slate-400">Garante a margem de {calcResult.desiredMarginPercent}%</span>
+                    <span className="text-[10px] text-slate-400">Margem considerada: {calcResult.desiredMarginPercent}%</span>
                 </div>
 
                 <div className="p-4 bg-slate-800/40 rounded-xl space-y-2.5 text-xs">

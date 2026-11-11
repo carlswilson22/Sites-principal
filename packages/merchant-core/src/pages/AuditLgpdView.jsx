@@ -6,24 +6,27 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Download, UserX, Search, Clock, CheckCircle2, AlertTriangle, FileText } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { isDemoMode } from '../services/demoConfig';
+import { downloadBlob } from '../utils/storyArt.js';
 
-export function AuditLgpdView() {
+export function AuditLgpdView({ storeKey = 'apexluxury' }) {
   const [logs, setLogs] = useState([]);
-  const [clientIdToExport, setClientIdToExport] = useState('');
+  const [clientIdToExport, setClientIdToExport] = useState(isDemoMode ? '1' : '');
   const [exportResult, setExportResult] = useState(null);
   const [anonFeedback, setAnonFeedback] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadLogs();
-  }, []);
+  }, [storeKey]);
 
   const loadLogs = async () => {
     setLoading(true);
     try {
-      const data = await apiClient.getAuditLogs();
+      const data = await apiClient.getAuditLogs(storeKey);
       setLogs(data || []);
-    } finally {
+    } catch (failure) { setError(failure.message); } finally {
       setLoading(false);
     }
   };
@@ -31,23 +34,31 @@ export function AuditLgpdView() {
   const handleExportLgpd = async (e) => {
     e.preventDefault();
     if (!clientIdToExport) return;
-    const res = await apiClient.exportLgpdData(clientIdToExport);
-    setExportResult(res);
+    setError(''); setAnonFeedback(null);
+    try {
+      const res = await apiClient.exportLgpdData(clientIdToExport, storeKey);
+      setExportResult(res);
+      await loadLogs();
+    } catch (failure) { setError(failure.message); }
   };
 
   const handleAnonymize = async () => {
     if (!clientIdToExport) return;
-    if (!window.confirm('Atenção: A anonimização dos dados do titular é irreversível e atende ao Artigo 18 da LGPD (Direito ao Esquecimento). Deseja continuar?')) {
+    if (!window.confirm(isDemoMode ? 'Anonimizar o cliente de exemplo? Depois, exporte os dados novamente para comparar o resultado.' : 'Atenção: A anonimização dos dados do titular é irreversível e atende ao Artigo 18 da LGPD (Direito ao Esquecimento). Deseja continuar?')) {
       return;
     }
-    const res = await apiClient.anonymizeLgpd(clientIdToExport);
-    setAnonFeedback(res);
-    setExportResult(null);
-    loadLogs();
+    setError('');
+    try {
+      const res = await apiClient.anonymizeLgpd(clientIdToExport, storeKey);
+      setAnonFeedback(res);
+      setExportResult(null);
+      await loadLogs();
+    } catch (failure) { setError(failure.message); }
   };
 
   return (
     <div className="space-y-6">
+      {error && <p role="alert" className="p-4 rounded-xl bg-rose-950 text-rose-200">{error}</p>}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -55,7 +66,7 @@ export function AuditLgpdView() {
             <h1 className="text-2xl font-bold text-slate-100">Governança, Auditoria & LGPD</h1>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Registro imutável de ações sensíveis (quem, o quê, quando) e atendimento aos direitos dos titulares da Lei 13.709/2018.
+            Histórico de ações da loja e atendimento às solicitações dos clientes.
           </p>
         </div>
       </div>
@@ -67,12 +78,13 @@ export function AuditLgpdView() {
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100">Portal de Atendimento aos Direitos do Titular (Art. 18 LGPD)</h3>
         </div>
         <p className="text-xs text-slate-400">
-          Localize o cliente pelo código para exportar a totalidade de seus dados pessoais ou executar a anonimização irreversível:
+          {isDemoMode ? 'Use o cliente de exemplo 1 para consultar os dados, baixar o arquivo e testar a anonimização. As alterações aparecem na trilha de auditoria.' : 'Localize o cliente pelo código para consultar os dados e atender à solicitação de anonimização.'}
         </p>
 
         <form onSubmit={handleExportLgpd} className="flex flex-col sm:flex-row gap-3">
           <input
             type="number"
+            aria-label="Cliente para exportação"
             required
             value={clientIdToExport}
             onChange={e => setClientIdToExport(e.target.value)}
@@ -111,6 +123,7 @@ export function AuditLgpdView() {
             <pre className="text-[11px] bg-slate-950 p-3 rounded-lg overflow-x-auto text-emerald-400 font-mono">
               {JSON.stringify(exportResult, null, 2)}
             </pre>
+            <button type="button" onClick={() => downloadBlob(new Blob([JSON.stringify(exportResult, null, 2)], { type: 'application/json' }), `cliente-${clientIdToExport}.json`)} className="min-h-11 text-sm text-emerald-200 underline underline-offset-4">Baixar arquivo JSON</button>
           </div>
         )}
       </div>

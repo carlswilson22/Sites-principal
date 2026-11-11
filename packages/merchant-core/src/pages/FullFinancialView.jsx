@@ -6,8 +6,11 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Users, Download, Building, ShieldCheck, PieChart, FileSpreadsheet } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { downloadBlob } from '../utils/storyArt.js';
+import { exportVehiclesToCsv } from '../utils/catalogExport.js';
+import { normalizeVehicle } from '../utils/vehicles.js';
 
-export function FullFinancialView({ dealership = {} }) {
+export function FullFinancialView({ dealership = {}, vehicles = [] }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +31,8 @@ export function FullFinancialView({ dealership = {} }) {
   const formatBrl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const handleExportPortalsCsv = () => {
-    window.open('/api/tier3/portals/export?format=csv', '_blank');
+    const catalog = vehicles.map(normalizeVehicle).map(vehicle => ({ ...vehicle, photos_count: vehicle.photos.length }));
+    downloadBlob(new Blob(['\uFEFF' + exportVehiclesToCsv(catalog)], { type: 'text/csv;charset=utf-8' }), 'catalogo-veiculos.csv');
   };
 
   const handleExportBankReport = () => {
@@ -53,11 +57,7 @@ DATA DE EMISSÃO: ${new Date(report.generatedAt).toLocaleDateString('pt-BR')}
 Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'}.
     `;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `relatorio_bancario_12m_${new Date().getFullYear()}.txt`;
-    a.click();
+    downloadBlob(blob, `relatorio_bancario_12m_${new Date().getFullYear()}.txt`);
   };
 
   if (loading) {

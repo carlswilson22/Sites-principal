@@ -20,6 +20,15 @@ async function optionalApi(...args) {
   return null;
 }
 
+async function toolApi(path, options, sample) {
+  if (isDemoMode) return sample();
+  const response = await fetch(`${API_BASE_URL}${path}`, { credentials: 'include', ...options });
+  if (!response.ok) throw new Error('Não foi possível concluir a operação. Tente novamente.');
+  return response.json();
+}
+const jsonPost = payload => ({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+const loadSamples = async () => (await import('./demoTools.js')).demoTools;
+
 export const apiClient = {
   async getSummary(tier = 1) {
     const result = await optionalApi(`${API_BASE_URL}/dashboard/summary`, { credentials: 'include' });
@@ -103,74 +112,24 @@ export const apiClient = {
   // ==========================================
 
   // A1: Consignações
-  async getConsignments() {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/consignments`, { credentials: 'include' });
-    if (result !== null) return result;
-
-    return [
-      {
-        id: 1,
-        vehicle_id: 3,
-        vehicle_title: 'Compacto Smart Plus 1.0 Turbo',
-        vehicle_price: 77500,
-        days_in_stock: 8,
-        owner_name: 'Fernando Prado (Fictício)',
-        owner_cpf_masked: '987.***.***-99',
-        owner_bank_masked: 'Banco 001 - Ag 1234 - CC *****-0',
-        remuneration_type: 'percentual',
-        remuneration_value: 6.0,
-        min_remuneration: 3500,
-        service_fee: 350,
-        daily_storage_fee: 15,
-        contract_start: '2026-11-01',
-        contract_end: '2026-12-01',
-        payout_deadline_days: 5,
-        status: 'ativo',
-        settlement: {
-          storeCommission: 4650,
-          totalStorageFee: 120,
-          totalStoreDeductions: 5120,
-          ownerNetPayout: 72380,
-          storeTotalRevenue: 5120
-        },
-        expiry: { isExpired: false, daysRemaining: 24, warning: null }
-      }
-    ];
+  async getConsignments(storeKey, vehicles = []) {
+    return toolApi('/tier3/consignments', {}, async () => (await loadSamples()).consignments(storeKey, vehicles));
   },
 
-  async saveConsignment(data) {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/consignments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        credentials: 'include'
-      });
-    if (result !== null) return result;
-    return { success: true, message: 'Consignação gravada (modo demonstração).' };
+  async saveConsignment(data, storeKey, vehicles = []) {
+    return toolApi('/tier3/consignments', jsonPost(data), async () => (await loadSamples()).saveConsignment(storeKey, data, vehicles));
   },
 
-  async getConsignmentAlerts() {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/consignments/alerts`, { credentials: 'include' });
-    if (result !== null) return result;
-    return { uncontractedVehicles: [], expiringConsignments: [] };
+  async getConsignmentAlerts(storeKey, vehicles = []) {
+    return toolApi('/tier3/consignments/alerts', {}, async () => {
+      const list = (await loadSamples()).consignments(storeKey, vehicles);
+      return { uncontractedVehicles: [], expiringConsignments: list.filter(item => item.expiry.isExpired || item.expiry.daysRemaining <= 7) };
+    });
   },
 
   // A2: Contratos Avançados
-  async createAdvancedContract(contractData) {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/contracts/advanced`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contractData),
-        credentials: 'include'
-      });
-    if (result !== null) return result;
-
-    const code = `CTR-EXP-${new Date().getFullYear()}-0099`;
-    return {
-      id: Date.now(),
-      code,
-      html: `<h1>Minuta Gerada em Modo Demonstração (${code})</h1><p>Aviso: Submeter a revisão de advogado.</p>`
-    };
+  async createAdvancedContract(data, storeKey, vehicles = [], dealership = {}) {
+    return toolApi('/tier3/contracts/advanced', jsonPost(data), async () => (await loadSamples()).createContract(storeKey, data, vehicles, dealership));
   },
 
   // A3: Financeiro Completo & DRE
@@ -200,29 +159,7 @@ export const apiClient = {
 
   // A4: Precificador Completo
   async calculateMarketPricing(payload) {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/market-pricing`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        credentials: 'include'
-      });
-    if (result !== null) return result;
-
-    const fipe = Number(payload.fipePrice) || 85000;
-    const auctionDec = payload.hasAuctionRecord ? fipe * 0.18 : 0;
-    const sale = Math.round((fipe - auctionDec) * 1.02);
-    const buy = Math.round(sale * 0.88 - 1500);
-
-    return {
-      fipePrice: fipe,
-      competitorsCount: (payload.manualCompetitors || []).length,
-      avgCompetitorPrice: fipe,
-      hasAuctionRecord: payload.hasAuctionRecord,
-      auctionDeduction: auctionDec,
-      regionalLiquidity: payload.regionalLiquidity || 'media',
-      suggestedSalePrice: sale,
-      maxBuyPrice: buy
-    };
+    return toolApi('/tier3/market-pricing', jsonPost(payload), async () => (await import('../utils/marketPricing.js')).calculateMarketPricing(payload));
   },
 
   // A5: Funil de Vendas & Giro
@@ -250,61 +187,28 @@ export const apiClient = {
   },
 
   // A6 & A7: Stories e Instagram
-  async getInstagramStatus() {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/instagram/status`, { credentials: 'include' });
-    if (result !== null) return result;
-    return {
-      configured: false,
-      status: 'nao_configurado',
-      message: 'Integração oficial com Instagram não configurada no ambiente (.env). Utilize a exportação manual.'
-    };
+  async getInstagramStatus(storeKey) {
+    return toolApi('/tier3/instagram/status', {}, async () => (await loadSamples()).instagramStatus(storeKey));
   },
 
-  async publishInstagramStory(payload) {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/instagram/queue`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        credentials: 'include'
-      });
-    if (result !== null) return result;
-    return {
-      success: false,
-      status: 'nao_configurado',
-      message: 'Instagram Graph API não configurada. Faça download da arte e compartilhe no app do Instagram.'
-    };
+  async publishInstagramStory(payload, storeKey) {
+    return toolApi('/tier3/instagram/queue', jsonPost(payload), async () => (await loadSamples()).publish(storeKey, payload));
   },
 
-  async getInstagramHistory() {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/instagram/history`, { credentials: 'include' });
-    if (result !== null) return result;
-    return [];
+  async getInstagramHistory(storeKey) {
+    return toolApi('/tier3/instagram/history', {}, async () => (await loadSamples()).history(storeKey));
   },
 
   // A8: Auditoria & LGPD
-  async getAuditLogs() {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/audit`, { credentials: 'include' });
-    if (result !== null) return result;
-    return [
-      { id: 1, user_name: 'Carlos Silva (Proprietário)', user_role: 'proprietario', action: 'LOGIN_SUCESSO', entity: 'sessions', entity_id: '1', created_at: new Date().toISOString() }
-    ];
+  async getAuditLogs(storeKey) {
+    return toolApi('/tier3/audit', {}, async () => (await loadSamples()).audit(storeKey));
   },
 
-  async exportLgpdData(clientId) {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/lgpd/export/${clientId}`, { credentials: 'include' });
-    if (result !== null) return result;
-    return {
-      titular: { id: clientId, nome: 'Titular Exemplo', cpf_completo: '123.456.789-00', telefone: '(11) 99999-9999' },
-      termo_consentimento: 'Consentimento registrado em conformidade com o Artigo 7º da LGPD.'
-    };
+  async exportLgpdData(clientId, storeKey) {
+    return toolApi('/tier3/lgpd/export/' + encodeURIComponent(clientId), {}, async () => (await loadSamples()).exportClient(storeKey, clientId));
   },
 
-  async anonymizeLgpd(clientId) {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/lgpd/anonymize/${clientId}`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-    if (result !== null) return result;
-    return { success: true, message: 'Dados anonimizados com sucesso.' };
+  async anonymizeLgpd(clientId, storeKey) {
+    return toolApi('/tier3/lgpd/anonymize/' + encodeURIComponent(clientId), { method: 'POST' }, async () => (await loadSamples()).anonymize(storeKey, clientId));
   }
 };

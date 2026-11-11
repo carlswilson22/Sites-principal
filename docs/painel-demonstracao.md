@@ -104,7 +104,29 @@ o mesmo endpoint deverá ser ampliado para clientes. O formulário aceita apenas
 perfis de cliente ou equipe reconhecidos na resposta da API, sem criar uma
 sessão fictícia quando a API falha.
 
-## Verificação
+## Amostras das ferramentas Enterprise
+
+- Estúdio de Stories usa os veículos e as fotos do estoque da loja. Os três
+  layouts alteram a prévia e o arquivo PNG de 1080 × 1920; há opções de preço,
+  foto de abertura e enquadramento. O compartilhamento usa o arquivo gerado.
+- Publicar Story grava uma publicação na conta de exemplo local, com arte,
+  legenda, horário e histórico. Ver publicação reabre a versão salva. Nenhuma
+  conta externa recebe o conteúdo neste modo.
+- Consignações registram os dados e recalculam comissão, diárias, repasse e
+  vencimento. Contratos avançados usam o veículo selecionado, geram minutas
+  completas, mantêm numeração e permitem vincular aditivos a minutas emitidas.
+- O precificador usa os concorrentes, a liquidez, os custos e a margem informados.
+  As regras de cálculo e o gerador de minutas são compartilhados com o servidor.
+- A exportação do catálogo gera um CSV com os veículos do estoque, sem depender
+  de um endpoint no GitHub Pages. O relatório bancário também gera um arquivo.
+- Exportação e anonimização operam sobre clientes de exemplo, com arquivo JSON
+  e trilha de auditoria. Esses registros não alteram o cadastro de clientes.
+- As amostras ficam em `store_tool_samples_<loja>` no navegador. Falhas de
+  armazenamento são informadas e dados inválidos são preservados. Fora do modo
+  de demonstração, estas ações consultam a API e não geram sucesso fictício se
+  o servidor falhar.
+
+### Verificação dos fluxos
 
 `npm run test:merchant` cobre identidades, validade e isolamento de sessões,
 regras de visitante/cliente e rejeição de acesso do cliente a módulos internos.

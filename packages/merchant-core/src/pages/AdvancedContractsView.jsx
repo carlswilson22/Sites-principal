@@ -8,10 +8,12 @@
 import React, { useState } from 'react';
 import { FileText, ShieldAlert, Printer, Share2, CheckCircle2, AlertCircle, X, ExternalLink } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { isDemoMode } from '../services/demoConfig';
+import { demoTools } from '../services/demoTools.js';
 
-export function AdvancedContractsView() {
+export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], dealership = {} }) {
   const [contractType, setContractType] = useState('consignacao');
-  const [vehicleId, setVehicleId] = useState('3');
+  const [vehicleId, setVehicleId] = useState(String(vehicles[0]?.id || ''));
   const [clientId, setClientId] = useState('1');
   const [parentContractId, setParentContractId] = useState('');
   const [tradeVehicleTitle, setTradeVehicleTitle] = useState('Sedan Antigo 2018');
@@ -27,16 +29,20 @@ export function AdvancedContractsView() {
   const [previewHtml, setPreviewHtml] = useState(null);
   const [contractCode, setContractCode] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [history, setHistory] = useState(() => { try { return isDemoMode ? demoTools.contracts(storeKey) : []; } catch { return []; } });
 
   const handleGenerate = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
+    setError('');
     try {
       const res = await apiClient.createAdvancedContract({
         type: contractType,
-        vehicle_id: parseInt(vehicleId, 10),
-        client_id: parseInt(clientId, 10),
-        parent_contract_id: parentContractId ? parseInt(parentContractId, 10) : null,
+        vehicle_id: vehicleId,
+        client_id: clientId,
+        parent_contract_id: parentContractId || null,
         tradeVehicle: contractType === 'compra_venda_troca' ? { title: tradeVehicleTitle, year: '2018' } : null,
         terms: {
           tradeValue: Number(tradeValue),
@@ -48,10 +54,11 @@ export function AdvancedContractsView() {
           witness2_name: witness2Name,
           witness2_cpf: witness2Cpf
         }
-      });
+      }, storeKey, vehicles, dealership);
       setPreviewHtml(res.html);
       setContractCode(res.code);
-    } finally {
+      if (isDemoMode) setHistory(demoTools.contracts(storeKey));
+    } catch (failure) { setError(failure.message); } finally {
       setLoading(false);
     }
   };
@@ -73,6 +80,7 @@ export function AdvancedContractsView() {
 
   return (
     <div className="space-y-6">
+      {error && <p role="alert" className="p-4 rounded-xl bg-rose-950 text-rose-200">{error}</p>}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -111,18 +119,18 @@ export function AdvancedContractsView() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">ID do Veículo Principal</label>
-              <input
-                type="number"
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Veículo principal</label>
+              <select
+                aria-label="Veículo do contrato avançado"
                 required
                 value={vehicleId}
                 onChange={e => setVehicleId(e.target.value)}
                 className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
+              >{!vehicles.length && <option value="">Cadastre um veículo</option>}{vehicles.map(vehicle => <option key={vehicle.id} value={vehicle.id}>{vehicle.title || vehicle.nome} · {vehicle.year || vehicle.ano}</option>)}</select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">ID do Cliente Cadastrado</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">{isDemoMode ? 'Cliente de exemplo (ID)' : 'ID do cliente cadastrado'}</label>
               <input
                 type="number"
                 required
@@ -151,6 +159,7 @@ export function AdvancedContractsView() {
                   <label className="block text-xs font-medium text-slate-300 mb-1">Valor de Avaliação (R$)</label>
                   <input
                     type="number"
+                    min="0"
                     value={tradeValue}
                     onChange={e => setTradeValue(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100"
@@ -169,6 +178,7 @@ export function AdvancedContractsView() {
                       Sim, com saldo devedor
                     </label>
                   </div>
+                  {tradeHasDebt && <label className="block mt-3 text-xs text-slate-300">Saldo devedor (R$)<input type="number" min="0" value={tradeDebtAmount} onChange={event => setTradeDebtAmount(event.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" /></label>}
                 </div>
               </div>
             </div>
@@ -180,15 +190,14 @@ export function AdvancedContractsView() {
               <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Vínculo ao Contrato Original</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">ID do Contrato Pai (Original)</label>
-                  <input
-                    type="number"
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Contrato original</label>
+                  {isDemoMode ? <select
+                    aria-label="Contrato original"
                     required
                     value={parentContractId}
                     onChange={e => setParentContractId(e.target.value)}
-                    placeholder="Ex: 1"
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100"
-                  />
+                  ><option value="">Selecione um contrato emitido</option>{history.map(item => <option key={item.id} value={item.id}>{item.code} · {item.vehicleTitle}</option>)}</select> : <input type="number" required value={parentContractId} onChange={event => setParentContractId(event.target.value)} aria-label="Contrato original" className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" />}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Justificativa e Alterações do Aditivo</label>
@@ -288,11 +297,10 @@ export function AdvancedContractsView() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 text-slate-900 max-h-[500px] overflow-y-auto font-serif shadow-inner">
-            <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
-          </div>
+          <iframe title="Prévia da minuta" srcDoc={previewHtml} sandbox="" className="w-full h-[500px] rounded-xl bg-white border-0" />
         </div>
       )}
+      {history.length > 0 && <section className="rounded-2xl border border-slate-800 p-5 space-y-3"><h2 className="font-semibold text-white">Minutas emitidas</h2>{history.map(item => <button key={item.id} type="button" onClick={() => { setPreviewHtml(item.html); setContractCode(item.code); }} className="min-h-11 block text-left text-sm text-emerald-200">{item.code} · {item.vehicleTitle}</button>)}</section>}
     </div>
   );
 }

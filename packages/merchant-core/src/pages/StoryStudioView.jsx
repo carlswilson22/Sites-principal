@@ -1,343 +1,90 @@
-/**
- * packages/merchant-core/src/pages/StoryStudioView.jsx
- * Gerador de Artes para Story Vertical 1080x1920 & Integração Instagram (Nível 3 - A6 e A7).
- * Layouts originais, opções de preço, aviso de baixa resolução, download e fila de publicação.
- */
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Download, Share2, Instagram, Image as ImageIcon, AlertTriangle, CheckCircle2, Sliders, Smartphone, ExternalLink } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Download, Share2, Instagram, CheckCircle2, LoaderCircle } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { normalizeVehicle } from '../utils/vehicles.js';
+import { createStoryPng, downloadBlob, storyTemplates } from '../utils/storyArt.js';
+import { StoryPreview } from '../components/common/StoryPreview';
 
-export function StoryStudioView({ dealership = {} }) {
-  const [selectedVehicle, setSelectedVehicle] = useState({
-    id: 1,
-    title: 'Porsche 911 Carrera S',
-    year: '2023/2023',
-    km: 14500,
-    price: 940000,
-    entry: 280000,
-    installment: 18450
-  });
-
-  const [selectedPhotos, setSelectedPhotos] = useState([
-    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1080&q=80',
-    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1080&q=80',
-    'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1080&q=80'
-  ]);
-
-  const [template, setTemplate] = useState('apex_minimal'); // 'apex_minimal' | 'bold_impact' | 'showcase_trio'
-  const [priceMode, setPriceMode] = useState('preco_cheio'); // 'preco_cheio' | 'entrada_parcelas' | 'sem_preco'
-  const [framing, setFraming] = useState('cover'); // 'cover' | 'contain'
-
-  const [instagramStatus, setInstagramStatus] = useState(null);
-  const [publishFeedback, setPublishFeedback] = useState(null);
-  const [loadingPublish, setLoadingPublish] = useState(false);
-
+export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehicles = [] }) {
+  const catalog = vehicles.map(normalizeVehicle);
+  const makeVehicle = vehicle => ({ ...vehicle, entry: vehicle.parcela?.entrada || Math.round(vehicle.price * 0.3), installment: vehicle.parcela?.valor || 1500 });
+  const [vehicle, setVehicle] = useState(() => makeVehicle(catalog[0] || { id: '', title: '', price: 0, year: '', km: 0, photos: [] }));
+  const [template, setTemplate] = useState('apex_minimal');
+  const [priceMode, setPriceMode] = useState('preco_cheio');
+  const [framing, setFraming] = useState('cover');
+  const [cover, setCover] = useState(0);
+  const [caption, setCaption] = useState('Conheça os detalhes desta seleção e fale com nossa equipe.');
+  const [status, setStatus] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [published, setPublished] = useState(null);
+  const [busy, setBusy] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState('');
+  const lock = useRef(false);
+  const mounted = useRef(true);
+  const photos = [...new Set([vehicle.cover_photo, ...(vehicle.photos || [])].filter(Boolean))];
+  const ordered = photos.length ? [photos[cover] || photos[0], ...photos.filter((_, index) => index !== cover)].slice(0, 3) : [];
+  const story = { storeName: dealership.nome || 'Enterprise Veículos', vehicle: { id: vehicle.id, title: vehicle.title, year: vehicle.year, km: vehicle.km, price: vehicle.price, entry: vehicle.entry, installment: vehicle.installment }, photos: ordered, template, priceMode, framing };
   useEffect(() => {
-    checkInstagram();
-  }, []);
-
-  const checkInstagram = async () => {
-    const status = await apiClient.getInstagramStatus();
-    setInstagramStatus(status);
+    mounted.current = true;
+    Promise.all([apiClient.getInstagramStatus(storeKey), apiClient.getInstagramHistory(storeKey)])
+      .then(([nextStatus, publications]) => { if (mounted.current) { setStatus(nextStatus); setHistory(publications); } })
+      .catch(failure => { if (mounted.current) setError(failure.message); });
+    return () => { mounted.current = false; };
+  }, [storeKey]);
+  const perform = async (action, task) => {
+    if (lock.current) return;
+    lock.current = true; setBusy(action); setError(''); setFeedback('');
+    try { await task(); } catch (failure) { if (mounted.current && failure.name !== 'AbortError') setError(failure.message || 'Não foi possível concluir a ação.'); }
+    finally { lock.current = false; if (mounted.current) setBusy(''); }
   };
-
-  const handlePublishInstagram = async () => {
-    setLoadingPublish(true);
-    setPublishFeedback(null);
-    try {
-      const res = await apiClient.publishInstagramStory({
-        vehicle_id: selectedVehicle.id,
-        imageUrl: selectedPhotos[0],
-        caption: `${selectedVehicle.title} disponível na ${dealership.nome || 'loja'}.`
-      });
-      setPublishFeedback(res);
-    } finally {
-      setLoadingPublish(false);
-    }
-  };
-
-  const handleDownload = () => {
-    alert('Download da arte em alta definição 1080x1920 iniciado.');
-  };
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: selectedVehicle.title,
-        text: `Confira este ${selectedVehicle.title} na ${dealership.nome || 'loja'}!`,
-        url: window.location.href
-      }).catch(() => {});
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(`Confira ${selectedVehicle.title} na ${dealership.nome || 'loja'}!`)}`, '_blank');
-    }
-  };
-
-  const formatBrl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-100">Estúdio de Stories 1080p & Instagram</h1>
-          </div>
-          <p className="text-sm text-slate-400 mt-1">
-            Geração de criativos verticais em alta definição (1080x1920) e publicação oficial via Instagram Graph API.
-          </p>
-        </div>
+  const publish = () => perform('publish', async () => {
+    if (!story.photos.length || !story.vehicle.title.trim()) throw new Error('Escolha um veículo e uma foto antes de publicar.');
+    const result = await apiClient.publishInstagramStory({ vehicle_id: vehicle.id, imageUrl: ordered[0], caption, story }, storeKey);
+    if (!result.success) throw new Error(result.message || result.error || 'A publicação não foi concluída.');
+    const nextHistory = await apiClient.getInstagramHistory(storeKey);
+    if (mounted.current) { setHistory(nextHistory); setPublished(result.publication || null); setFeedback(result.message || 'Publicação enviada.'); }
+  });
+  const exportStory = share => perform(share ? 'share' : 'download', async () => {
+    const blob = await createStoryPng(story);
+    const filename = `story-${vehicle.id || 'veiculo'}-1080x1920.png`;
+    const file = new File([blob], filename, { type: 'image/png' });
+    if (share && navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: vehicle.title, text: caption });
+    else { downloadBlob(blob, filename); if (mounted.current) setFeedback(share ? 'Arte baixada. Compartilhe o arquivo no aplicativo de sua preferência.' : 'Arte PNG gerada em 1080 × 1920.'); }
+  });
+  const input = 'w-full min-h-11 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white';
+  const panel = 'rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 space-y-4';
+  const disabled = Boolean(busy) || !ordered.length;
+  return <div className="space-y-6">
+    <div><h1 className="text-2xl font-bold text-white">Estúdio de Stories 1080p & Instagram</h1><p className="mt-1 text-sm text-slate-400">Escolha um veículo, crie uma arte vertical e acompanhe sua publicação.</p></div>
+    {error && <p role="alert" className="rounded-xl bg-rose-950/60 p-4 text-rose-200">{error}</p>}
+    {feedback && <p role="status" className="rounded-xl bg-emerald-950/60 p-4 text-emerald-200">{feedback}</p>}
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+      <div className="space-y-5">
+        <section className={panel} aria-label="Dados do Story"><h2 className="font-semibold text-white">1. Veículo e condições</h2>
+          <label className="block text-sm text-slate-300 space-y-2"><span>Veículo do estoque</span><select aria-label="Veículo do Story" className={input} value={vehicle.id} onChange={event => { const selected = catalog.find(item => String(item.id) === event.target.value); if (selected) { setVehicle(makeVehicle(selected)); setCover(0); } }}>{!catalog.length && <option value="">Nenhum veículo cadastrado</option>}{catalog.map(item => <option key={item.id} value={item.id}>{item.title} · {item.year}</option>)}</select></label>
+          <label className="block text-sm text-slate-300 space-y-2"><span>Título da arte</span><input maxLength={90} className={input} value={vehicle.title} onChange={event => setVehicle({ ...vehicle, title: event.target.value })} /></label>
+          <label className="block text-sm text-slate-300 space-y-2"><span>Exibição de preço</span><select className={input} value={priceMode} onChange={event => setPriceMode(event.target.value)}><option value="preco_cheio">Preço à vista</option><option value="entrada_parcelas">Entrada e 48 parcelas</option><option value="sem_preco">Consulte condições</option></select></label>
+          {priceMode !== 'sem_preco' && <div className="grid sm:grid-cols-2 gap-3">{(priceMode === 'preco_cheio' ? [['price', 'Valor à vista (R$)']] : [['entry', 'Entrada (R$)'], ['installment', 'Parcela mensal (R$)']]).map(([key, label]) => <label key={key} className="text-sm text-slate-300 space-y-2"><span>{label}</span><input type="number" min="0" className={input} value={vehicle[key]} onChange={event => setVehicle({ ...vehicle, [key]: Math.max(0, Number(event.target.value)) })} /></label>)}</div>}
+          <label className="block text-sm text-slate-300 space-y-2"><span>Foto de abertura</span><select className={input} value={cover} onChange={event => setCover(Number(event.target.value))}>{photos.map((_, index) => <option key={index} value={index}>Foto {index + 1}</option>)}</select></label>
+        </section>
+        <section className={panel} aria-label="Estilo do Story"><h2 className="font-semibold text-white">2. Layout da arte</h2>
+          <div className="grid sm:grid-cols-3 gap-2">{storyTemplates.map(item => <button key={item.id} type="button" aria-pressed={template === item.id} onClick={() => setTemplate(item.id)} className={`min-h-12 p-3 text-sm rounded-xl border ${template === item.id ? 'border-cyan-300 bg-cyan-300/10 text-cyan-200' : 'border-slate-700 text-slate-300'}`}>{item.name}</button>)}</div>
+          {template === 'showcase_trio' && ordered.length > 0 && ordered.length < 3 && <p className="text-xs text-slate-400">Este veículo tem {ordered.length} foto(s). A capa completa os espaços restantes da composição.</p>}
+          <label className="block text-sm text-slate-300 space-y-2"><span>Enquadramento</span><select className={input} value={framing} onChange={event => setFraming(event.target.value)}><option value="cover">Preencher a foto</option><option value="contain">Manter a foto inteira</option></select></label>
+        </section>
+        <section className={panel} aria-label="Publicação no Instagram"><div className="flex flex-wrap items-center gap-3"><Instagram aria-hidden="true" className="text-pink-300" /><h2 className="font-semibold text-white">Publicação direta no Instagram</h2><span className="text-xs rounded-full px-3 py-1 bg-cyan-300/10 text-cyan-200">{status?.demo ? 'Conta de exemplo' : status?.configured ? 'Conta conectada' : 'Carregando conta'}</span></div>
+          {status?.demo && <p className="text-sm text-slate-400">@{status.account} · Publique e abra o Story na prévia abaixo. Os envios ficam neste navegador.</p>}
+          <label className="block text-sm text-slate-300 space-y-2"><span>Legenda</span><textarea className={input} rows={3} maxLength={2200} value={caption} onChange={event => setCaption(event.target.value)} /></label>
+          <div className="flex flex-wrap gap-3"><button type="button" disabled={disabled} onClick={() => exportStory(false)} className="min-h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-slate-800 text-white disabled:opacity-50"><Download className="w-4 h-4" />{busy === 'download' ? 'Gerando PNG…' : 'Baixar PNG 1080 × 1920'}</button><button type="button" disabled={disabled} onClick={() => exportStory(true)} className="min-h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-slate-800 text-white disabled:opacity-50"><Share2 className="w-4 h-4" />Compartilhar arte</button><button type="button" disabled={disabled || !status || (!status.demo && !status.configured)} onClick={publish} className="min-h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold disabled:opacity-50">{busy === 'publish' ? <LoaderCircle className="w-4 h-4 animate-spin" /> : <Instagram className="w-4 h-4" />}{busy === 'publish' ? 'Publicando…' : 'Publicar Story'}</button></div>
+          {published && <ol aria-label="Etapas da publicação" className="space-y-2 text-sm text-emerald-200">{['Arte preparada', 'Publicação processada', 'Disponível na prévia da conta'].map(step => <li key={step} className="flex gap-2 items-center"><CheckCircle2 className="w-4 h-4" />{step}</li>)}</ol>}
+        </section>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Coluna da Esquerda: Controles de Estilização */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Seletor de Modelo / Veículo */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">1. Dados do Veículo & Preço</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Título do Veículo</label>
-                <input
-                  type="text"
-                  value={selectedVehicle.title}
-                  onChange={e => setSelectedVehicle({ ...selectedVehicle, title: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Exibição de Preço</label>
-                <select
-                  value={priceMode}
-                  onChange={e => setPriceMode(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100"
-                >
-                  <option value="preco_cheio">Preço à Vista Cheio</option>
-                  <option value="entrada_parcelas">Entrada + Parcelas (Tabela Price)</option>
-                  <option value="sem_preco">Sem Preço ("Consulte Condições")</option>
-                </select>
-              </div>
-            </div>
-
-            {priceMode === 'preco_cheio' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Valor à Vista (R$)</label>
-                <input
-                  type="number"
-                  value={selectedVehicle.price}
-                  onChange={e => setSelectedVehicle({ ...selectedVehicle, price: Number(e.target.value) })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-emerald-400 font-mono font-bold"
-                />
-              </div>
-            )}
-
-            {priceMode === 'entrada_parcelas' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Entrada (R$)</label>
-                  <input
-                    type="number"
-                    value={selectedVehicle.entry}
-                    onChange={e => setSelectedVehicle({ ...selectedVehicle, entry: Number(e.target.value) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Parcela Mensal (R$)</label>
-                  <input
-                    type="number"
-                    value={selectedVehicle.installment}
-                    onChange={e => setSelectedVehicle({ ...selectedVehicle, installment: Number(e.target.value) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-emerald-400 font-mono font-bold"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Escolha do Layout & Enquadramento */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">2. Estilo Visual & Enquadramento</h3>
-            
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { id: 'apex_minimal', name: 'Visual minimalista', desc: 'Serifada elegante e minimalista' },
-                { id: 'bold_impact', name: 'Dark Bold Impact', desc: 'Contraste grafite e esmeralda' },
-                { id: 'showcase_trio', name: 'Editorial 3 Fotos', desc: 'Grade tripla frontal, interna e lateral' }
-              ].map(t => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setTemplate(t.id)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
-                    template === t.id
-                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
-                      : 'border-slate-800 bg-slate-800/40 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-slate-100">{t.name}</div>
-                  <div className="text-[10px] text-slate-400 mt-1">{t.desc}</div>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-4 pt-2">
-              <span className="text-xs text-slate-400">Ajuste de Enquadramento:</span>
-              <button
-                type="button"
-                onClick={() => setFraming('cover')}
-                className={`px-3 py-1 text-xs rounded-lg border ${framing === 'cover' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-700 text-slate-400'}`}
-              >
-                Preencher (Cover)
-              </button>
-              <button
-                type="button"
-                onClick={() => setFraming('contain')}
-                className={`px-3 py-1 text-xs rounded-lg border ${framing === 'contain' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-700 text-slate-400'}`}
-              >
-                Manter Proporção (Contain)
-              </button>
-            </div>
-          </div>
-
-          {/* Painel Instagram Graph API (Regra: Transparência quando não configurado) */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-pink-400">
-                <Instagram className="w-5 h-5" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-100">Publicação Direta no Instagram</h3>
-              </div>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                instagramStatus?.configured
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-              }`}>
-                {instagramStatus?.configured ? 'API Conectada' : 'Não Configurado'}
-              </span>
-            </div>
-
-            {!instagramStatus?.configured && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-200/90 leading-relaxed">
-                As variáveis <code>INSTAGRAM_ACCESS_TOKEN</code> e <code>INSTAGRAM_ACCOUNT_ID</code> não estão configuradas no servidor. O sistema não simula envios falsos: você pode fazer download da imagem vertical e publicá-la no aplicativo.
-              </div>
-            )}
-
-            {publishFeedback && (
-              <div className={`p-3 rounded-xl text-xs ${publishFeedback.success ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}`}>
-                {publishFeedback.message || publishFeedback.error || 'Ação registrada.'}
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleDownload}
-                className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-colors"
-              >
-                <Download className="w-4 h-4 text-emerald-400" />
-                Baixar Story (1080x1920)
-              </button>
-              <button
-                type="button"
-                onClick={handleShare}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-                Compartilhar
-              </button>
-              <button
-                type="button"
-                disabled={loadingPublish}
-                onClick={handlePublishInstagram}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-pink-500/20"
-              >
-                <Instagram className="w-4 h-4" />
-                {loadingPublish ? 'Enviando...' : 'Publicar Story'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Coluna da Direita: Mockup do Smartphone 9:16 */}
-        <div className="lg:col-span-5 flex justify-center">
-          <div className="relative w-[300px] h-[600px] bg-slate-950 rounded-[44px] p-3 shadow-2xl border-4 border-slate-700 ring-1 ring-slate-600 flex flex-col overflow-hidden">
-            {/* Notch / Speaker */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-full z-30" />
-
-            {/* Conteúdo do Story */}
-            <div className="relative w-full h-full rounded-[34px] overflow-hidden bg-slate-900 flex flex-col justify-between p-4 z-10 text-white">
-              {/* Background Image */}
-              <img
-                src={selectedPhotos[0]}
-                alt="Story preview"
-                className={`absolute inset-0 w-full h-full ${framing === 'cover' ? 'object-cover' : 'object-contain'} -z-10 brightness-75`}
-              />
-
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/70 -z-0" />
-
-              {/* Top Header */}
-              <div className="relative z-10 pt-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] font-black text-black">
-                    AP
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold tracking-wider">APEX LUXURY</div>
-                    <div className="text-[9px] text-emerald-400 font-mono">SELEÇÃO EXCLUSIVA</div>
-                  </div>
-                </div>
-                <span className="text-[9px] bg-black/60 px-2 py-0.5 rounded-full border border-white/20 text-slate-300">
-                  HD 1080p
-                </span>
-              </div>
-
-              {/* Bottom Card Content */}
-              <div className="relative z-10 space-y-2 pb-3">
-                <div className="text-lg font-black leading-tight drop-shadow-md">
-                  {selectedVehicle.title}
-                </div>
-                <div className="text-xs text-slate-300 font-medium">
-                  {selectedVehicle.year} • {selectedVehicle.km.toLocaleString('pt-BR')} km
-                </div>
-
-                {priceMode === 'preco_cheio' && (
-                  <div className="pt-1">
-                    <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">À Vista</div>
-                    <div className="text-xl font-black font-mono text-white drop-shadow">
-                      {formatBrl(selectedVehicle.price)}
-                    </div>
-                  </div>
-                )}
-
-                {priceMode === 'entrada_parcelas' && (
-                  <div className="pt-1">
-                    <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Plano Especial</div>
-                    <div className="text-xs text-slate-200">Entrada {formatBrl(selectedVehicle.entry)} +</div>
-                    <div className="text-lg font-black font-mono text-white">48x de {formatBrl(selectedVehicle.installment)}</div>
-                  </div>
-                )}
-
-                {priceMode === 'sem_preco' && (
-                  <div className="pt-2">
-                    <span className="inline-block px-3 py-1 bg-emerald-500 text-black text-xs font-bold rounded-lg uppercase tracking-wider">
-                      Consulte Condições
-                    </span>
-                  </div>
-                )}
-
-                <div className="pt-2 text-center">
-                  <div className="inline-block text-[10px] bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-slate-200 border border-white/30">
-                    Toque para falar no WhatsApp
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <aside className="space-y-3 lg:sticky lg:top-6"><p className="text-sm font-semibold text-slate-300">Prévia da arte · 9:16</p><div className="rounded-3xl border-4 border-slate-700 bg-slate-950 p-2 w-full max-w-[344px] mx-auto"><StoryPreview story={story} /></div></aside>
     </div>
-  );
+    <section className={panel}><h2 className="text-lg font-semibold text-white">Histórico de publicações</h2>{!history.length && <p className="text-sm text-slate-400">Sua primeira publicação aparecerá aqui. Escolha uma arte e clique em Publicar Story.</p>}
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">{history.map(item => <article key={item.id} className="rounded-xl border border-slate-700 p-4 space-y-2"><p className="font-semibold text-white">{item.story?.vehicle.title || item.vehicle_title}</p><p className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString('pt-BR')}</p><p className="text-xs text-cyan-200">{item.status === 'sample_published' ? 'Publicado na prévia' : item.status}</p>{item.story && <button type="button" onClick={() => setPublished(item)} className="min-h-11 text-sm text-pink-200 underline underline-offset-4">Ver publicação</button>}</article>)}</div>
+      {published?.story && <div data-publication-id={published.id} className="mt-4 rounded-2xl bg-slate-950 p-4 sm:p-6 flex flex-col sm:flex-row gap-6 items-start"><div className="w-full max-w-[280px] shrink-0"><p className="text-xs text-pink-200 mb-3">Instagram · @{published.account} · Exemplo</p><StoryPreview story={published.story} /></div><div className="space-y-3"><h3 className="font-semibold text-white">Publicação de exemplo</h3><p className="text-sm text-slate-300 whitespace-pre-wrap break-words">{published.caption}</p><p className="text-xs text-slate-400">A arte e a legenda ficam registradas como foram publicadas, mesmo depois de editar outro Story.</p><button type="button" className="min-h-11 text-sm text-slate-300" onClick={() => setPublished(null)}>Fechar prévia</button></div></div>}
+    </section>
+  </div>;
 }
-

@@ -107,7 +107,7 @@ for (const [key, route] of Object.entries(merchantRoutes)) {
 }
 `;
 const result = buildSync({ stdin: { contents: source, resolveDir: process.cwd(), loader: 'jsx' },
-  bundle: true, platform: 'node', format: 'cjs', write: false, logLevel: 'silent',
+  bundle: true, platform: 'node', format: 'cjs', write: false, logLevel: 'silent', loader: { '.jpg': 'dataurl' },
   define: { 'import.meta.env.BASE_URL': JSON.stringify('/Sites-principal/auto-dealership/'), 'import.meta.env.VITE_MERCHANT_DEMO': 'true' },
 });
 new Function('require', 'module', 'exports', result.outputFiles[0].text)(require, { exports: {} }, {});

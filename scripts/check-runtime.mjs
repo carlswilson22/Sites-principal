@@ -77,6 +77,12 @@ for (const [model, scenario] of scenarios) {
   const loginForm = () => document.querySelector('form[aria-label="Login da loja"]');
   const registrationForm = () => document.querySelector('form[aria-label="Criar conta de cliente"]');
   const favoriteShortcut = () => document.querySelector('button[aria-label="Ver carros favoritos"]');
+  const changeField = async (field, value) => {
+    const prototype = field instanceof window.HTMLSelectElement ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
+    Object.getOwnPropertyDescriptor(prototype, 'value').set.call(field, value);
+    field.dispatchEvent(new window.Event(field instanceof window.HTMLSelectElement ? 'change' : 'input', { bubbles: true }));
+    await new Promise(resolve => setTimeout(resolve, 20));
+  };
   const setLoginFields = async (email, password) => {
     await wait(() => loginForm());
     const form = loginForm();
@@ -120,6 +126,7 @@ for (const [model, scenario] of scenarios) {
     await submitLogin(`${role}@demo.invalid`, 'Demonstracao@2026');
     assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.role, role, 'Login único identificou um perfil incorreto');
     assert(document.querySelector('button[aria-label="Painel do lojista"]'), 'Equipe autenticada sem acesso ao painel');
+    if (model === 'popular-dealership') assert(document.querySelector('button[aria-label="Minha conta"]').compareDocumentPosition(favoriteShortcut()) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Favoritos não foi movido para depois do perfil');
     document.querySelector('button[aria-label="Painel do lojista"]').click();
     await wait(() => button('Contratos & Termos'));
     assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Seletor público de cargos ainda disponível');
@@ -142,6 +149,7 @@ for (const [model, scenario] of scenarios) {
       assert(!document.querySelector('a[href="#explorar-enterprise"]'), 'Atalho de rolagem continua na abertura');
       for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(!buttons().find(item => item.textContent.includes(label)), `Atalho não foi movido para o estoque: ${label}`);
       assert(favoriteShortcut() && favoriteShortcut().dataset.favoritesCount === '0', 'Visitante não recebeu o atalho de favoritos vazio');
+      assert(button('Entrar').compareDocumentPosition(favoriteShortcut()) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Atalho de favoritos não fica após o login');
       if (fullFlow) {
         favoriteShortcut().click();
         await wait(() => loginForm());
@@ -459,6 +467,84 @@ for (const [model, scenario] of scenarios) {
           assert(!document.querySelector('main').textContent.includes('Não foi possível abrir esta seção'), `Rota com erro: ${model}/${role}/${label}`);
           checkedRoutes += 1;
         }
+      }
+      if (model === 'popular-dealership') {
+        button('Estúdio de Stories 1080p').click();
+        await wait(() => button('Publicar Story') && !button('Publicar Story').disabled);
+        assert(document.querySelector('main').textContent.includes('Conta de exemplo'));
+        assert(!document.querySelector('main').textContent.includes('INSTAGRAM_ACCESS_TOKEN'));
+        button('Editorial · 3 fotos').click();
+        await wait(() => document.querySelector('[data-story-template="showcase_trio"]'));
+        assert.equal(document.querySelector('[data-story-template]').querySelectorAll('img').length, 3, 'Layout editorial não mostra três fotos');
+        button('Publicar Story').click(); button('Publicar Story')?.click();
+        await wait(() => document.querySelector('[data-publication-id]'));
+        const samplesKey = 'store_tool_samples_' + storeKey;
+        const publication = JSON.parse(window.localStorage.getItem(samplesKey)).stories[0];
+        assert.equal(JSON.parse(window.localStorage.getItem(samplesKey)).stories.length, 1, 'Clique repetido duplicou a publicação');
+        assert.equal(publication.story.template, 'showcase_trio');
+        const titleField = [...document.querySelectorAll('label')].find(label => label.textContent.includes('Título da arte')).querySelector('input');
+        await changeField(titleField, 'Título editado depois');
+        assert.equal(JSON.parse(window.localStorage.getItem(samplesKey)).stories[0].story.vehicle.title, publication.story.vehicle.title, 'Edição alterou a publicação salva');
+        button('Fechar prévia').click();
+        button('Ver publicação').click();
+        await wait(() => document.querySelector('[data-publication-id]'));
+        assert.equal(document.querySelector('[data-publication-id] h3').textContent, publication.story.vehicle.title);
+        button('Consignação Completa').click();
+        await wait(() => button('Nova Consignação'));
+        button('Nova Consignação').click();
+        await wait(() => document.querySelector('select[aria-label="Veículo em consignação"]'));
+        const consignmentForm = button('Registrar Consignação').form;
+        button('Preencher dados de exemplo').click();
+        await wait(() => [...consignmentForm.querySelectorAll('input')].some(field => field.value === '000.000.000-00'));
+        const vehicleField = consignmentForm.querySelector('select[aria-label="Veículo em consignação"]');
+        await changeField(vehicleField, vehicleField.options[1].value);
+        await changeField(consignmentForm.querySelector('input[type="text"]'), 'Consignante de exemplo');
+        assert(consignmentForm.checkValidity(), 'Formulário de exemplo não está pronto para envio');
+        consignmentForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+        await wait(() => !button('Registrar Consignação') && document.querySelector('main').textContent.includes('Consignante de exemplo'));
+        button('Contratos Avançados & Troca').click();
+        await wait(() => button('Gerar e Emitir Minuta Contratual'));
+        button('Gerar e Emitir Minuta Contratual').form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+        await wait(() => document.querySelector('iframe[title="Prévia da minuta"]'));
+        const contract = JSON.parse(window.localStorage.getItem(samplesKey)).contracts[0];
+        assert(document.querySelector('iframe').srcdoc.includes(contract.vehicleTitle));
+        assert(document.querySelector('iframe').srcdoc.includes('CLÁUSULA 2ª'));
+        const contractType = button('Gerar e Emitir Minuta Contratual').form.querySelector('select');
+        await changeField(contractType, 'termo_aditivo');
+        const original = document.querySelector('select[aria-label="Contrato original"]');
+        await changeField(original, contract.id);
+        button('Gerar e Emitir Minuta Contratual').form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+        await wait(() => JSON.parse(window.localStorage.getItem(samplesKey)).contracts.length === 2);
+        assert(document.querySelector('iframe').srcdoc.includes(contract.code), 'Aditivo sem vínculo à minuta');
+        button('Auditoria & LGPD').click();
+        await wait(() => button('Exportar Dados (Art. 18, II)'));
+        button('Exportar Dados (Art. 18, II)').form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+        await wait(() => button('Baixar arquivo JSON'));
+        assert(document.querySelector('main pre').textContent.includes('Marina Oliveira'));
+        window.confirm = () => true;
+        button('Anonimizar Titular (Art. 18, VI)').click();
+        await wait(() => document.querySelector('main').textContent.includes('Cliente de exemplo anonimizado'));
+        button('Exportar Dados (Art. 18, II)').form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+        await wait(() => document.querySelector('main pre')?.textContent.includes('Titular anonimizado'));
+        assert(!document.querySelector('main pre').textContent.includes('90000-0000'));
+        assert(document.querySelector('main').textContent.includes('STORY_PUBLICADO_NA_PREVIA'));
+        button('Estúdio de Stories 1080p').click();
+        await wait(() => button('Ver publicação'));
+        button('Ver publicação').click();
+        await wait(() => document.querySelector('[data-publication-id]'));
+        assert.equal(document.querySelector('[data-publication-id]').dataset.publicationId, publication.id, 'Histórico não foi restaurado');
+        button('DRE & Comissões Vendedores').click();
+        await wait(() => button('Catálogo Portais (CSV)'));
+        const downloads = [];
+        const blobs = [];
+        window.URL.createObjectURL = blob => { blobs.push(blob); return 'blob:sample-' + blobs.length; };
+        window.URL.revokeObjectURL = () => {};
+        window.HTMLAnchorElement.prototype.click = function () { downloads.push(this.download); };
+        button('Catálogo Portais (CSV)').click();
+        assert.equal(downloads.at(-1), 'catalogo-veiculos.csv');
+        assert.equal(blobs.at(-1).type, 'text/csv;charset=utf-8');
+        assert(!openedWindows.some(([url]) => String(url).includes('/api/tier3/portals/export')), 'Exportação abriu uma rota inexistente');
+        console.log('OK: Enterprise (publicação de Story, histórico, consignação, minutas, aditivo e anonimização)');
       }
       await signOut();
       assert(!document.querySelector('nav[aria-label="Navegação do painel"]'), 'Painel continuou montado após sair');

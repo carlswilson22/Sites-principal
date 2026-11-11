@@ -1,3 +1,5 @@
+import enterpriseHome from '../assets/enterprise-home.jpg';
+
 export const modelsList = [
   {
     id: 'auto-dealership',
@@ -50,7 +52,7 @@ export const modelsList = [
     badge: 'Tier 3 • Mais Completo',
     status: 'available',
     path: 'popular-dealership/',
-    previewImage: 'images/enterprise-showroom.jpg',
+    previewImage: enterpriseHome,
     presentation: 'explorer',
     description: 'Uma vitrine panorâmica com animação em destaque, espaço para reunir suas escolhas e filtros em uma faixa horizontal. Fotos amplas e comparação de veículos ajudam o cliente a explorar antes de decidir.',
     features: [
