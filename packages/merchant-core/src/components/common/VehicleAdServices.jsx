@@ -1,25 +1,17 @@
-import React, { forwardRef, lazy, Suspense, useCallback, useEffect, useId, useImperativeHandle, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { MessageCircle, ChevronDown } from 'lucide-react';
 import { VehicleFinancingSection } from './VehicleFinancingSection';
 
 const StoreConciergePage = lazy(() => import('../../pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 
-export const VehicleAdServices = forwardRef(function VehicleAdServices({ vehicle, dealership, storeKey, initialFinancing = false }, ref) {
+export function VehicleAdServices({ vehicle, dealership, storeKey, initialFinancing = false }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMounted, setChatMounted] = useState(false);
-  const [chatRequest, setChatRequest] = useState(0);
   const [financingRequest, setFinancingRequest] = useState(0);
   const chatRef = useRef(null);
   const financingRef = useRef(null);
   const id = useId();
   const focusChat = useCallback(() => chatRef.current?.querySelector('textarea')?.focus({ preventScroll: true }), []);
-  useImperativeHandle(ref, () => ({ openChat: () => { setChatMounted(true); setChatOpen(true); setChatRequest(value => value + 1); } }), []);
-  useEffect(() => {
-    if (chatRequest > 0) {
-      chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      focusChat();
-    }
-  }, [chatRequest, focusChat]);
   useEffect(() => {
     if (initialFinancing || financingRequest > 0) financingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [initialFinancing, financingRequest]);
@@ -30,4 +22,4 @@ export const VehicleAdServices = forwardRef(function VehicleAdServices({ vehicle
     </section>
     <div ref={financingRef} className="scroll-mt-4"><VehicleFinancingSection vehicle={vehicle} dealership={dealership} storeKey={storeKey} initialOpen={initialFinancing} openRequest={financingRequest} /></div>
   </div>;
-});
+}

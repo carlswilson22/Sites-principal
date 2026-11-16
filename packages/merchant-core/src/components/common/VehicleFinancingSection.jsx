@@ -18,7 +18,7 @@ export function VehicleFinancingSection({ vehicle, dealership, storeKey, initial
       <ChevronDown aria-hidden="true" className={`w-5 h-5 transition-transform ${open ? 'rotate-180' : ''}`} />
     </button>
     <div id={id} hidden={!open || !user} className="p-4 sm:p-5 border-t border-slate-700">
-      {mounted && user && <FinancingCalculator vehicles={[vehicle]} preselectedVehicle={vehicle} lockedVehicle dealership={dealership} storeKey={storeKey} />}
+      {mounted && user && <FinancingCalculator vehicles={[vehicle]} preselectedVehicle={vehicle} lockedVehicle showContact={false} dealership={dealership} storeKey={storeKey} />}
     </div>
   </section>;
 }

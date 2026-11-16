@@ -15,6 +15,11 @@ movimento reduzido. A TCO preserva os valores ao recolher; fechar o giro 360°
 interrompe a animação. TCO e 360° continuam exclusivos do Enterprise na
 configuração inicial, e a galeria expandida carrega suas fotos sob demanda.
 
+Cada anúncio mantém um único botão de WhatsApp no rodapé, **Tenho interesse**.
+Abrir o chat, solicitar uma visita na conversa ou usar o simulador não cria
+outros botões de WhatsApp dentro do anúncio. Os cards de veículos usam o mesmo
+texto. O atendimento e o simulador continuam disponíveis nas seções do anúncio.
+
 ## Cliente
 
 Ao usar uma ferramenta pessoal, o site abre o login e mantém a página atual.

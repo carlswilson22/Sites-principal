@@ -278,6 +278,21 @@ for (const [model, scenario] of scenarios) {
       await wait(() => document.querySelector('[data-concierge-vehicle] textarea'));
       assert(!loginForm(), 'Atendimento público exigiu login');
       const ad = document.querySelector('[role="dialog"]');
+      const assertSingleWhatsapp = () => {
+        const contacts = [...ad.querySelectorAll('a[href]')].filter(link => ['wa.me', 'api.whatsapp.com', 'web.whatsapp.com'].includes(new URL(link.href).hostname));
+        assert.equal(contacts.length, 1, 'Anúncio com contatos de WhatsApp duplicados');
+        assert.equal(contacts[0].textContent.trim(), 'Tenho interesse');
+        assert(new URL(contacts[0].href).searchParams.get('text').includes(ad.getAttribute('aria-label')), 'Contato perdeu o contexto do veículo');
+        assert(!button('Tirar dúvidas'), 'Atalho duplicado de atendimento permanece no anúncio');
+      };
+      assertSingleWhatsapp();
+      for (let visit = 0; visit < 3; visit += 1) {
+        const log = ad.querySelector('[role="log"]');
+        const count = log.children.length;
+        button('Visitar a loja').click();
+        await wait(() => log.children.length > count);
+        assertSingleWhatsapp();
+      }
       button('Simular financiamento deste veículo').click();
       await wait(() => loginForm());
       assert(!document.querySelector('[data-financing-vehicle]') && ad.isConnected, 'Simulador abriu antes do login ou fechou o anúncio');
@@ -317,6 +332,8 @@ for (const [model, scenario] of scenarios) {
       assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Credenciais inválidas liberaram o painel');
       await submitLogin('  CLIENTE@DEMO.INVALID  ', 'Cliente@2026');
       await wait(() => document.querySelector('[data-financing-vehicle]'));
+      assertSingleWhatsapp();
+      assert(!ad.querySelector('[data-financing-vehicle] a[href*="wa.me"]'), 'Simulador criou outro botão de WhatsApp no anúncio');
       assert.equal(document.querySelector('[data-financing-vehicle]').dataset.financingVehicle, ad.dataset.vehicleId, 'Login perdeu o contexto do veículo');
       assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente autenticado recebeu o painel');
       if (model === 'popular-dealership') {

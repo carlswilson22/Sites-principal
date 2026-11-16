@@ -75,10 +75,12 @@ for (const [name, Component, props] of [
       }
     }
     if (name.startsWith('card-modelo-')) {
+      if (html.split('href="https://wa.me/').length - 1 !== 1 || !html.includes('Tenho interesse')) throw new Error('Card sem contato único Tenho interesse');
       if (!html.includes('Visualizar anúncio') || !['Combustível', 'Motor', 'Potência'].every(label => html.includes(label))) throw new Error('Informações ou CTA do card incorretos');
       if (html.includes(props.vehicle.cambio)) throw new Error('Card ainda mostra transmissão abreviada');
     }
     if (name.startsWith('anuncio-')) {
+      if (html.split('href="https://wa.me/').length - 1 !== 1 || html.includes('Tirar dúvidas')) throw new Error('Contato duplicado no anúncio');
       const count = getVehicleGallery(props.vehicle).length;
       if (!html.includes(count ? 'Foto 1 de ' + count : 'Sem fotos cadastradas')) throw new Error('Contador da galeria incorreto');
       if (count > 1 && !html.includes('Ver foto ' + count + ' de ' + count)) throw new Error('Navegação de fotos incompleta');

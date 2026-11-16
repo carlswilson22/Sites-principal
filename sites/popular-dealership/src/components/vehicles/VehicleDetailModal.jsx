@@ -9,7 +9,7 @@ import { VehiclePhotoCredit } from '../../../../../packages/merchant-core/src/co
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
 import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X, ShieldCheck, CheckCircle2, MessageCircle,
   Award, ChevronLeft, ChevronRight, RotateCw,
@@ -31,7 +31,6 @@ export function VehicleDetailModal({
   onToggleFavorite 
 }) {
   const dialogRef = useDialog(onClose);
-  const servicesRef = useRef(null);
   const images = useMemo(() => getVehicleGallery(vehicle), [vehicle]);
   const orbitalImages = useMemo(() => hasVehicle360(dealershipInfo) ? getVehicle360Images(vehicle) : [], [vehicle]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -195,7 +194,7 @@ export function VehicleDetailModal({
               ))}
             </div>
           </div>
-          <VehicleAdServices ref={servicesRef} key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="apexluxury" initialFinancing={initialFinancing} />
+          <VehicleAdServices key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="apexluxury" initialFinancing={initialFinancing} />
           <VehicleAdTools key={`tools-${vehicle.id}`} theme="cyan" tools={[
             { id: 'tco', label: 'Calculadora TCO', icon: Calculator, keepMounted: true, content: <TcoCalculatorCard vehicle={vehicle} /> },
             ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-5 rounded-2xl border border-slate-700 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),
@@ -255,7 +254,6 @@ export function VehicleDetailModal({
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
 
-            <Button variant="outline" size="md" icon={MessageCircle} onClick={() => servicesRef.current?.openChat()} className="flex-1 sm:flex-none">Tirar dúvidas</Button>
 
             <Button
               variant="primary"

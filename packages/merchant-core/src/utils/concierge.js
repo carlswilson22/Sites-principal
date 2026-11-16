@@ -4,12 +4,12 @@ const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300
 
 export function conciergeReply(message, vehicles = [], dealership = {}, vehicle = null) {
   const query = normalize(message);
-  if (/funcionario|pessoa|humano|vendedor|whatsapp/.test(query)) return { text: 'Para conversar com um funcionário, use “Falar com a equipe no WhatsApp”. Você decide quando continuar por lá.', action: 'human' };
+  if (/funcionario|pessoa|humano|vendedor|whatsapp/.test(query)) return { text: vehicle ? 'Para conversar com um funcionário, use “Tenho interesse” no final deste anúncio.' : 'Para conversar com um funcionário, use “Falar com a equipe no WhatsApp”. Você decide quando continuar por lá.', action: 'human' };
   if (/horario|endereco|localiza|onde fica|showroom/.test(query)) {
     const address = dealership.endereco || {};
     return { text: `${dealership.nome}: ${[address.logradouro, address.bairro, address.cidade, address.uf].filter(Boolean).join(', ')}. ${Object.values(dealership.horarios || {}).join('. ')}.`, action: 'visit' };
   }
-  if (/visita|agendar|test.?drive/.test(query)) return { text: `Combine o dia e horário diretamente com o lojista pelo WhatsApp${vehicle ? ` para conhecer o ${vehicle.nome || vehicle.title}` : ''}. Use a opção abaixo para continuar com a equipe.`, action: 'visit' };
+  if (/visita|agendar|test.?drive/.test(query)) return { text: `Combine o dia e horário diretamente com o lojista pelo WhatsApp${vehicle ? ` para conhecer o ${vehicle.nome || vehicle.title}. Use “Tenho interesse” no final deste anúncio` : '. Use a opção abaixo para continuar com a equipe'}.`, action: 'visit' };
   if (/financia|parcela|entrada|simula/.test(query)) return { text: vehicle ? 'O simulador está no final deste anúncio. Ajuste entrada, prazo e taxa para consultar uma estimativa, sem sair daqui.' : 'Abra um anúncio e escolha “Simular financiamento deste veículo”. Você ajusta entrada, prazo e taxa sem sair do anúncio.', action: vehicle ? 'financing' : 'inventory' };
   if (vehicle) {
     const name = vehicle.nome || vehicle.title;

@@ -94,7 +94,7 @@ export function VehicleCard({ vehicle, onSelect, layout = 'grid', index }) {
               className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5"
             >
               <MessageCircle className="w-3.5 h-3.5 fill-black" />
-              <span>Equipe no WhatsApp</span>
+              <span>Tenho interesse</span>
             </a>
           </div>
         </div>

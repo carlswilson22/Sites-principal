@@ -41,7 +41,6 @@ export function StoreConciergePage({ dealership, storeKey, vehicles = [], onSele
             const vehicle = vehicles.find(item => String(item.id) === String(vehicleId));
             return vehicle && <button key={vehicleId} type="button" onClick={() => onSelectVehicle(vehicle)} className="flex items-center gap-3 w-full p-3 text-left rounded-xl border border-slate-600 hover:border-blue-300"><VehicleImage src={vehicle.imagemPrincipal} alt="" className="w-20 h-14 object-cover rounded-lg shrink-0" /><span>{vehicle.nome}<span className="block text-blue-200">{money(vehicle.preco)}</span></span></button>;
           })}
-          {message.action === 'visit' && whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(handoff)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center underline text-white min-h-11">Combinar visita com o lojista no WhatsApp</a>}
           {!embedded && message.action === 'inventory' && <button type="button" onClick={() => onNavigate('estoque')} className="underline text-white min-h-11">Ver estoque</button>}
           {embedded && message.action === 'financing' && <button type="button" onClick={onShowFinancing} className="underline text-white min-h-11">Abrir simulador neste anúncio</button>}
           {message.action === 'request' && <button type="button" onClick={() => setRequest('preference')} className="underline text-white min-h-11">Registrar minha preferência</button>}
@@ -55,7 +54,8 @@ export function StoreConciergePage({ dealership, storeKey, vehicles = [], onSele
         <button type="submit" disabled={!input.trim()} aria-label="Enviar mensagem" className="min-h-12 min-w-12 flex justify-center items-center rounded-xl bg-blue-600 text-white disabled:opacity-40"><Send aria-hidden="true" className="w-5 h-5" /></button>
       </form>
     </div>
-    <div className="flex flex-wrap gap-3"><button type="button" onClick={() => setRequest(value => value ? null : 'preference')} aria-expanded={Boolean(request)} className="min-h-11 px-4 py-3 rounded-xl border border-slate-600 text-white">Registrar preferência</button>{whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(handoff)}`} target="_blank" rel="noopener noreferrer" className="min-h-11 px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-semibold inline-flex items-center gap-2"><MessageCircle className="w-4 h-4" />Falar com a equipe no WhatsApp</a>}</div>
+    <div className="flex flex-wrap gap-3"><button type="button" onClick={() => setRequest(value => value ? null : 'preference')} aria-expanded={Boolean(request)} className="min-h-11 px-4 py-3 rounded-xl border border-slate-600 text-white">Registrar preferência</button>{!embedded && whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(handoff)}`} target="_blank" rel="noopener noreferrer" className="min-h-11 px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-semibold inline-flex items-center gap-2"><MessageCircle className="w-4 h-4" />Falar com a equipe no WhatsApp</a>}</div>
+    {embedded && <p className="text-xs text-slate-400">Para conversar diretamente com a loja, use “Tenho interesse” no final do anúncio.</p>}
     {request && <div className="p-5 rounded-2xl border border-slate-700 bg-slate-900"><StoreRequestForm storeKey={storeKey} vehicle={vehicle} context={messages.filter(message => message.role === 'user').slice(-5).map(message => message.text).join('\n')} /></div>}
   </section>;
 }

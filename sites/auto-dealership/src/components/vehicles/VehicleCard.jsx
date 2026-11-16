@@ -122,7 +122,7 @@ export function VehicleCard({ vehicle, onSelect, show360Badge = true }) {
               rel="noopener noreferrer"
               className="w-full"
             >
-              WhatsApp
+              Tenho interesse
             </Button>
           </div>
         </div>

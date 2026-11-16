@@ -33,6 +33,8 @@ test('atendimento no anúncio responde sobre o próprio veículo e mantém finan
   assert.match(conciergeReply('Qual o preço?', vehicles, {}, vehicle).text, /Hyundai HB20.*65\.000/);
   assert.equal(conciergeReply('Simular financiamento', vehicles, {}, vehicle).action, 'financing');
   assert.equal(conciergeReply('Agendar visita', vehicles, {}, vehicle).action, 'visit');
+  assert.match(conciergeReply('Agendar visita', vehicles, {}, vehicle).text, /Tenho interesse/);
+  assert.match(conciergeReply('Falar com funcionário', vehicles, {}, vehicle).text, /Tenho interesse/);
   assert.match(conciergeReply('Ver laudo', vehicles, {}, vehicle).text, /não tem um status de laudo informado/);
 });
 test('registro de preferência valida nome e telefone do contato', () => {

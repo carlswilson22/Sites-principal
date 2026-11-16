@@ -95,7 +95,7 @@ export function FeaturedSection({ vehicle, onSelect }) {
                 rel="noopener noreferrer"
                 className="flex-1"
               >
-                Enviar Proposta
+                Tenho interesse
               </Button>
               <Button
                 variant="outline"
