@@ -116,7 +116,7 @@ export function VehicleDetailModal({
         </div>
 
         {/* Conteúdo com Scroll */}
-        <div className="overflow-y-auto p-4 sm:p-6 space-y-6">
+        <div data-vehicle-ad-scroll className="overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Topo: Nome, Ano e Preço */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-slate-800">
             <div>

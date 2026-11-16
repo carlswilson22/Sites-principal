@@ -1,5 +1,5 @@
-import React, { useId, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { ChevronDown, X } from 'lucide-react';
 
 const themes = {
   blue: 'border-blue-400 bg-blue-600 text-white',
@@ -9,6 +9,9 @@ const themes = {
 
 export function VehicleAdTools({ tools, theme = 'blue' }) {
   const id = useId();
+  const sectionRef = useRef(null);
+  const controlsRef = useRef(null);
+  const previousActive = useRef(null);
   const [active, setActive] = useState(null);
   const [visited, setVisited] = useState(() => new Set());
 
@@ -17,8 +20,27 @@ export function VehicleAdTools({ tools, theme = 'blue' }) {
     setVisited(previous => new Set([...previous, toolId]));
   };
 
-  return <section data-vehicle-tools aria-label="Ferramentas do anúncio" className="space-y-4">
-    <div className="flex flex-wrap gap-2">
+  useEffect(() => {
+    const previous = previousActive.current;
+    previousActive.current = active;
+    if (!active && !previous) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const scroller = sectionRef.current?.closest('[data-vehicle-ad-scroll]');
+      const target = active ? document.getElementById(`${id}-${active}-panel`) : controlsRef.current;
+      if (!scroller || !target) return;
+      if (active) target.querySelector('[data-close-ad-tool]')?.focus({ preventScroll: true });
+      else document.getElementById(`${id}-${previous}-button`)?.focus({ preventScroll: true });
+      const top = Math.max(0, scroller.scrollTop + target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - scroller.clientTop - 12);
+      const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth';
+      if (typeof scroller.scrollTo === 'function') scroller.scrollTo({ top, behavior });
+      else scroller.scrollTop = top;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [active, id]);
+
+  return <section ref={sectionRef} data-vehicle-tools aria-label="Ferramentas do anúncio" className="space-y-4">
+    <div ref={controlsRef} data-ad-tool-controls className="flex flex-wrap gap-2">
       {tools.map(tool => <button
         key={tool.id}
         id={`${id}-${tool.id}-button`}
@@ -42,7 +64,15 @@ export function VehicleAdTools({ tools, theme = 'blue' }) {
       aria-labelledby={`${id}-${tool.id}-button`}
       hidden={active !== tool.id}
     >
-      {(active === tool.id || (tool.keepMounted && visited.has(tool.id))) && tool.content}
+      {(active === tool.id || (tool.keepMounted && visited.has(tool.id))) && <>
+        <div className="sticky top-0 z-10 mb-4 flex items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-950 p-3">
+          <h3 className="min-w-0 text-sm font-semibold text-white">{tool.label}</h3>
+          <button type="button" data-close-ad-tool={tool.id} aria-label={`Fechar ${tool.label}`} onClick={() => setActive(null)} className="min-h-11 shrink-0 inline-flex items-center gap-2 rounded-lg px-3 text-sm font-semibold text-slate-200 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <X aria-hidden="true" className="w-4 h-4" />Fechar
+          </button>
+        </div>
+        {tool.content}
+      </>}
     </div>)}
   </section>;
 }

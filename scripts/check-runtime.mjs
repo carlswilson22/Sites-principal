@@ -37,7 +37,13 @@ for (const [model, scenario] of scenarios) {
   if (scenario === 'legacy-favorites') window.localStorage.setItem('drivenow_favorites_v1', '[1,"1",999,2]');
   if (scenario === 'legacy-staff') window.sessionStorage.setItem('merchant_demo_user', JSON.stringify({ id: 1, role: 'proprietario', email: 'proprietario@demo.invalid', demo: true }));
   if (scenario === 'invalid-account') window.sessionStorage.setItem(`store_access_${storeKey}`, '{invalid');
-  window.scrollTo = () => {};
+  const windowScrollCalls = [];
+  const elementScrollCalls = [];
+  window.scrollTo = options => windowScrollCalls.push(options);
+  window.HTMLElement.prototype.scrollTo = function (options) {
+    elementScrollCalls.push({ element: this, ...options });
+    this.scrollTop = options.top;
+  };
   window.fetch = async input => {
     const url = new URL(String(input), window.location.href);
     const file = path.join(directory, url.pathname.split(`/${model}/`)[1] || '');
@@ -215,11 +221,22 @@ for (const [model, scenario] of scenarios) {
       assert(services.compareDocumentPosition(tools) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Ferramentas não estão no final do anúncio');
       const controls = [...tools.querySelectorAll('[data-ad-tool]')];
       const panelFor = control => document.getElementById(control.getAttribute('aria-controls'));
+      const scroller = vehicleAd.querySelector('[data-vehicle-ad-scroll]');
+      const toolsRow = tools.querySelector('[data-ad-tool-controls]');
+      assert(scroller && toolsRow, 'Anúncio sem área de rolagem ou linha das ferramentas');
+      assert.equal(elementScrollCalls.length, 0, 'Abrir o anúncio iniciou rolagem sem escolher uma ferramenta');
+      const pageScrollCount = windowScrollCalls.length;
+      scroller.getBoundingClientRect = () => ({ top: 100 });
+      toolsRow.getBoundingClientRect = () => ({ top: 100 + 900 - scroller.scrollTop });
+      for (const control of controls) panelFor(control).getBoundingClientRect = () => ({ top: 100 + 1100 - scroller.scrollTop });
       assert(controls.length > 0 && controls.every(control => control.getAttribute('aria-expanded') === 'false' && panelFor(control).hidden && !panelFor(control).childElementCount), 'Ferramentas carregadas antes do clique');
       for (const control of controls) {
         const panel = panelFor(control);
         control.click();
         await wait(() => control.getAttribute('aria-expanded') === 'true' && !panel.hidden && panel.childElementCount > 0);
+        await wait(() => elementScrollCalls.at(-1)?.top === 1088 && document.activeElement === panel.querySelector('[data-close-ad-tool]'));
+        assert.equal(elementScrollCalls.at(-1).element, scroller, 'Ferramenta rolou fora do anúncio');
+        assert.equal(elementScrollCalls.at(-1).behavior, 'auto', 'Rolagem ignorou movimento reduzido');
         assert(mainGallery.isConnected && mainGallery.querySelector('img'), 'Ferramenta substituiu as fotos principais');
         if (control.dataset.adTool === 'galeria') assert.equal(panel.querySelectorAll('figure').length, mainGallery.querySelectorAll('[data-photo-index]').length, 'Galeria expandida perdeu fotos');
         if (control.dataset.adTool === 'tco') {
@@ -228,12 +245,15 @@ for (const [model, scenario] of scenarios) {
         }
         control.click();
         await wait(() => control.getAttribute('aria-expanded') === 'false' && panel.hidden);
+        await wait(() => elementScrollCalls.at(-1)?.top === 888 && document.activeElement === control);
         if (control.dataset.adTool === '360') assert.equal(panel.childElementCount, 0, 'Visualizador 360° continuou ativo após fechar');
         control.click();
         await wait(() => control.getAttribute('aria-expanded') === 'true' && !panel.hidden);
+        await wait(() => elementScrollCalls.at(-1)?.top === 1088 && document.activeElement === panel.querySelector('[data-close-ad-tool]'));
         if (control.dataset.adTool === 'tco') assert.equal(panel.querySelector('input[type="range"]').value, '1800', 'Fechar a TCO apagou a simulação');
-        control.click();
+        panel.querySelector('[data-close-ad-tool]').click();
         await wait(() => panel.hidden);
+        await wait(() => elementScrollCalls.at(-1)?.top === 888 && document.activeElement === control);
       }
       if (controls.length > 1) {
         controls[0].click();
@@ -242,9 +262,18 @@ for (const [model, scenario] of scenarios) {
         await wait(() => panelFor(controls[0]).hidden && !panelFor(controls.at(-1)).hidden);
         controls.at(-1).click();
         await wait(() => panelFor(controls.at(-1)).hidden);
+        await wait(() => document.activeElement === controls.at(-1));
       }
+      const previousMedia = window.matchMedia;
+      window.matchMedia = () => ({ matches: false });
+      controls[0].click();
+      await wait(() => elementScrollCalls.at(-1)?.top === 1088 && elementScrollCalls.at(-1)?.behavior === 'smooth');
+      panelFor(controls[0]).querySelector('[data-close-ad-tool]').click();
+      await wait(() => elementScrollCalls.at(-1)?.top === 888 && document.activeElement === controls[0]);
+      window.matchMedia = previousMedia;
+      assert.equal(windowScrollCalls.length, pageScrollCount, 'Abrir ou fechar ferramenta rolou a página por trás do anúncio');
       assert(!loginForm(), 'Ferramenta pública do anúncio exigiu login');
-      console.log(`OK: ${model} (ferramentas no final, abertura, segundo clique fecha e galeria preservada)`);
+      console.log(`OK: ${model} (ferramentas, rolagem ao abrir e fechar, foco e movimento reduzido)`);
       button('Atendimento sobre este veículo').click();
       await wait(() => document.querySelector('[data-concierge-vehicle] textarea'));
       assert(!loginForm(), 'Atendimento público exigiu login');

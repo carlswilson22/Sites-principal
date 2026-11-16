@@ -8,7 +8,10 @@ Nos anúncios, as fotos principais continuam no início. Os botões de galeria
 expandida, laudo, ficha e ferramentas disponíveis em cada edição ficam no final,
 depois do atendimento e do financiamento. Os conteúdos adicionais começam
 fechados: clicar abre, clicar novamente fecha, e escolher outra ferramenta
-recolhe a anterior. A TCO preserva os valores ao recolher; fechar o giro 360°
+recolhe a anterior. Abrir uma ferramenta rola o anúncio até o conteúdo; usar
+**Fechar** ou clicar novamente no botão retorna à linha das ferramentas e
+devolve o foco ao botão correspondente. A rolagem respeita a preferência de
+movimento reduzido. A TCO preserva os valores ao recolher; fechar o giro 360°
 interrompe a animação. TCO e 360° continuam exclusivos do Enterprise na
 configuração inicial, e a galeria expandida carrega suas fotos sob demanda.
 
