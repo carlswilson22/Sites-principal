@@ -23,6 +23,14 @@ import { VehicleComparatorModal } from './sites/popular-dealership/src/component
 import { AboutContactPage as AutoAbout } from './sites/auto-dealership/src/pages/AboutContactPage.jsx';
 import { AboutContactPage as LuxuryAbout } from './sites/luxury-dealership/src/pages/AboutContactPage.jsx';
 import { AboutContactPage as PopularAbout } from './sites/popular-dealership/src/pages/AboutContactPage.jsx';
+import { FeaturedPage as AutoFeatured } from './sites/auto-dealership/src/pages/FeaturedPage.jsx';
+import { FeaturedPage as LuxuryFeatured } from './sites/luxury-dealership/src/pages/FeaturedPage.jsx';
+import { FeaturedPage as PopularFeatured } from './sites/popular-dealership/src/pages/FeaturedPage.jsx';
+import { FinancingPage as LuxuryFinancing } from './sites/luxury-dealership/src/pages/FinancingPage.jsx';
+import { FinancingPage as PopularFinancing } from './sites/popular-dealership/src/pages/FinancingPage.jsx';
+import { TradeInPage as LuxuryTrade } from './sites/luxury-dealership/src/pages/TradeInPage.jsx';
+import { TradeInPage as PopularTrade } from './sites/popular-dealership/src/pages/TradeInPage.jsx';
+import { PriceAlertModal } from './sites/popular-dealership/src/components/vehicles/PriceAlertModal.jsx';
 import { VehicleDetailModal as AutoModal } from './sites/auto-dealership/src/components/vehicles/VehicleDetailModal.jsx';
 import { VehicleDetailModal as LuxuryModal } from './sites/luxury-dealership/src/components/vehicles/VehicleDetailModal.jsx';
 import { VehicleDetailModal as PopularModal } from './sites/popular-dealership/src/components/vehicles/VehicleDetailModal.jsx';
@@ -43,6 +51,12 @@ for (const [name, Component, props] of [
   ['sobre-modelo-1', AboutWithFooter, { Page: AutoAbout, dealership: autoInfo }],
   ['sobre-modelo-2', AboutWithFooter, { Page: LuxuryAbout, dealership: luxuryInfo }],
   ['sobre-modelo-3', AboutWithFooter, { Page: PopularAbout, dealership: popularInfo }],
+  ...[[AutoFeatured, autoVehicles], [LuxuryFeatured, luxuryVehicles], [PopularFeatured, popularVehicles]].map(([Component, vehicles], index) => ['destaques-modelo-' + (index + 1), Component, { vehicles, onNavigate: () => {}, onSelectVehicle: () => {} }]),
+  ['financiamento-publico-2', LuxuryFinancing, { vehicles: luxuryVehicles }],
+  ['financiamento-publico-3', PopularFinancing, { vehicles: popularVehicles }],
+  ['troca-publica-2', LuxuryTrade, { vehicles: luxuryVehicles }],
+  ['troca-publica-3', PopularTrade, { vehicles: popularVehicles }],
+  ['condicao-preco-3', PriceAlertModal, { vehicle: popularVehicles[0], onClose: () => {} }],
   ...[[AutoCard, autoVehicles[0]], [LuxuryCard, luxuryVehicles[0]], [PopularCard, popularVehicles[0]]].map(([Component, vehicle], index) => ['card-modelo-' + (index + 1), Component, { vehicle, onSelect: () => {} }]),
   ...[[autoInfo, 'autoelite', autoVehicles], [luxuryInfo, 'drivenow', luxuryVehicles], [popularInfo, 'apexluxury', popularVehicles]].flatMap(([dealership, storeKey, vehicles], index) => [
     ['chat-modelo-' + (index + 1), StoreConciergePage, { dealership, storeKey, vehicles, onSelectVehicle: () => {}, onNavigate: () => {} }],
@@ -57,6 +71,19 @@ for (const [name, Component, props] of [
   try {
     const html = renderToString(React.createElement(StoreAccessProvider, { storeKey: 'qa', storeName: 'Loja de teste' }, React.createElement(Component, props)));
     if (!html.length) throw new Error('Conteúdo vazio');
+    const whatsappLinks = html.split('<a ').slice(1).map(part => part.slice(0, part.indexOf('</a>'))).filter(part => part.includes('href="https://wa.me/'));
+    const elementText = part => part.slice(part.indexOf('>') + 1).replace(/<[^>]*>/g, '').trim();
+    const interestButtons = html.split('<button ').slice(1).map(part => elementText(part.slice(0, part.indexOf('</button>')))).filter(text => text === 'Tenho interesse');
+    if (name.startsWith('chat-modelo-') || name.startsWith('financiamento-publico-')) {
+      if (whatsappLinks.length !== 1 || elementText(whatsappLinks[0]) !== 'Tenho interesse') throw new Error('Contato público ausente, duplicado ou com texto incorreto');
+    }
+    if (name.startsWith('sobre-modelo-') || name.startsWith('troca-publica-') || name === 'condicao-preco-3') {
+      if (whatsappLinks.length !== 0 || interestButtons.length !== 1) throw new Error('Formulário de contato sem ação única Tenho interesse');
+    }
+    if (name.startsWith('destaques-modelo-')) {
+      const expected = name === 'destaques-modelo-1' ? Math.max(1, props.vehicles.filter(vehicle => vehicle.destaque).length) : props.vehicles.filter(vehicle => vehicle.destaque).length;
+      if (whatsappLinks.length !== expected) throw new Error('Contato geral duplicado junto aos veículos em destaque');
+    }
     if (name.startsWith('modelo-') && (html.includes('Voltar ao Topo') || html.includes('Auto-Dealership'))) throw new Error('Texto genérico ou atalho antigo presente');
     if (name.startsWith('modelo-') && (html.match(/data-vehicle-id=/g) || []).length < 5) throw new Error('Página inicial com menos de cinco veículos');
     if (name === 'portal' && html.includes('a-la-carte-title')) throw new Error('Ferramentas à la carte ainda presentes no portal');

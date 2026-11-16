@@ -20,6 +20,12 @@ Abrir o chat, solicitar uma visita na conversa ou usar o simulador não cria
 outros botões de WhatsApp dentro do anúncio. Os cards de veículos usam o mesmo
 texto. O atendimento e o simulador continuam disponíveis nas seções do anúncio.
 
+A ação pública de WhatsApp usa **Tenho interesse** também nos formulários de
+contato e troca, no simulador, no atendimento e na condição de preço. Em
+**Sobre Nós e Contato**, o número aparece para consulta e o formulário concentra
+o envio da mensagem. A seleção de destaques do AutoElite encaminha o contato
+geral para essa página, mantendo um contato específico por veículo.
+
 ## Cliente
 
 Ao usar uma ferramenta pessoal, o site abre o login e mantém a página atual.

@@ -44,6 +44,6 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
       </dl>
     </div>
     <p className="text-xs leading-relaxed text-slate-400">Estimativa pela Tabela Price. Taxa ilustrativa, sem IOF, tarifas ou seguros. A proposta e o CET dependem da instituição e da análise de crédito.</p>
-    {showContact && whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(summary)}`} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full min-h-11 items-center px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-semibold">Falar com um funcionário sobre esta simulação</a>}
+    {showContact && whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(summary)}`} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full min-h-11 items-center px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-semibold">Tenho interesse</a>}
   </div>;
 }

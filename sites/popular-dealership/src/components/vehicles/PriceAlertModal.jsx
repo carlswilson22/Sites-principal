@@ -135,7 +135,7 @@ export function PriceAlertModal({ vehicle, onClose }) {
               icon={Send}
               className="w-full py-3"
             >
-              Combinar aviso com a loja
+              Tenho interesse
             </Button>
           </form>
         )}

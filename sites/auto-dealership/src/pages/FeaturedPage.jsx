@@ -1,9 +1,8 @@
 import React from 'react';
 import { FeaturedSection } from '../components/home/FeaturedSection';
 import { VehicleCard } from '../components/vehicles/VehicleCard';
-import { Sparkles, Award, ShieldCheck, MessageCircle } from 'lucide-react';
+import { Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { buildGeneralWhatsappLink } from '../utils/whatsapp';
 
 export function FeaturedPage({ vehicles, onSelectVehicle, onNavigate }) {
   const featuredVehicles = vehicles.filter(v => v.destaque);
@@ -81,15 +80,13 @@ export function FeaturedPage({ vehicles, onSelectVehicle, onNavigate }) {
           </div>
 
           <Button
-            variant="whatsapp"
+            variant="outline"
             size="md"
-            icon={MessageCircle}
-            href={buildGeneralWhatsappLink('Olá! Procuro um modelo específico de carro e gostaria do suporte dos consultores da AutoElite.')}
-            target="_blank"
-            rel="noopener noreferrer"
+            icon={ArrowRight}
+            onClick={() => onNavigate('sobre-contato')}
             className="shrink-0"
           >
-            Falar com Consultor VIP
+            Falar com a loja
           </Button>
         </div>
       </section>

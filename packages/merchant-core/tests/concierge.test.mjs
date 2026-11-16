@@ -23,6 +23,7 @@ test('visita, financiamento e transferência humana são opções explícitas', 
   assert.match(visit.text, /diretamente com o lojista pelo WhatsApp/);
   assert.equal(conciergeReply('Quero financiar', vehicles).action, 'inventory');
   assert.equal(conciergeReply('Falar com funcionário', vehicles).action, 'human');
+  assert.match(conciergeReply('Falar com funcionário', vehicles).text, /Tenho interesse/);
   const address = conciergeReply('Endereço e horários', vehicles, { nome: 'Loja Teste', endereco: { cidade: 'Brasília' }, horarios: { semana: 'Segunda a sexta' } });
   assert.match(address.text, /Loja Teste.*Brasília.*Segunda a sexta/);
 });

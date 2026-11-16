@@ -156,7 +156,7 @@ export function TradeInEvaluation({ vehicles = [] }) {
               icon={Send}
               className="w-full py-3.5"
             >
-              Solicitar Avaliação Expressa no WhatsApp
+              Tenho interesse
             </Button>
           </div>
         </form>

@@ -10,7 +10,7 @@ export function StoreContactDetails({ dealership, stacked = false, tone = 'blue'
   const accent = accents[tone] || accents.blue;
   const groups = [
     { title: 'Plantão e WhatsApp', Icon: MessageCircle, content: <>
-      {whatsapp && <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className={`block underline underline-offset-4 ${accent}`}>{dealership.whatsappFormatado || dealership.whatsapp}</a>}
+      {whatsapp && <p className={accent}>{dealership.whatsappFormatado || dealership.whatsapp}</p>}
       {dealership.telefone && <p>Telefone: <a href={`tel:${dealership.telefone.replace(/\D/g, '')}`} className="underline underline-offset-4">{dealership.telefone}</a></p>}
       {dealership.email && <a href={`mailto:${dealership.email}`} className="block break-all underline underline-offset-4">{dealership.email}</a>}
     </> },

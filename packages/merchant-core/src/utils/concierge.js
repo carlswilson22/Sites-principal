@@ -4,7 +4,7 @@ const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300
 
 export function conciergeReply(message, vehicles = [], dealership = {}, vehicle = null) {
   const query = normalize(message);
-  if (/funcionario|pessoa|humano|vendedor|whatsapp/.test(query)) return { text: vehicle ? 'Para conversar com um funcionário, use “Tenho interesse” no final deste anúncio.' : 'Para conversar com um funcionário, use “Falar com a equipe no WhatsApp”. Você decide quando continuar por lá.', action: 'human' };
+  if (/funcionario|pessoa|humano|vendedor|whatsapp/.test(query)) return { text: vehicle ? 'Para conversar com um funcionário, use “Tenho interesse” no final deste anúncio.' : 'Para conversar com um funcionário, use “Tenho interesse” ao final do atendimento. Você decide quando continuar no WhatsApp.', action: 'human' };
   if (/horario|endereco|localiza|onde fica|showroom/.test(query)) {
     const address = dealership.endereco || {};
     return { text: `${dealership.nome}: ${[address.logradouro, address.bairro, address.cidade, address.uf].filter(Boolean).join(', ')}. ${Object.values(dealership.horarios || {}).join('. ')}.`, action: 'visit' };

@@ -120,7 +120,7 @@ export function TradeInEvaluation({ vehicles = [] }) {
               icon={Send}
               className="w-full py-3.5 font-bold"
             >
-              Enviar Dados para Avaliação Expressa
+              Tenho interesse
             </Button>
           </div>
         </form>

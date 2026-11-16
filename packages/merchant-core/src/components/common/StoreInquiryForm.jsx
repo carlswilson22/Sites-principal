@@ -52,7 +52,7 @@ export function StoreInquiryForm({ dealership, storeKey, presentation = 'service
     {prepared && <p role="status" className="text-sm text-emerald-300">Sua mensagem está pronta. Continue no WhatsApp da loja para enviá-la.</p>}
     <div className={`flex flex-col gap-4 ${editorial ? 'sm:flex-row sm:items-center sm:justify-end' : ''}`}>
       <p className="text-xs text-slate-400 max-w-xs">Ao continuar, você abre uma conversa com a equipe da loja no WhatsApp.</p>
-      <button type="submit" className={`min-h-12 px-5 py-3 font-semibold inline-flex items-center justify-center gap-3 ${editorial ? 'bg-amber-200 text-slate-950 hover:bg-amber-100' : classic ? 'rounded-xl bg-blue-600 text-white hover:bg-blue-500' : 'rounded-xl bg-cyan-300 text-slate-950 hover:bg-cyan-200'}`}>{editorial ? <ArrowUpRight aria-hidden="true" className="w-4 h-4" /> : <MessageCircle aria-hidden="true" className="w-4 h-4" />}Falar com a equipe</button>
+      <button type="submit" className={`min-h-12 px-5 py-3 font-semibold inline-flex items-center justify-center gap-3 ${editorial ? 'bg-amber-200 text-slate-950 hover:bg-amber-100' : classic ? 'rounded-xl bg-blue-600 text-white hover:bg-blue-500' : 'rounded-xl bg-cyan-300 text-slate-950 hover:bg-cyan-200'}`}>{editorial ? <ArrowUpRight aria-hidden="true" className="w-4 h-4" /> : <MessageCircle aria-hidden="true" className="w-4 h-4" />}Tenho interesse</button>
     </div>
   </form>;
 }

@@ -387,6 +387,8 @@ for (const [model, scenario] of scenarios) {
     button('Sobre Nós e Contato').click();
     await wait(() => document.querySelector('[data-store-photo]'));
     assert.equal(document.querySelectorAll('a[href^="mailto:"]').length, 1, 'Contato duplicado na página institucional');
+    assert.equal(document.querySelectorAll('a[href^="https://wa.me/"]').length, 0, 'Número da loja duplica o contato do formulário');
+    assert.equal(document.querySelector('form[data-store-inquiry] button[type="submit"]').textContent.trim(), 'Tenho interesse');
     if (fullFlow) {
       const inquiry = document.querySelector('form[data-store-inquiry]');
       assert(inquiry, 'Formulário institucional ausente');
