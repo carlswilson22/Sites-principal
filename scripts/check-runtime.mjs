@@ -336,6 +336,42 @@ for (const [model, scenario] of scenarios) {
       assert(!ad.querySelector('[data-financing-vehicle] a[href*="wa.me"]'), 'Simulador criou outro botão de WhatsApp no anúncio');
       assert.equal(document.querySelector('[data-financing-vehicle]').dataset.financingVehicle, ad.dataset.vehicleId, 'Login perdeu o contexto do veículo');
       assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente autenticado recebeu o painel');
+      const financing = ad.querySelector('[data-financing-vehicle]');
+      const bankOptions = [...financing.querySelectorAll('input[type="radio"]')];
+      assert.deepEqual(bankOptions.map(input => input.value), ['itau', 'santander', 'bv'], 'Anúncio sem as três instituições');
+      assert(bankOptions.every(input => input.labels.length === 1) && new Set(bankOptions.map(input => input.name)).size === 1, 'Bancos sem grupo de seleção acessível');
+      for (const label of ['Itaú Auto', 'Santander Auto', 'BV Financeira', '1,42% a.m.', '1,45% a.m.', '1,49% a.m.', 'taxas ilustrativas']) assert(financing.textContent.includes(label), `Simulador sem ${label}`);
+      assert.equal(financing.dataset.financingBank, 'itau');
+      const payment = () => Number(financing.querySelector('[data-monthly-payment]').dataset.monthlyPayment);
+      const entry = financing.querySelector('input[id$="-entry"]');
+      const slider = financing.querySelector('input[id$="-entry-range"]');
+      const initialEntry = Number(entry.value);
+      const initialPayment = payment();
+      const price = Number(slider.max) / 0.8;
+      for (const bank of bankOptions.slice(1)) {
+        bank.click();
+        await wait(() => financing.dataset.financingBank === bank.value);
+        assert(payment() > initialPayment, 'Trocar o banco não recalculou a parcela');
+        assert.equal(Number(entry.value), initialEntry, 'Trocar banco alterou a entrada');
+      }
+      financing.querySelector('[data-entry-ratio="0.5"]').click();
+      await wait(() => Number(entry.value) === Math.round(price * 0.5 * 100) / 100);
+      assert.equal(slider.value, entry.value, 'Slider e campo de entrada estão divergentes');
+      assert(payment() < initialPayment, 'Aumentar a entrada não reduziu a parcela');
+      await changeField(slider, '0');
+      await wait(() => entry.value === '0');
+      const longTermPayment = payment();
+      financing.querySelector('button[aria-label="Prazo de 12 meses"]').click();
+      await wait(() => financing.querySelector('button[aria-label="Prazo de 12 meses"]').getAttribute('aria-pressed') === 'true');
+      assert(payment() > longTermPayment, 'Trocar o prazo não recalculou a parcela');
+      const shortTermPayment = payment();
+      button('Simular financiamento deste veículo').click();
+      await wait(() => button('Simular financiamento deste veículo').getAttribute('aria-expanded') === 'false');
+      button('Simular financiamento deste veículo').click();
+      await wait(() => button('Simular financiamento deste veículo').getAttribute('aria-expanded') === 'true');
+      assert.equal(financing.dataset.financingBank, 'bv', 'Reabrir apagou o banco selecionado');
+      assert.equal(payment(), shortTermPayment, 'Reabrir apagou os valores da simulação');
+      assertSingleWhatsapp();
       if (model === 'popular-dealership') {
         const ad = document.querySelector('[role="dialog"]');
         button('Alerta de Preço').click();

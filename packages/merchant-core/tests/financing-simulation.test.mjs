@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculateMonthlyPayment, clampDownPayment, financingPriceBounds, validVehiclePrice } from '../src/utils/financingSimulation.js';
+import { financingBanks } from '../src/data/financingBanks.js';
 
 test('entrada continua dentro dos limites ao aumentar ou reduzir o preço', () => {
   assert.equal(clampDownPayment(30000, 200000, 0.2), 40000);
@@ -29,4 +30,11 @@ test('parcelas respeitam a tabela Price e valores inválidos não produzem NaN',
   }
   for (const preco of [undefined, NaN, Infinity, -1, 0, 1e300]) assert.equal(validVehiclePrice({ preco }, 95000), 95000);
   assert.equal(validVehiclePrice({ preco: '79990.55' }), 79990.55);
+});
+
+test('as três taxas ilustrativas reproduzem o exemplo e alteram a parcela', () => {
+  const principal = 185000 - 55500;
+  const payments = financingBanks.map(bank => calculateMonthlyPayment(principal, bank.monthlyRatePercent / 100, 48));
+  assert.deepEqual(payments, [3739.41, 3763.58, 3795.95]);
+  assert.equal(calculateMonthlyPayment(185000 - clampDownPayment(185000 * 0.5, 185000), 0.0142, 48), 2671.01);
 });
