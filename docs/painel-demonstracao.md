@@ -1,15 +1,21 @@
 # Acessos de demonstração
 
+Atualizado em **17/11/2026**, referência `3f3961d`. Guia de apresentação e
+conferência interna; as credenciais abaixo não fazem parte do futuro contrato
+nem devem ser usadas em produção. Veja a [base técnica](base-para-contratacao.md).
+
 Os três modelos começam como **visitante**, sem uma conta conectada e sem
 favoritos ou veículos pré-selecionados para comparação. Navegação, catálogo,
 anúncios, informações da loja, atendimento e WhatsApp ficam públicos.
 
 Nos anúncios, as fotos principais continuam no início. Os botões de galeria
-expandida, laudo, ficha e ferramentas disponíveis em cada edição ficam no final,
-depois do atendimento e do financiamento. Os conteúdos adicionais começam
+expandida, laudo, ficha e ferramentas disponíveis em cada edição ficam em linhas
+verticais no final, depois do atendimento e do financiamento. Cada conteúdo abre
+imediatamente abaixo da própria linha. Os conteúdos adicionais começam
 fechados: clicar abre, clicar novamente fecha, e escolher outra ferramenta
-recolhe a anterior. Abrir uma ferramenta rola o anúncio até o conteúdo; usar
-**Fechar** ou clicar novamente no botão retorna à linha das ferramentas e
+recolhe a anterior, inclusive ao trocar entre atendimento, financiamento e
+ferramentas. Abrir uma ferramenta rola o anúncio até o conteúdo; usar
+**Fechar** ou clicar novamente no botão retorna à linha correspondente e
 devolve o foco ao botão correspondente. A rolagem respeita a preferência de
 movimento reduzido. A TCO preserva os valores ao recolher; fechar o giro 360°
 interrompe a animação. TCO e 360° continuam exclusivos do Enterprise na
@@ -33,7 +39,12 @@ Cancelar preserva a navegação; entrar retoma a ação solicitada.
 
 - Nos três modelos: simulação de financiamento dentro do anúncio.
 - Nos modelos 2 e 3: página de financiamento e avaliação do usado na troca.
-- No modelo 3: favoritos, comparação e interesse em condição de preço.
+- No modelo 3: favoritos e interesse em condição de preço.
+
+A comparação é pública e não pede login. No anúncio dos três modelos, o
+simulador oferece Itaú Auto, Santander Auto e BV Financeira com taxas
+ilustrativas; não há consulta ou aprovação bancária. No simulador independente
+e no painel, a taxa permanece manual. Detalhes de custos começam recolhidos.
 
 O botão **Entrar** abre um único formulário para clientes e funcionários. O
 perfil é identificado pelas credenciais autenticadas, sem selecionar um tipo
@@ -114,12 +125,13 @@ e o simulador permanecem disponíveis ao atendente nas três edições.
 - As chaves legadas `merchant_demo_user` e `merchant_user` não iniciam uma sessão.
 - Favoritos ficam separados por loja e conta. Preferências antigas da demonstração
   são preservadas no navegador, mas não atribuídas a um novo visitante.
-- Comparação começa vazia e pertence ao perfil conectado na sessão atual.
+- Comparação começa vazia e também funciona sem perfil conectado. Não transfere
+  automaticamente escolhas de outra sessão/conta.
 - Sair remove a sessão da loja, oculta dados pessoais e retira o acesso ao painel.
 
 ## Instalação futura do cliente
 
-Conforme o escopo acordado, esta entrega simula o fluxo de acesso: o cadastro é
+Nesta demonstração, o fluxo de acesso é simulado: o cadastro é
 local, não envia e-mails e não utiliza um servidor de autenticação. Os builds
 mantêm `VITE_MERCHANT_DEMO=true`. As credenciais e regras no JavaScript servem
 para apresentação e não constituem uma barreira de segurança para dados reais.
@@ -130,6 +142,10 @@ conta. Ao desativar a demonstração, o login da equipe consulta a API existente
 o mesmo endpoint deverá ser ampliado para clientes. O formulário aceita apenas
 perfis de cliente ou equipe reconhecidos na resposta da API, sem criar uma
 sessão fictícia quando a API falha.
+
+Ainda não há escopo ou condições comerciais acordadas para essa implantação.
+Desativar o modo de demonstração não conecta todos os repositórios locais ao
+servidor. Consulte [integrações](manuais-de-integracao.md).
 
 ## Amostras das ferramentas Enterprise
 

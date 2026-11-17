@@ -1,68 +1,117 @@
-# Política de Segurança da Informação e Conformidade LGPD
+# Segurança e privacidade — medidas existentes e limites
 
-Este documento consolida as diretrizes e mecanismos técnicos implementados no Painel do Lojista para proteção de dados pessoais e segurança da informação, em total conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD).
+Atualizado em **17/11/2026**, referência `3f3961d`.
+Este documento descreve a implementação examinada e pontos para preparar a
+instalação do cliente. **Não é certificação de conformidade LGPD, auditoria
+independente de segurança ou política de privacidade final da loja.**
 
----
+## Demonstração publicada
 
-## 1. Segurança de Senhas e Autenticação (E1)
+GitHub Pages serve arquivos estáticos. Contas de teste e permissões estão no
+JavaScript; os dados de estoque, contatos, CRM, documentos e amostras ficam no
+navegador. Não usar a demonstração para dados pessoais ou operações reais.
 
-1. **Algoritmo de Hashing Criptográfico**:
-   * As senhas de acesso de todos os operadores são processadas via **scrypt** (`node:crypto`), utilizando parâmetros calibrados para resistência contra ataques de dicionário e hardware especializado (ASICs/GPUs):
-     * Custo de CPU/Memória ($N$): $16.384$
-     * Tamanho de bloco ($r$): $8$
-     * Paralelização ($p$): $1$
-     * Chave derivada: $64$ bytes ($512$ bits) com salt criptográfico aleatório único por usuário.
-2. **Comparação Timing-Safe**:
-   * A verificação de hashes de senha utiliza `crypto.timingSafeEqual` para eliminar qualquer vulnerabilidade a ataques de canal lateral baseados em tempo (*timing attacks*).
-3. **Gestão de Sessões Seguras**:
-   * Sessões vinculadas a tokens aleatórios criptograficamente fortes de 256 bits (`randomBytes(32)`).
-   * Armazenadas no navegador em cookies com flags `HttpOnly; SameSite=Strict; Secure; Max-Age=86400` (24 horas).
-4. **Proteção Contra Força Bruta (Rate Limiting)**:
-   * O endpoint `/api/auth/login` impõe um limite estrito de **5 tentativas falhas** por IP/e-mail a cada 15 minutos. Após exceder o limite, o servidor retorna status `429 Too Many Requests`.
+- Cadastro público cria cliente; painel é reservado aos perfis de equipe na
+  interface. Isso não constitui uma barreira de autorização em servidor.
+- Senhas cadastradas localmente são derivadas com scrypt e salt; nome, e-mail,
+  documentos e outros registros locais não recebem criptografia integral.
+- Sessões demonstrativas duram quatro horas em `sessionStorage`; registros
+  persistentes usam `localStorage`. Limpar o navegador pode apagá-los.
+- Separação por chave de loja/conta organiza os dados locais, mas não substitui
+  isolamento de infraestrutura ou controle de acesso de produção.
+- O seletor de cargo aparece somente para funcionário autenticado no modo demo;
+  precisa permanecer indisponível em uma instalação operacional.
 
----
+## Mecanismos presentes no servidor separado
 
-## 2. Criptografia em Repouso e Proteção de Dados Sensíveis (LGPD)
+O servidor não está hospedado no GitHub Pages. As medidas abaixo descrevem seu
+código e não devem ser atribuídas à publicação estática.
 
-1. **Cifragem Autenticada AES-256-GCM**:
-   * Todos os dados pessoais sensíveis armazenados no banco de dados (CPF, dados bancários de consignantes e endereços de clientes) são cifrados antes da escrita utilizando o padrão **AES-256-GCM** (*Galois/Counter Mode*).
-   * Cada registro possui seu próprio Vetor de Inicialização (IV de 12 bytes) e Tag de Autenticação (16 bytes), garantindo tanto o sigilo quanto a integridade contra adulteração em disco.
-2. **Mascaramento em Tela**:
-   * Na visualização do painel, os dados são exibidos de forma mascarada:
-     * **CPF**: `***.456.789-**`
-     * **Dados Bancários / PIX**: `****-5`
-   * Apenas em rotinas de impressão formal de contrato pelo titular ou pelo proprietário os dados são decifrados pontualmente.
-3. **Sanitização Estrita de Logs de Depuração**:
-   * Nenhum dado de cartão, senha em texto plano, CPF ou chave privada é gravado nos arquivos de log da aplicação. O utilitário `sanitizeLogData()` higieniza preventivamente qualquer payload antes do registro.
+| Mecanismo | Implementação examinada | Limite |
+| --- | --- | --- |
+| Senhas | scrypt com salt aleatório e comparação usando `timingSafeEqual` | Não garante ausência de vulnerabilidades em todo o fluxo |
+| Sessões | Tokens de 32 bytes aleatórios, registros no SQLite e prazo de 24 horas | Revisar implantação, revogação e proteção do token; a API também retorna token no JSON |
+| Cookie | `HttpOnly`, `SameSite=Strict`, `Max-Age=86400` | O código atual não adiciona `Secure`; ajustar para HTTPS de produção |
+| Tentativas de login | Limite em memória por combinação IP/e-mail, janela de 15 minutos | Não é proteção distribuída nem controle de todo o tráfego |
+| Permissões | Autenticação e verificações de nível/cargo em rotas específicas | Homologar cada endpoint e ação; menu oculto não basta |
+| Cifragem | AES-256-GCM para campos específicos de CPF/endereço de clientes e CPF/dados bancários de consignantes | Não cifra todo o banco, todo dado pessoal ou os registros locais do frontend |
+| Mascaramento | Helpers e respostas de algumas rotas mascaram CPF/dados bancários | Exportações e outras rotas podem decifrar; revisar finalidade/permissão por operação |
+| Sanitização | Utilitário `sanitizeLogData` filtra certas chaves quando chamado | Não é aplicado universalmente; não garante ausência de dados pessoais em logs |
+| Auditoria | Registros em tabelas e trilhas locais de amostra | Não há armazenamento imutável ou prova criptográfica de integridade da trilha |
 
----
+`DATA_ENCRYPTION_KEY` é a variável efetivamente usada para cifragem. O código
+possui uma chave padrão de desenvolvimento; ela precisa ser substituída por
+segredo exclusivo antes de dados reais. Definir armazenamento, recuperação e
+rotação da chave, considerando a leitura dos dados já cifrados. Não copiar a
+chave padrão para contrato, documentação comercial ou ambiente de produção.
 
-## 3. Direitos do Titular de Dados (Artigos 18 e 19 da LGPD)
+O seed gera exemplos e contas; a inicialização de produção precisa ser ajustada.
+CORS atualmente reflete a origem da requisição e o leitor de JSON não impõe
+limite explícito de tamanho. Esses pontos exigem revisão antes da operação real,
+conforme o [guia de implantação](manuais-de-integracao.md).
 
-O sistema disponibiliza ferramentas operacionais no módulo de Governança para atendimento aos direitos dos clientes:
-1. **Direito de Acesso e Exportação (Art. 18, II)**:
-   * O proprietário da loja pode exportar um arquivo JSON/Dossiê consolidado de todos os dados mantidos sobre o titular (`GET /api/tier3/lgpd/export/:clientId`), incluindo histórico de interações e contratos emitidos.
-2. **Direito ao Esquecimento / Anonimização (Art. 18, VI)**:
-   * A pedido do titular, a rotina `POST /api/tier3/lgpd/anonymize/:clientId` substitui o nome pelo identificador anônimo *"Titular Anonimizado (LGPD)"*, substitui CPF e endereço por dados genéricos cifrados e expurga e-mail e telefone, preservando apenas os lançamentos fiscais e contábeis exigidos por lei para a concessionária.
+## Exportação e anonimização
 
----
+No Enterprise demonstrativo, essas ações operam sobre **clientes de exemplo**
+e geram arquivo/trilha local. Não abrangem automaticamente cadastro público,
+CRM, contatos, documentos, publicações ou cópias já exportadas.
 
-## 4. Política de Backup e Retenção do Banco SQLite
+No servidor há rotas de exportação e alteração de campos do cliente. Auditoria
+e anonimização verificam o cargo de proprietário; a exportação de titular
+verifica sessão, mas não impõe essa mesma restrição de cargo. Essa diferença
+precisa ser corrigida/homologada na implantação antes de tratar dados reais.
+A existência das rotas não comprova cobertura de todas as informações
+relacionadas ao titular ou irreversibilidade da anonimização. Documentos,
+contatos, integrações e backups precisam ser inventariados e tratados conforme
+a finalidade e as obrigações aplicáveis.
 
-1. **Isolamento por Instalação**:
-   * Cada concessionária possui seu próprio arquivo de banco de dados SQLite (`server/data/merchant.db`), garantindo isolamento absoluto de dados entre clientes (sem multi-tenancy compartilhado).
-2. **Rotina de Backup Recomendada**:
-   * Executar backup diário do arquivo `.db` via comando nativo de snapshot do SQLite:
-     ```bash
-     sqlite3 server/data/merchant.db ".backup server/backups/merchant_$(date +%Y%m%d).db"
-     ```
-3. **Retenção de Auditoria**:
-   * Os registros da tabela `audit_logs` são preservados pelo prazo mínimo de 6 meses (Marco Civil da Internet, Lei 12.965/2014) e até 5 anos para eventos de emissão contratual.
+Não prometer apagamento total automático, atendimento integral de todos os
+direitos por um botão ou um prazo legal de retenção único para todos os dados.
 
----
+## Definições para a futura operação
 
-## 5. Aviso Legal Obrigatório sobre Contratos e Minutas
+As decisões sobre finalidade, necessidade, base legal, agentes de tratamento,
+direitos do titular e medidas de segurança devem considerar a operação real.
+A LGPD prevê esses princípios e responsabilidades; papéis de controlador e
+operador dependem das atividades exercidas. Referências oficiais:
+[LGPD — texto atualizado](https://www2.camara.leg.br/legin/fed/lei/2018/lei-13709-14-agosto-2018-787077-normaatualizada-pl.html)
+e [guia da ANPD sobre agentes de tratamento](https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia-orientativo-para-definicoes-dos-agentes-de-tratamento-de-dados-pessoais-e-do-encarregado).
 
-> [!WARNING]
-> **REVISÃO JURÍDICA OBRIGATÓRIA**: As minutas de contratos, recibos de sinal, termos de vistoria e termos aditivos gerados pela plataforma são instrumentos referenciais padronizados. Antes de qualquer utilização comercial definitiva ou coleta de assinaturas, a loja deve submetê-las à análise, revisão e validação formal de um advogado ou departamento jurídico habilitado.
+Para a preparação contratual, registrar como **A definir**:
 
+- Responsabilidades da loja, desenvolvedor, hospedagem e fornecedores.
+- Inventário de dados, finalidades, bases de tratamento e avisos de privacidade.
+- Canal de titulares, identificação do solicitante e procedimento de atendimento.
+- Perfis, concessão/revogação de acesso e revisão periódica de permissões.
+- Prazos de retenção por categoria, critérios de eliminação e exceções aplicáveis.
+- Tratamento de dados enviados ao WhatsApp, serviços de IA e demais terceiros.
+- Processo de incidente, responsáveis, registros e comunicações aplicáveis.
+- Monitoramento, atualizações e verificações de segurança na implantação.
+
+O campo `consent_lgpd` gravado pela API não prova, por si só, uma coleta válida
+de consentimento. Definir o fluxo de transparência e a base adequada a cada
+finalidade; não confundir um valor no banco com conformidade da operação.
+
+## Backup, disponibilidade e retenção
+
+Não há rotina automatizada de backup, restauração testada, disponibilidade
+contratada ou expurgo periódico comprovados nesta implementação. O arquivo
+SQLite depende de armazenamento persistente e proteção da infraestrutura.
+
+Frequência, retenção, responsáveis, cópias fora do ambiente principal e teste de
+restauração serão definidos. Separar bancos por loja pode ser uma opção de
+implantação, mas não existe isolamento absoluto garantido apenas pelo uso de SQLite.
+Não atribuir prazos de seis meses ou cinco anos indistintamente à auditoria,
+contratos e cadastros sem análise do dado e da obrigação aplicável.
+
+## Minutas e documentação da loja
+
+Contratos, recibos e termos gerados no painel são minutas referenciais, sem
+assinatura eletrônica integrada. Conteúdo, condições comerciais, garantias e
+uso pretendido precisam de revisão adequada ao negócio antes da assinatura.
+O desenvolvimento de modelos jurídicos personalizados e o apoio especializado
+serão delimitados na contratação; não estão presumidos por este documento.
+
+A [base para contratação](base-para-contratacao.md) organiza essas definições.
+Referências oficiais consultadas em 17/11/2026; esta revisão não implementou
+alterações no sistema nem resolveu tecnicamente os pontos aqui registrados.

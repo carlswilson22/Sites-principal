@@ -1,69 +1,83 @@
-# Matriz de Funcionalidades do Painel do Lojista
+# Matriz de modelos e permissões
 
-Esta matriz estabelece a distribuição rigorosa e cumulativa dos recursos do Painel do Lojista entre os 3 modelos de concessionária da plataforma.
+Atualizada em **17/11/2026**, referência `3f3961d`. Descreve a configuração
+demonstrada; a seleção contratual será feita na [base técnica](base-para-contratacao.md).
 
----
+## Site público
 
-## 1. Tabela Comparativa Geral por Nível
+| Recurso | AutoElite (1) | DriveNow (2) | Enterprise (3) | Condição atual |
+| --- | --- | --- | --- | --- |
+| Vídeo, inicial, estoque, destaques e Sobre Nós e Contato | Sim | Sim | Sim | Conteúdo ilustrativo, apresentação própria |
+| Anúncio, galeria, ficha e laudo cadastrado | Sim | Sim | Sim | Sem validação oficial externa |
+| Atendimento automático no anúncio e WhatsApp | Sim | Sim | Sim | Respostas locais; funcionário no WhatsApp |
+| Cadastro e login de cliente | Sim | Sim | Sim | Conta local neste navegador |
+| Financiamento no anúncio com três bancos ilustrativos | Sim | Sim | Sim | Exige login; sem consulta/aprovação bancária |
+| Serviços, financiamento independente e formulário de troca | Não | Sim | Sim | Referências manuais e registro de interesse |
+| Favoritos | Não | Não | Sim | Exige login; conta/loja local |
+| Comparação de dois a três veículos | Não | Não | Sim | Pública, sem login |
+| Visualizador 360° padrão | Não | Não | Sim | Exige sequência própria por veículo |
+| TCO, dossiê e interesse em condição de preço | Não | Não | Sim | Estimativas/cadastro, sem notificações automáticas |
+| Consultor virtual em tela própria | Não | Não | Sim | Respostas programadas, sem IA externa |
 
-| Código | Funcionalidade | Modelo 1 (AutoElite)<br>`Tier 1: Básico` | Modelo 2 (DriveNow)<br>`Tier 2: Pro` | Modelo 3 (Enterprise Veículos)<br>`Tier 3: Enterprise` | Perfil Mínimo (RBAC) | Resposta no Backend se Nível Inferior |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **E1** | Acesso: Login, Logout, Recuperação e Sessão | ✅ | ✅ | ✅ | Atendente | `200 OK` |
-| **E2** | Início: 4 Indicadores e Lista de Pendências | ✅ | ✅ | ✅ | Atendente | `200 OK` |
-| **E3** | Estoque: CRUD de Veículos, Busca, Filtros e Dias em Pátio | ✅ | ✅ | ✅ | Atendente | `200 OK` |
-| **E4** | Fotos: Até 20 Fotos por Carro, Capa e Reordenação | ✅ | ✅ | ✅ | Atendente | `200 OK` |
-| **E5** | Ficha do Anúncio: Descrição Editável, Destaques e Itens de Série | ✅ | ✅ | ✅ | Atendente | `200 OK` |
-| **E6** | Contatos: Captura de Formulário e WhatsApp com Situação | ✅ | ✅ | ✅ | Atendente | `200 OK` |
-| **I1** | Descrição por IA a partir de Dados Estruturados & Ficha de Custos | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
-| **I2** | CRM Avançado: Clientes com LGPD Criptografada & Linha do Tempo | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
-| **I3** | Avisos no Celular: Notificações Web Push (PWA) | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
-| **I4** | Simulador de Financiamento: Tabela Price com Juros Compostos | ✅ | ✅ | ✅ | Atendente | Disponível nas três edições |
-| **I5** | Métricas do Site: Visualizações, Cliques no WhatsApp e Ranking 7/30/90d | ❌ *(Bloqueado)* | ✅ | ✅ | Gerente | `404 Not Found` |
-| **I6** | Precificador Simples FIPE com Cache e Cálculo de Margem Compra/Venda | ❌ *(Bloqueado)* | ✅ | ✅ | Atendente | `404 Not Found` |
-| **I7** | Contratos Básicos: Compra/Venda, Recibo de Sinal e Vistoria Simples | ✅ | ✅ | ✅ | Atendente | Disponível nas três edições |
-| **I8** | Financeiro Básico: Lançamento de Gastos por Carro e Lucro Realizado | ❌ *(Bloqueado)* | ✅ | ✅ | **Proprietário** | `403 Forbidden` / `404 Not Found` |
-| **A1** | Consignação Completa: Diárias de Guarda, Repasse Líquido e Alertas | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Gerente | `404 Not Found` |
-| **A2** | Contratos Avançados: Consignação, Troca, Termo Aditivo e Testemunhas | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Gerente | `404 Not Found` |
-| **A3** | Financeiro Completo: DRE Próprio vs. Consignado, Comissões e Banco 12M | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | **Proprietário** | `403 Forbidden` / `404 Not Found` |
-| **A4** | Precificador Completo: Concorrência Manual, Leilão e Liquidez Regional | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Atendente | `404 Not Found` |
-| **A5** | Funil de Vendas: Taxa de Conversão em Escada e Alerta de Carros > 60d | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Gerente | `404 Not Found` |
-| **A6** | Gerador de Artes para Story: Proporção 9:16 (1080x1920) e Opções de Preço | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Atendente | `404 Not Found` |
-| **A7** | Publicação no Instagram: Meta Graph API (com fallback de transparência) | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | Gerente | `404 Not Found` |
-| **A8** | Governança & LGPD: Auditoria Imutável, Dossiê do Titular e Esquecimento | ❌ *(Bloqueado)* | ❌ *(Bloqueado)* | ✅ | **Proprietário** | `403 Forbidden` / `404 Not Found` |
+É possível configurar 360° em outras lojas, como personalização a definir;
+não está incluído no padrão dos modelos 1 e 2.
 
----
+## Módulos do painel
 
-## 2. Matriz de Perfis de Acesso (RBAC)
+**T** = atendente; **G** = gerente; **P** = proprietário. Os perfis indicam
+acesso à rota no frontend, desde que a edição inclua o módulo.
 
-O sistema implementa o princípio do menor privilégio:
+| Rota / módulo | AutoElite | DriveNow | Enterprise | Perfis | Operação na demonstração |
+| --- | --- | --- | --- | --- | --- |
+| `dashboard` — Início e indicadores | Sim | Sim | Sim | T/G/P | Dados locais |
+| `inventory` — Estoque | Sim | Sim | Sim | T/G/P | Cadastro, edição, publicação e mídia locais |
+| `leads` — Contatos e WhatsApp | Sim | Sim | Sim | T/G/P | Situações, observações e histórico |
+| `financing` — Financiamento | Sim | Sim | Sim | T/G/P | Estimativa com taxa manual |
+| `contracts` — Contratos e termos | Sim | Sim | Sim | T/G/P | Minutas básicas, histórico e impressão |
+| `clients` — Clientes (CRM) | Não | Sim | Sim | T/G/P | Cadastros locais |
+| `fipe` — Precificador FIPE | Não | Sim | Sim | T/G/P | Referência manual, custos e margem |
+| `financial` — Financeiro e margens | Não | Sim | Sim | P | Gastos locais; resultado realizado exige valor de venda |
+| `analytics` — Métricas do site | Não | Sim | Sim | G/P | Eventos do navegador, 7/30/90 dias |
+| `consignments` — Consignação completa | Não | Não | Sim | G/P | Dados e cálculos persistidos localmente |
+| `contracts_adv` — Contratos avançados | Não | Não | Sim | G/P | Minutas com dados, numeração e aditivos |
+| `financial_full` — DRE e comissões | Não | Não | Sim | P | Números de exemplo |
+| `market_pricing` — Mercado e leilão | Não | Não | Sim | T/G/P | Entradas manuais e cálculo |
+| `funnel` — Funil e giro | Não | Não | Sim | G/P | Números de exemplo |
+| `stories` — Estúdio de Stories | Não | Não | Sim | T/G/P | PNG e publicação fictícia local |
+| `audit_lgpd` — Auditoria e LGPD | Não | Não | Sim | P | Clientes de exemplo, sem cobertura de todas as bases |
 
-| Funcionalidade / Área | Atendente | Gerente | Proprietário |
-| :--- | :---: | :---: | :---: |
-| Visualizar Estoque e Detalhes | ✅ | ✅ | ✅ |
-| Cadastrar / Editar Veículo | ✅ | ✅ | ✅ |
-| Excluir Veículo do Estoque | ❌ | ✅ | ✅ |
-| Atender Leads Atribuídos | ✅ | ✅ | ✅ |
-| Visualizar Todos os Leads da Loja | ❌ | ✅ | ✅ |
-| Gerar Descrições com IA | ✅ | ✅ | ✅ |
-| Consultar Tabela FIPE e Precificador | ✅ | ✅ | ✅ |
-| Simular Financiamento | ✅ | ✅ | ✅ |
-| Emitir Contratos Básicos e Termos de Vistoria | ✅ | ✅ | ✅ |
-| Emitir Contratos Avançados | ❌ | ✅ | ✅ |
-| Gestão de Consignações | ❌ | ✅ | ✅ |
-| Visualizar Gastos e Custos por Carro | ❌ | ❌ | ✅ |
-| Visualizar Lucro Líquido e DRE da Loja | ❌ | ❌ | ✅ |
-| Visualizar e Gerenciar Comissões da Equipe | ❌ | ❌ | ✅ |
-| Visualizar Trilha de Auditoria | ❌ | ❌ | ✅ |
-| Anonimizar Dados de Titulares (LGPD) | ❌ | ❌ | ✅ |
-| Gerar Criativos de Stories 1080p | ✅ | ✅ | ✅ |
-| Publicar Stories na Conta da Loja | ❌ | ✅ | ✅ |
+| Perfil | AutoElite | DriveNow | Enterprise |
+| --- | --- | --- | --- |
+| Atendente | 5 | 7 | 9 |
+| Gerente | 5 | 8 | 13 |
+| Proprietário | 5 | 9 | 16 |
 
----
+Visitante/cliente não têm painel. Excluir veículo exige gerente/proprietário.
+O atalho do CRM para emitir documento também é restrito a esses perfis;
+atendente usa o módulo básico de contratos.
 
-## 3. Garantia de Bloqueio no Backend (`tierGate`)
+## Tela e autorização em servidor
 
-O controle de recursos superiores **não é apenas cosmético**:
-1. Se uma requisição HTTP for enviada a `/api/tier2/*` em uma instalação configurada como `MERCHANT_TIER=1`, o servidor intercepta a requisição via middleware `tierGate(2)` e retorna **status 404 (Not Found)**.
-2. Se uma requisição for enviada a `/api/tier3/*` em instalações configuradas como `MERCHANT_TIER=1` ou `MERCHANT_TIER=2`, o middleware `tierGate(3)` retorna **status 404 (Not Found)**.
-3. Se um usuário autenticado com perfil `atendente` tentar acessar endpoints de DRE financeiro ou auditoria restrita, o middleware `requireRole` retorna **status 403 (Forbidden)**.
+Fonte: `packages/merchant-core/src/utils/merchantAccess.js`. No modo local,
+as regras estão no navegador e não protegem dados reais. Não há segregação
+comprovada de acesso somente a leads atribuídos; não oferecer essa garantia.
 
+O servidor separado possui autenticação, verificações de nível e de cargo em
+rotas específicas. Financiamento e contratos básicos são permitidos no nível 1,
+embora implementados em `tier2Routes.js`. O prefixo da URL não define sozinho
+a autorização.
+
+O Estúdio abre para os três perfis no frontend; publicação real na API exige
+gerente/proprietário. A rota de exportação de titular verifica sessão, mas
+não aplica a restrição de proprietário que o menu de auditoria impõe. Esse
+desalinhamento precisa de correção/homologação antes do uso de dados reais.
+Simulação local não comprova essas autorizações. Homologar
+cada operação e acesso por requisição direta no servidor da futura instalação.
+
+## Serviços não ativados na publicação
+
+Autenticação central de clientes, recuperação por e-mail, aprovação bancária,
+FIPE atualizada, IA generativa conectada, Web Push, Instagram real e envio direto
+a portais não estão operacionais na demonstração. Não há auditoria imutável
+certificada ou conformidade LGPD garantida. Veja [integrações](manuais-de-integracao.md)
+e [segurança/privacidade](politica-de-seguranca-lgpd.md).

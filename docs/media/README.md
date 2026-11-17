@@ -1,5 +1,7 @@
 # Fotos do catálogo de demonstração
 
+Atualizado em **17/11/2026**. Documento de apoio técnico e atribuição de mídia.
+
 HB20, Corolla Cross e Polo usam a capa e oito ângulos locais próprios em cada
 modelo de site. Os antigos quadros repetidos ou espelhados do Tracker e do
 Pulse não foram usados para simular uma galeria ou um giro.
@@ -16,6 +18,18 @@ fotos personalizadas são preservados. Nenhum anúncio excluído é recriado.
 Uma revisão antiga só é atualizada quando sua mídia continua intacta.
 
 O visualizador 360° é incluído somente no modelo 3. Nos modelos 1 e 2, é uma
-ferramenta à la carte desativada por padrão em `features.vehicle360`. Cada anúncio
+personalização opcional desativada por padrão em `features.vehicle360`, cujo
+escopo ainda precisa ser definido. Não há catálogo de extras no portal. Cada anúncio
 usa somente os quadros explicitamente cadastrados para aquele veículo. Quando
 não há um conjunto próprio, a interface informa a indisponibilidade.
+
+## Preparação para o site do cliente
+
+Definir quem fornece fotos, vídeos, identidade visual e autorizações de uso.
+Não reutilizar o catálogo fictício como se representasse o estoque da loja.
+Quantidade, formato, volume de armazenamento e produção de imagens/quadros 360°
+serão acordados na [base para contratação](../base-para-contratacao.md).
+
+Preservar autoria e condições específicas das mídias de terceiros que forem
+mantidas, conforme o manifesto e o [NOTICE](../../NOTICE). A contratação do
+site não transfere direitos de terceiros nem elimina obrigações de atribuição.

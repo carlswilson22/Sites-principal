@@ -1,161 +1,159 @@
 # Funcionalidades atuais dos três modelos
 
-Este inventário descreve o código que alimenta a demonstração do GitHub Pages.
-Os módulos são cumulativos: DriveNow inclui a base do AutoElite; Enterprise
-inclui a base administrativa do DriveNow e acrescenta ferramentas próprias.
-Quantidade de telas no menu não equivale a quantidade de integrações prontas.
+Atualizado em **17/11/2026**, referência `3f3961d`. Inventário da demonstração;
+para preparar o contrato, selecione os itens na [base técnica](base-para-contratacao.md).
+Os módulos administrativos são cumulativos; as propostas visuais são distintas.
 
-## Base disponível nos três modelos
+## Base dos três modelos
 
-- Página inicial com animação em vídeo e seleção de até seis veículos publicados,
-  conforme a disponibilidade do estoque.
-- Páginas de estoque, destaques e Sobre Nós e Contato.
-- Tipografia Inter para textos, títulos, formulários e painel, com pesos normais
-  e itálicos e fontes de sistema como alternativa de carregamento.
-- Busca, filtros e ordenação do catálogo, com opções diferentes em cada modelo.
-- Anúncio em modal, com galeria de fotos, miniaturas, dados do veículo, opcionais,
-  ficha técnica e informações de laudo cadastradas pela loja.
-- Atendimento automático dentro do anúncio, histórico da conversa na sessão,
-  perguntas rápidas e registro de preferência. O contato com um funcionário
-  continua no WhatsApp da loja, levando o contexto da conversa e do veículo.
-- Simulador ao final do anúncio, aberto após login: entrada, prazo de 12 a 60
-  meses, taxa mensal ajustável, parcela estimada, saldo financiado, juros e total.
-  O cálculo usa a Tabela Price com taxa ilustrativa; não aprova crédito nem
-  consulta bancos.
-- Formulário institucional para contato, com encaminhamento da mensagem à loja.
-- Login único de cliente ou funcionário, identificado pelas credenciais, com
-  visual próprio de cada modelo. O painel só aparece para a equipe autenticada.
-- Demonstração com dados guardados no navegador e separados por loja. Não há
-  autenticação real hospedada ou envio de e-mails. O cadastro local de cliente
-  está habilitado, com nome, e-mail, senha e confirmação; após criar, é possível
-  sair e entrar novamente neste navegador. Senhas são salvas como hash scrypt.
+- Inicial com vídeo e até seis veículos publicados e não vendidos, priorizando
+  destaques. Havendo menos veículos, aparecem somente os disponíveis.
+- Estoque, destaques e Sobre Nós e Contato; busca, filtros e ordenação conforme
+  o modelo; tipografia Inter e adaptação para computador/celular.
+- Anúncio compacto com galeria, miniaturas, preço, ano, quilometragem, câmbio e
+  combustível. Informações adicionais em seções verticais expansíveis; apenas
+  uma seção de ferramenta, atendimento ou financiamento aberta por vez.
+- Galeria ampliada, opcionais, ficha técnica e laudo informado pela loja.
+  Não há consulta oficial de histórico, débitos ou perícia.
+- Atendimento automático no anúncio: respostas programadas baseadas no catálogo,
+  perguntas rápidas e registro de preferência. Conversa na sessão do navegador,
+  separada por loja/veículo. Não é atendimento humano ao vivo.
+- Um único botão de WhatsApp no rodapé do anúncio: **Tenho interesse**.
+  Encaminhamento ao funcionário por ação explícita do visitante.
+- Financiamento no anúncio, após login: **Itaú Auto, Santander Auto e BV
+  Financeira**, com taxas ilustrativas de 1,42%, 1,45% e 1,49% ao mês. Entrada
+  entre 0% e 80%, atalhos 20%/30%/50% e prazos 12/24/36/48/60 meses. Tabela
+  Price para parcela, juros e total. Sem IOF, tarifas, seguros ou CET; sem
+  consulta/aprovação de crédito ou vínculo comercial comprovado com os bancos.
+- Contato institucional: registro local e mensagem preparada para WhatsApp.
+  Não envia e-mail nem agenda visitas.
+- Login único de cliente ou equipe, reconhecido pelas credenciais. Cadastro
+  público cria somente cliente. Painel apenas para equipe autenticada.
+- Contas e dados demonstrativos no navegador, separados por loja. Senhas
+  cadastradas usam hash scrypt com salt. Sem sincronização entre dispositivos;
+  não constitui autenticação de produção para dados reais.
+
+Veja a [experiência dos anúncios](experiencia-anuncios.md) para navegação,
+conservação dos campos e carregamento sob demanda.
 
 ## Modelo 1 — AutoElite Seminovos
 
-### Experiência do visitante e cliente
+### Site público
 
-- Abertura dividida entre apresentação/busca e vídeo; identidade azul.
-- Vitrine em grade com cartões verticais e navegação compacta.
-- Busca por texto e categoria: SUV, sedan, hatch, picape e esportivo.
-- Ordenação por destaque, preço, ano ou quilometragem.
-- Galeria, ficha, laudo informado, atendimento e financiamento no anúncio.
-- O financiamento público fica no próprio anúncio. Não há página independente
-  de serviços, avaliação de troca, favoritos ou comparador.
-- Visualização 360° não está incluída na configuração deste modelo.
+Identidade azul; abertura dividida entre busca e vídeo, com destaque para a
+animação; cartões verticais em grade. Busca por texto e categoria (SUV, sedan,
+hatch, picape e esportivo); ordenação por destaque, preço, ano ou quilometragem.
+Atendimento e financiamento no anúncio.
 
-### Painel do lojista — cinco módulos
+Não inclui favoritos, comparação, 360°, TCO, dossiê ampliado, formulário de
+troca ou página independente de financiamento na configuração padrão.
 
-1. **Início e indicadores:** quantidade em estoque, vendas recentes, veículos
-   parados e novos contatos; lista de pendências calculada a partir dos dados
-   salvos nesta loja.
-2. **Estoque de veículos:** cadastrar, editar, excluir, publicar/ocultar, registrar
-   situação de venda e editar informações comerciais. Gerenciar fotos, capa e
-   ordem da galeria; alterações atualizam a vitrine local.
-3. **Contatos e WhatsApp:** consultar e filtrar contatos por situação, atualizar
-   atendimento, registrar observações e acompanhar o histórico.
-4. **Simulador de financiamento:** preparar estimativas durante o atendimento,
-   usando os veículos do estoque.
-5. **Contratos e termos:** emitir compra e venda, recibo de sinal e termo de
-   vistoria; visualizar, imprimir/salvar PDF pelo navegador e compartilhar uma
-   mensagem no WhatsApp. Os documentos básicos ficam salvos por loja.
+### Painel — cinco módulos para o proprietário
+
+1. **Início e indicadores:** estoque, vendas recentes, veículos parados,
+   novos contatos e pendências calculados dos dados locais da loja.
+2. **Estoque de veículos:** cadastro, edição, exclusão autorizada, situação,
+   publicação, informações comerciais, fotos, capa e ordem da galeria.
+   Alterações alimentam a vitrine local.
+3. **Contatos e WhatsApp:** consulta, filtros, situação, observações e histórico.
+4. **Simulador de financiamento:** veículo do estoque, entrada, prazo e taxa
+   manual para estimativas durante o atendimento.
+5. **Contratos e termos:** compra/venda, recibo de sinal e termo de vistoria;
+   prévia, impressão/salvar PDF pelo navegador, histórico local e mensagem para
+   compartilhar. Sem assinatura eletrônica integrada.
 
 ## Modelo 2 — DriveNow Multimarcas
 
-### Experiência do visitante e cliente
+### Site público
 
-- Abertura cinematográfica, marca centralizada, identidade âmbar e apresentação
-  editorial, com anúncios horizontais e fotografias amplas na página inicial.
-- Estoque com pesquisa textual, filtro por marca e blindagem, além de ordenação
-  por preço e ano.
-- Página **Serviços**, reunindo financiamento, avaliação de troca e atendimento.
-- Página independente de **financiamento**, além do simulador dentro do anúncio.
-- **Avaliação do usado na troca:** formulário com identificação do cliente,
-  dados do veículo, ano, quilometragem, blindagem, interesse e observações;
-  registra um contato e prepara a mensagem para negociação no WhatsApp. Não
-  calcula uma oferta automática de compra.
-- Atendimento/concierge no site, também disponível no anúncio. A lógica de
-  atendimento embutida é compartilhada com os demais modelos.
-- Não inclui favoritos, comparador, TCO, dossiê ampliado ou visualizador 360°.
+Identidade âmbar; marca centralizada, abertura cinematográfica e apresentação
+editorial, com fotografias amplas e cartões horizontais. Pesquisa textual,
+filtros de marca/blindagem e ordenação por preço e ano.
 
-### Painel do lojista — nove módulos
+Acrescenta à base:
 
-Inclui os cinco módulos do AutoElite e acrescenta:
+- **Serviços** e **financiamento independente** com taxa manual, além do
+  simulador com bancos ilustrativos no anúncio.
+- **Avaliação do usado na troca:** dados do cliente e veículo, ano,
+  quilometragem, blindagem, interesse e observações; registra contato e prepara
+  negociação no WhatsApp. Não calcula oferta automática de compra.
+- Atendimento/concierge em tela própria e no anúncio, com lógica automática local.
+- Sobre Nós e Contato editorial, com história, valores, foto e contato.
 
-6. **Clientes (CRM):** cadastrar e pesquisar clientes, consultar contatos,
-   converter um contato em cliente e iniciar a emissão de documento com os
-   dados do cliente selecionado.
-7. **Precificador FIPE:** informar uma referência de preço, custo de preparação
-   e margem desejada; calcular teto de compra, venda sugerida e lucro previsto.
-   Mantém histórico na tela; o valor FIPE é preenchido manualmente.
-8. **Financeiro e margens:** lançar, editar e excluir gastos por veículo;
-   acompanhar aquisição, custos e resultado estimado ou realizado, conforme os
-   valores cadastrados e a situação da venda. Exclusivo do proprietário.
-9. **Métricas do site:** páginas visualizadas, anúncios abertos, cliques no
-   WhatsApp e ranking de interesse, com períodos de 7, 30 e 90 dias. Os eventos
-   são deste navegador; não são visitantes únicos nem tráfego consolidado.
+Não inclui favoritos, comparador, TCO, dossiê ampliado ou 360° padrão.
+
+### Painel — nove módulos para o proprietário
+
+Inclui os cinco anteriores e acrescenta:
+
+6. **Clientes (CRM):** cadastro, pesquisa, consulta a contatos, conversão de
+   contato em cliente e encaminhamento autorizado para emitir documento.
+7. **Precificador FIPE:** referência manual, preparação e margem; calcula
+   teto de compra, venda sugerida e lucro previsto. Sem consulta FIPE atualizada.
+8. **Financeiro e margens:** cadastrar/editar/remover gastos por veículo;
+   aquisição, custos e margem estimada. Resultado realizado exige venda e valor
+   efetivo nos dados; a interface ainda não oferece esse campo. Só proprietário.
+9. **Métricas do site:** páginas, anúncios abertos, cliques no WhatsApp e ranking
+   em 7/30/90 dias. Eventos deste navegador, sem visitantes únicos ou
+   consolidação entre dispositivos.
 
 ## Modelo 3 — Enterprise Veículos
 
-### Experiência do visitante e cliente
+### Site público
 
-- Vídeo panorâmico, identidade ciano, faixa horizontal de filtros na inicial e
-  cartões amplos em duas colunas. O atalho que apenas rolava a página foi retirado.
-- Estoque com busca por modelo/marca, filtros de marca e categoria, ordenação
-  por preço, quilometragem ou recomendação; filtros laterais na página completa.
-- Financiamento em página própria e no anúncio; formulário de veículo na troca.
-- **Favoritos:** salvar/remover veículos e consultar a lista pessoal após login,
-  com separação por conta e loja no navegador. O coração à esquerda do login,
-  do painel e do perfil é
-  visível para visitantes, exige login ou cadastro para abrir a lista e mostra
-  a quantidade salva após entrar. Os botões de favoritos e comparação ficam no
-  estoque, sem cópias na abertura ou na página Serviços.
-- **Comparador público, sem login:** abrir uma janela no estoque, buscar e selecionar de dois a
-  três veículos, confirmar a seleção e consultar fotos e dados lado a lado.
-  O resumo indica menor preço, menor quilometragem e ano mais recente, incluindo
-  empates e dados incompletos. As cinco seções expansíveis reúnem preço/FIPE,
-  uso, laudo, documentação e especificações. Permite alterar escolhas, adicionar
-  a terceira opção e abrir o anúncio, onde ficam atendimento e financiamento.
-  Cancelar a seleção preserva as escolhas anteriores. Os dados vêm do anúncio.
-- **Visualizador 360°:** incluído neste modelo para anúncios com sequência
-  orbital cadastrada; não gera imagens 360° a partir de uma foto comum.
-- **TCO no anúncio:** estimar despesas anuais/mensais com combustível, seguro,
-  IPVA e revisões, ajustando uso mensal e preço do combustível. As premissas
-  são ilustrativas e não substituem cotações reais.
-- **Dossiê do veículo:** exibir histórico, procedência, proprietários anteriores,
-  revisão e origem a partir dos dados cadastrados; campos ausentes são indicados.
-- **Interesse em condição de preço:** informar contato e valor desejado,
-  registrar o interesse e levar a mensagem ao WhatsApp. Não há monitoramento
-  automático de preço nem envio de notificações.
-- **Consultor virtual:** tela de conversa com sugestões de veículos por temas
-  e perguntas rápidas. A implementação atual usa respostas programadas locais;
-  não está conectada a um serviço de inteligência artificial.
-- O botão **Falar com a equipe** foi retirado do cabeçalho. O atendimento do
-  anúncio e os demais contatos existentes continuam disponíveis.
+Identidade ciano; vídeo panorâmico, título abaixo, faixa de filtros na inicial
+e cartões amplos em duas colunas. Estoque com busca, marca, categoria,
+ordenação e filtros laterais. Serviços, financiamento independente e troca.
+Sobre Nós e Contato com navegação por seções e painéis expansíveis de contato.
 
-### Painel do lojista — dezesseis módulos
+Acrescenta:
 
-Inclui os nove módulos do DriveNow e acrescenta:
+- **Favoritos:** salvar/remover e consultar após login, por conta e loja no
+  navegador. Coração à esquerda dos acessos de conta/painel, visível ao
+  visitante, solicitando login. Atalhos completos ficam no estoque.
+- **Comparador público:** selecionar dois a três veículos; fotos/dados lado
+  a lado e resumo de menor preço, menor quilometragem e ano mais recente.
+  Cinco seções: preço/FIPE, uso, laudo, documentação e especificações.
+  Considera empates/ausências; usa cadastro, sem consulta externa.
+- **360°:** sequência orbital própria por veículo. Não gera giro de uma foto;
+  indisponível quando não há sequência válida.
+- **TCO:** estimativas de combustível, seguro, IPVA e revisões; ajusta uso e
+  combustível. Premissas ilustrativas, sem cotações reais de serviços/tributos.
+- **Dossiê:** histórico, procedência, proprietários e revisões conforme cadastro.
+  Campos ausentes são indicados; não certifica procedência.
+- **Interesse em condição de preço:** contato e valor desejado para negociação.
+  Não monitora preço nem envia notificações automáticas.
+- **Consultor virtual:** sugestões com respostas programadas, sem IA generativa.
+  Afirmações automáticas precisam ser conferidas contra os dados reais antes
+  de operar uma loja em produção.
 
-10. **Consignação completa:** tela com dados do consignante, remuneração,
-    taxas, diárias de guarda, vigência e prazo de repasse.
-11. **Contratos avançados e troca:** telas de consignação, compra e venda com
-    veículo na troca e aditivos, com previsão de testemunhas e impressão.
-12. **DRE e comissões:** demonstrativo de estoque próprio/consignado, vendas,
-    comissões e relatório bancário em texto. Exclusivo do proprietário.
-13. **Precificador de mercado e leilão:** formulário com referência FIPE,
-    concorrentes inseridos manualmente, histórico de leilão, liquidez,
-    preparação e margem.
-14. **Funil de vendas e giro:** visualização de etapas de conversão, tempo de
-    resposta e veículos parados.
-15. **Estúdio de Stories:** prévia de três layouts verticais, modos de preço e
-    enquadramento; tela de status da integração com Instagram.
-16. **Auditoria e LGPD:** telas para visualizar registros, consultar dados de
-    um titular e solicitar anonimização. Exclusivo do proprietário.
+### Painel — dezesseis módulos para o proprietário
 
-Esses sete módulos adicionais têm limites importantes na versão publicada,
-descritos abaixo.
+Inclui os nove anteriores e acrescenta:
 
-## Permissões reais do menu
+10. **Consignação completa:** consignante, comissão, taxas, diárias, vigência,
+    prazo e cálculo de repasse; gravação local na demonstração.
+11. **Contratos avançados e troca:** minutas de consignação, compra/venda com
+    troca e aditivos; dados do formulário, numeração, vínculo e impressão.
+12. **DRE e comissões:** demonstrativos e relatório bancário com números de
+    exemplo; não consolidam operações locais. Inclui exportação do catálogo
+    em CSV local, sem publicação em portais. Exclusivo do proprietário.
+13. **Precificador de mercado e leilão:** referência e concorrentes manuais,
+    leilão, liquidez, preparação e margem; cálculo compartilhado com servidor.
+    Não pesquisa mercado ou leilões automaticamente.
+14. **Funil de vendas e giro:** etapas, conversão, resposta e estoque parado
+    com números de exemplo; não consolida contatos locais.
+15. **Estúdio de Stories:** estoque da loja, três layouts, preço/enquadramento
+    e PNG 1080 × 1920. Publicação fictícia local, histórico e arte salva;
+    não publica no Instagram real.
+16. **Auditoria e LGPD:** exportação JSON e anonimização de clientes de exemplo,
+    com trilha local. Não altera todas as contas/CRM/bases reais. Só proprietário.
+
+Consignações, minutas avançadas, publicações e ações sobre titulares de exemplo
+são persistidas por loja no navegador. Limpar os dados pode removê-las.
+As [integrações](manuais-de-integracao.md) detalham servidor e pendências.
+
+## Perfis e disponibilidade
 
 | Perfil | AutoElite | DriveNow | Enterprise |
 | --- | --- | --- | --- |
@@ -164,57 +162,14 @@ descritos abaixo.
 | Gerente | 5 módulos | 8 módulos | 13 módulos |
 | Proprietário | 5 módulos | 9 módulos | 16 módulos |
 
-- Atendente tem contratos básicos e financiamento nas três edições.
-- No DriveNow, CRM e precificador FIPE também ficam disponíveis ao atendente;
-  métricas ficam para gerente/proprietário, e financeiro para proprietário.
-- No Enterprise, atendente também acessa precificador de mercado e Stories.
-  Consignação, contratos avançados e funil ficam para gerente/proprietário.
-- Financeiro por veículo, DRE/comissões e auditoria/LGPD ficam para proprietário.
-- Dentro do estoque, excluir veículos fica para gerente/proprietário. O atalho
-  do CRM para iniciar documento com o cliente selecionado também fica para
-  gerente/proprietário; o atendente emite documentos pelo módulo básico.
+A [matriz](matriz-de-funcionalidades.md) define as permissões por módulo. A
+contagem representa rotas do painel, não integrações conectadas. Trocar cargo
+no painel é exclusivo da demonstração para funcionários já autenticados.
 
-## Limites encontrados nos recursos avançados
+## Referências da implementação
 
-- **Consignação:** a lista é demonstrativa; salvar retorna sucesso sem persistir
-  uma nova consignação no modo estático.
-- **Contratos avançados:** o retorno local é uma minuta mínima de demonstração,
-  sem preencher o instrumento completo com os dados do formulário.
-- **DRE/comissões e funil:** apresentam conjuntos de números de exemplo, sem
-  consolidar automaticamente as alterações do estoque, contatos e despesas
-  locais. O relatório bancário usa esses mesmos dados de exemplo.
-- **Precificador avançado:** o cálculo local é simplificado e não incorpora
-  todos os parâmetros que aparecem no formulário, incluindo preços dos
-  concorrentes, custo de preparação e margem configurada.
-- **Stories:** a prévia visual existe, mas o botão de download apenas abre um
-  aviso; ainda não gera o arquivo de imagem. Publicação no Instagram não está
-  configurada.
-- **Auditoria/LGPD:** os retornos locais são exemplos, sem auditoria persistente
-  ou anonimização efetiva dos cadastros locais.
-- **Exportação para portais:** o botão depende de `/api/tier3/portals/export`,
-  indisponível no GitHub Pages.
-- **Consultor Enterprise:** além das respostas programadas, ainda contém textos
-  herdados de DriveNow e afirmações genéricas de consumo, garantia e aprovação
-  de laudos. Essas afirmações não são verificações do veículo consultado.
-
-## Por que as diferenças parecem pequenas
-
-As três versões compartilham navegação, anúncio, atendimento, financiamento,
-login e grande parte do painel. Para um visitante, o DriveNow acrescenta
-principalmente serviços e formulário de troca. O Enterprise oferece mais
-diferenças de escolha do veículo: favoritos, comparação, 360°, TCO e dossiê.
-
-As maiores diferenças de quantidade ficam no painel de proprietário. Vários
-recursos exclusivos desse painel ainda são telas demonstrativas ou integrações
-pendentes; devem ser apresentados com esse limite, em vez de como operações
-completas já conectadas ao negócio.
-
-## Referências no código
-
-- `sites/*/src/App.jsx`: páginas efetivamente acessíveis em cada modelo.
-- `sites/*/src/pages/HomePage.jsx`: estrutura das páginas iniciais.
-- `packages/merchant-core/src/utils/merchantAccess.js`: permissões por modelo/cargo.
-- `packages/merchant-core/src/components/layout/MerchantSidebar.jsx`: nomes do menu.
-- `packages/merchant-core/src/services/apiClient.js`: respostas estáticas e integrações.
-- `packages/merchant-core/src/components/common/VehicleAdServices.jsx`: atendimento
-  e financiamento compartilhados nos anúncios.
+- `sites/*/src/App.jsx` e `pages/HomePage.jsx`: páginas e apresentação.
+- `packages/merchant-core/src/utils/merchantAccess.js`: edição e cargo.
+- `packages/merchant-core/src/services/apiClient.js`: modo local e API.
+- `packages/merchant-core/src/components/common/VehicleAdSections.jsx`: seções.
+- `packages/merchant-core/src/data/financingBanks.js`: bancos/taxas ilustrativos.

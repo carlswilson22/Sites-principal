@@ -1,13 +1,66 @@
-# Desenvolvimento local
+# Desenvolvimento local e verificações
 
-Na raiz do projeto, execute `npm run dev`. O comando inicia o portal e os três modelos com atualização automática do código.
+Atualizado em **17/11/2026**. Ambiente de referência: Node.js 22, como na
+publicação automatizada do repositório. Executar comandos a partir da raiz.
 
-Abra `http://localhost:5173/Sites-principal/` e use os cartões para acessar cada modelo. Para testar em outro dispositivo na mesma rede, use o endereço **Network** mostrado no terminal. Todos os modelos usam o mesmo endereço e a mesma porta pública; os servidores internos ficam restritos ao computador.
+## Instalar e iniciar
 
-Se o servidor antigo estiver aberto, encerre-o com `Ctrl+C` antes de executar novamente `npm run dev`. A porta pública é fixa: se estiver ocupada, o comando informa o erro. Para escolher outra, execute `npm run dev -- --port 5183`.
+```powershell
+npm install
+npm run dev
+```
 
-Com o servidor aberto, `npm run check:dev` verifica o portal, as páginas dos modelos, uma foto de cada modelo e as conexões de atualização automática. Para outra porta ou endereço, use `npm run check:dev -- http://localhost:5183/Sites-principal/`.
+Abrir `http://localhost:5173/Sites-principal/` e usar os cartões. O comando
+inicia o portal e os três modelos com atualização automática. Para outro
+aparelho na mesma rede, usar o endereço **Network** exibido no terminal;
+as aplicações compartilham endereço/porta pública, com servidores internos
+restritos ao computador.
 
-`Ctrl+C` no terminal do desenvolvimento encerra as quatro aplicações.
+Encerrar uma execução antiga com `Ctrl+C`. A porta é fixa: se ocupada, o
+comando informa erro. Alternativa: `npm run dev -- --port 5183`. `Ctrl+C`
+encerra as quatro aplicações iniciadas pelo comando.
 
-Para conferir a versão de publicação, execute `npm run build` e depois `npm run preview`. A prévia usa `http://127.0.0.1:4173/Sites-principal/`.
+## Conferir desenvolvimento e publicação
+
+Com o desenvolvimento aberto:
+
+```powershell
+npm run check:dev
+```
+
+Confere portal, modelos, uma imagem por modelo e conexões de atualização.
+Para outra porta: `npm run check:dev -- http://localhost:5183/Sites-principal/`.
+
+Para validação do código e da versão compilada:
+
+```powershell
+npm run test:merchant
+npm run test:server
+npm run check:ui
+npm run build
+npm run check:runtime
+npm run preview
+```
+
+A prévia abre em `http://127.0.0.1:4173/Sites-principal/`. `check:runtime`
+usa os arquivos compilados; por isso precisa de build anterior. O GitHub Actions
+executa testes de núcleo/API, UI, build e runtime antes de publicar `dist`.
+
+Os testes verificam cenários específicos. Não comprovam integrações externas,
+segurança integral, aparência em pixels ou desempenho em todo dispositivo.
+A conferência visual é manual. Uma revisão apenas documental pode validar
+links, correspondência com o código e integridade das atribuições, sem refazer
+o build como evidência de alterações que não atingem a aplicação.
+
+## Demonstração e operação real
+
+A publicação é estática e usa `VITE_MERCHANT_DEMO=true`. O servidor Node/SQLite
+não inicia com `npm run dev`, build ou preview. Contas e registros locais
+não sincronizam entre dispositivos; limpar o navegador pode apagá-los.
+
+[Acessos de teste](painel-demonstracao.md) não são credenciais de produção.
+Não incluir segredos no frontend, repositório ou documentação comercial.
+A configuração do servidor e suas pendências estão em
+[integrações](manuais-de-integracao.md). Modelo 2 corresponde à pasta
+`sites/luxury-dealership`; modelo 3, à pasta `sites/popular-dealership`.
+Esses nomes internos legados não representam a marca comercial da loja.

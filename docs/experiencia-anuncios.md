@@ -1,61 +1,86 @@
-# Experiência do anúncio e informações da loja
+# Experiência dos anúncios e informações da loja
 
-O visualizador 360° é incluído somente no modelo 3. Os modelos 1 e 2 começam
-com `dealershipInfo.features.vehicle360: false`. A configuração continua
-permitindo ativação por loja, com imagens próprias do veículo. O portal não
-exibe mais a seção de ferramentas à la carte.
+Atualizada em **17/11/2026**, referência `3f3961d`.
 
-Os cards mostram combustível, motor e potência, além de ano, quilometragem e
-preço. O acesso se chama “Visualizar anúncio”, e a ação de interesse se chama
-“Tenho interesse”.
+## Organização do anúncio
 
-O atendimento e o simulador ficam depois dos detalhes do veículo. “Tirar dúvidas”
-abre o chat no próprio anúncio. As conversas são separadas por loja e veículo.
-O chat pode abrir o simulador, que é a última seção do conteúdo. Combinar uma
-visita exige uma ação explícita para conversar com o lojista pelo WhatsApp;
-não há formulário de pedido de visita no site.
+Os três modelos usam conteúdo compacto em ordem vertical:
 
-## Navegação institucional
+1. Identificação do veículo, foto principal e miniaturas.
+2. Resumo de ano, quilometragem, câmbio e combustível.
+3. Atendimento e financiamento em linhas expansíveis.
+4. Informações adicionais e ferramentas da edição; cada conteúdo aparece
+   imediatamente abaixo do botão correspondente.
+5. Rodapé com preço e um único WhatsApp: **Tenho interesse**.
 
-Os três modelos têm “Sobre Nós e Contato” no menu superior, com apresentação,
-endereço, horários, canais de contato e uma foto local de um veículo do catálogo.
-A foto é identificada como ilustrativa e mantém os créditos. A antiga rota
-interna `visitas` encaminha para essa página.
+As seções adicionais começam fechadas. Abrir atendimento, financiamento ou
+ferramenta fecha a seção anteriormente aberta. A expansão leva ao conteúdo;
+fechar ou clicar novamente devolve foco e rolagem à linha correspondente,
+respeitando movimento reduzido. Trocar de seção não deve devolver o usuário
+indevidamente à seção anterior.
 
-Na página institucional, telefone, WhatsApp, e-mail, endereço e horários ficam
-em um único bloco. O rodapé dessa página mostra apenas identificação e direitos
-da loja. Os diferenciais ficam em uma única seção, sem cartões repetidos junto
-à apresentação. O título começa logo abaixo da navegação, sem faixa adicional
-ou divisórias horizontais entre as seções.
+Galeria ampliada, opcionais, ficha e laudo são públicos. O chat é automático e
+funciona no anúncio. Financiamento solicita login no mesmo contexto. O
+comparador Enterprise pode abrir o anúncio com a simulação solicitada.
+Financiamento e TCO preservam valores ao recolher; fechar 360° interrompe sua
+animação. Cada galeria usa as imagens cadastradas para o veículo escolhido.
 
-As páginas iniciais exibem até seis veículos publicados e não vendidos,
-priorizando os destaques e completando a seleção com o restante do estoque.
-Se houver menos veículos disponíveis, exibem somente os existentes.
+Financiamento tem três bancos/taxas ilustrativos, entrada, prazo e resumo;
+detalhamento de custos começa recolhido. Taxa manual fica no simulador
+independente e no painel. Não há aprovação ou contratação bancária.
 
-Os indicadores de carros entregues, veículos periciados, pré-análise de crédito
-e veículos disponíveis foram removidos das páginas iniciais e de sua configuração.
+Enterprise acrescenta 360°, TCO, dossiê e interesse em condição de preço nas
+linhas de ferramentas. O interesse em preço não cria outro WhatsApp no rodapé
+nem dispara notificações. O giro exige sequência própria. Nos modelos 1 e 2,
+`features.vehicle360` começa desativado.
 
-## Desempenho dos anúncios
+## Catálogo e informações da loja
 
-- O chat só é montado após ser solicitado e tem carregamento separado de código.
-- O simulador fechado não monta os controles nem executa seus cálculos. Após a
-  primeira expansão, preserva os valores ao recolher. A abertura pelo comparador
-  mantém o simulador expandido no veículo escolhido.
-- As miniaturas fora da faixa visível só recebem imagens ao se aproximarem dela.
-  Todas as fotos continuam acessíveis pelos botões e pelas setas da galeria.
-- As imagens usam decodificação assíncrona. A foto principal tem prioridade alta.
-- Os anúncios não aplicam desfoque de tela inteira. A animação do banner deixa
-  de atualizar o vídeo enquanto um diálogo está aberto, retomando ao fechar o último.
-- O foco inicial evita medir cada campo do anúncio. Diálogos sobrepostos mantêm
-  o bloqueio de rolagem até o último fechar e somente o superior captura Tab.
+Cards mostram combustível, motor e potência além de ano, quilometragem e preço,
+conforme os dados disponíveis. O acesso é **Visualizar anúncio**. As iniciais
+exibem até seis veículos publicados e não vendidos, priorizando destaques;
+não criam anúncios para preencher a vitrine.
+
+Indicadores genéricos de carros entregues, perícia, pré-análise de crédito e
+quantidade disponível foram retirados das iniciais.
+
+**Sobre Nós e Contato** reúne apresentação, história, transparência/confiança,
+foto ilustrativa e dados da loja. Contatos ficam em um bloco, com rodapé
+compacto nessa página. Sem faixa vazia adicional ou divisórias entre seções.
+A composição varia por modelo. A antiga rota `visitas` leva à página
+institucional; visitas são combinadas com a equipe no WhatsApp, sem agendamento
+pelo site.
+
+## Medidas de desempenho e navegação
+
+- Galeria inicial com altura contida e miniaturas compactas; fotos distantes
+  da faixa visível carregam ao se aproximarem dela.
+- Imagem principal prioritária; decodificação assíncrona das imagens.
+- Chat, galeria ampliada e ferramentas carregados sob demanda.
+- Simulador fechado não monta inicialmente seus controles; preserva estado
+  depois da primeira abertura.
+- Vídeo da inicial suspende atualizações com diálogos abertos e respeita
+  preferência por movimento reduzido.
+- Sem desfoque de tela inteira no anúncio. Diálogos sobrepostos conservam
+  bloqueio de rolagem até o último fechar; somente o superior captura Tab.
+
+Essas medidas reduzem montagem e trabalho de renderização. Não representam
+meta de tempo de carregamento ou fluidez medida em todos os dispositivos.
 
 ## Conferência manual
 
-Abra os três modelos e confira “Sobre Nós e Contato” no computador e no celular.
-Em cada anúncio, navegue pelas fotos, role a faixa de miniaturas e abra/recolha
-chat e simulador. Confira a preservação dos campos e a seleção do veículo.
-No chat, “Visitar a loja” deve oferecer continuar no WhatsApp, sem pedir data
-ou período. No modelo 3, confira também o visualizador 360° e os diálogos sobrepostos.
+Em computador e celular, para cada modelo:
 
-Os testes de renderização verificam estrutura e montagem sob demanda. A fluidez
-em um dispositivo real depende da conferência manual; não foi medida por esses testes.
+1. Abrir veículos diferentes e conferir capa, miniaturas, setas e galeria ampliada.
+2. Trocar entre ficha, chat e simulador; conferir uma seção aberta por vez e
+   retorno ao botão correto ao fechar.
+3. Entrar/cadastrar pelo simulador, alternar banco, entrada e prazo; recolher
+   e reabrir para conferir a conservação dos valores e do veículo.
+4. Conversar no chat e registrar preferência. Conferir que o encaminhamento
+   externo depende de uma ação explícita.
+5. No Enterprise, repetir com 360°, TCO, dossiê, condição de preço e comparador.
+6. Conferir a página institucional e a ausência de contatos duplicados.
+
+Testes de estrutura e execução cobrem fluxos específicos. Alinhamento,
+legibilidade, fluidez e desempenho em aparelho real exigem inspeção manual,
+conforme as condições de homologação que forem acordadas.

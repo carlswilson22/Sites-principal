@@ -1,5 +1,26 @@
 # Revisão do sistema — 11/11/2026
 
+> **Registro histórico.** O texto abaixo registra a situação em 11/11/2026;
+> não é o inventário atual nem um anexo contratual. A versão corrente está no
+> [inventário de funcionalidades](funcionalidades-dos-modelos.md).
+
+## Atualização de situação — 17/11/2026
+
+Na implementação `3f3961d`, Stories já gera PNG a partir do estoque e mantém
+publicações fictícias com histórico; consignações persistem localmente;
+minutas avançadas usam dados/numeração e o precificador compartilha o cálculo
+com o servidor. Ações avançadas por `toolApi` não transformam falhas reais da
+API em sucesso demonstrativo. O catálogo também pode ser exportado em CSV local.
+
+DRE e funil continuam com números de exemplo. Exportação/anonimização de
+titulares atua sobre clientes de exemplo, sem abranger todas as bases locais.
+Persistência central, autenticação de clientes e serviços externos ainda
+dependem de implantação e integração. Consulte [integrações](manuais-de-integracao.md)
+e [segurança](politica-de-seguranca-lgpd.md). As observações e os resultados
+originais abaixo foram preservados; não são novos testes executados nesta data.
+
+## Registro original
+
 Revisão do portal, dos três modelos, do núcleo do painel e da API existente.
 Foram examinados os caminhos de importação, duplicações de implementação,
 permissões, formulários, armazenamento, navegação e arquivos de produção.

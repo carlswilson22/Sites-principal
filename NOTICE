@@ -1,26 +1,38 @@
 # NOTICE - ATRIBUIÇÃO DE CÓDIGO E LICENÇAS DE TERCEIROS
 
-Este projeto (Auto-Dealership) utiliza e adapta componentes de interface sob licenças permissivas de código aberto, em estrita conformidade com seus termos originais.
+Este arquivo preserva as atribuições de terceiros registradas no projeto
+Sites-principal. As licenças e os direitos desses materiais permanecem
+aplicáveis às cópias e adaptações que os utilizem.
 
 ---
 
 ## 1. MicroKit UI (Microinteractions)
+
 - **Origem:** [MicroKit UI](https://microkit.co) / [GitHub - henriquegpb/microkit](https://github.com/henriquegpb/microkit)
 - **Autor / Copyright:** Copyright (c) Henrique Barone
 - **Licença:** MIT License (https://opensource.org/licenses/MIT)
 
-### Componentes e Padrões Adaptados:
-1. `Cursor Edge Glow Button` (`/components/cursor-edge-glow-button`) -> Implementado em `src/components/ui/GlowButton.jsx`
-2. `Outline Wipe Button` (`/components/outline-wipe-button`) -> Implementado em `src/components/ui/WipeButton.jsx`
-3. `Focus Field` (`/components/focus-input`) -> Implementado em `src/components/ui/FocusInput.jsx`
-4. `Sliding Underline Tabs & Sliding Content Tabs` (`/components/sliding-underline-tabs`, `/components/sliding-content-tabs`) -> Implementado em `src/components/ui/SlidingTabs.jsx`
-5. `Secure Purchase Button` (`/components/secure-purchase-button`) -> Implementado no fluxo de Checkout
-6. `Spotlight Indicator` (`/components/spotlight-indicator`) -> Implementado em chips e filtros rápidos
-7. `Icon Swap Button / Heart Action` (`/components/icon-swap-button`) -> Implementado em botões de favoritos dos cards
+### Referências de componentes e padrões registradas na origem
+
+1. `Cursor Edge Glow Button` (`/components/cursor-edge-glow-button`).
+2. `Outline Wipe Button` (`/components/outline-wipe-button`).
+3. `Focus Field` (`/components/focus-input`).
+4. `Sliding Underline Tabs & Sliding Content Tabs`
+   (`/components/sliding-underline-tabs`, `/components/sliding-content-tabs`).
+5. `Secure Purchase Button` (`/components/secure-purchase-button`).
+6. `Spotlight Indicator` (`/components/spotlight-indicator`).
+7. `Icon Swap Button / Heart Action` (`/components/icon-swap-button`).
+
+A lista conserva a atribuição histórica. Os antigos caminhos de arquivos
+`GlowButton.jsx`, `WipeButton.jsx`, `FocusInput.jsx` e `SlidingTabs.jsx` não
+correspondem à estrutura atual. A referência a Secure Purchase Button não
+significa que o produto possua checkout, pagamentos ou assinatura eletrônica.
+O texto MIT ao final foi preservado integralmente.
 
 ---
 
 ## 2. Details.so (Inspo)
+
 - **Origem:** [Details.so Inspo](https://www.details.so/inspo)
 - **Uso:** Referência conceitual de princípios de ritmo, hierarquia, profundidade de sombras em duas camadas, transições suaves e composição visual editorial (sem cópia de código proprietário ou identidade de sites catalogados).
 
@@ -60,4 +72,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-

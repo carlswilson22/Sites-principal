@@ -1,74 +1,60 @@
-# Três propostas de site
+# Três propostas visuais de site
 
-As edições mantêm seus recursos e o mesmo estoque por loja, mas têm estruturas
-próprias de navegação e apresentação:
+Atualizado em **17/11/2026**, referência `3f3961d`. As propostas compartilham
+componentes, mas usam composições próprias. Marca, cores e conteúdo finais
+serão definidos para o cliente.
 
-- **AutoElite — vitrine direta:** navegação compacta, abertura dividida entre
-  busca e vídeo, e seis veículos em uma grade de três colunas no computador.
-- **DriveNow — showroom editorial:** marca centralizada, abertura cinematográfica
-  e coleção em sequência. Fotos amplas e fichas horizontais dão espaço a cada
-  veículo. O estoque também usa essa apresentação.
-- **Enterprise — vitrine panorâmica:** vídeo largo na abertura, seguido por uma
-  base com título, acesso à vitrine, comparação e favoritos. Os filtros ficam em
-  uma faixa horizontal e os veículos aparecem em duas colunas mais amplas. A
-  página de estoque mantém os filtros laterais. Os dois contextos usam a mesma
-  lógica de busca; a inicial limita a apresentação a seis resultados.
+## AutoElite — vitrine direta
 
-No celular, os conteúdos se empilham, os filtros ficam antes dos resultados e
-os menus podem ser percorridos horizontalmente. A visualização 360° continua
-incluída somente no modelo 3. Atendimento e financiamento permanecem no anúncio.
+Identidade azul, navegação compacta, abertura dividida entre apresentação/busca
+e animação. O vídeo ocupa a maior coluna no computador e vem primeiro no celular.
+Seleção de até seis veículos em cartões verticais e grade de três colunas no
+computador. Sobre Nós e Contato mantém apresentação direta. Login arredondado
+na paleta do modelo.
 
-A animação tem mais espaço nas três aberturas. No AutoElite, ocupa a maior
-coluna no computador e aparece primeiro no celular. No Enterprise, ocupa uma
-faixa panorâmica própria e o título fica abaixo, deixando a animação livre.
-Legendas menores e uma camada de escurecimento mais leve preservam os detalhes
-do vídeo. No DriveNow, o título e o texto ocupam menos área da abertura cinematográfica.
-A animação continua acompanhando a rolagem, respeita a preferência por movimento
-reduzido e suspende as atualizações quando um anúncio está aberto.
+## DriveNow — showroom editorial
 
-As miniaturas e a descrição no portal acompanham essas composições. Na inicial
-do Enterprise, comparação e favoritos aparecem somente na base do vídeo; no
-estoque, permanecem na lateral dos filtros, sem repetir os mesmos atalhos na tela.
+Identidade âmbar, marca centralizada e abertura cinematográfica. Título/texto
+ocupam menos área para dar destaque ao vídeo. A coleção aparece em sequência,
+com fotos amplas e fichas horizontais, também usadas no estoque.
 
-O painel do lojista é carregado sob demanda nos três modelos, com indicação de
-carregamento. Seus módulos não precisam ser baixados para abrir a vitrine.
+Sobre Nós e Contato tem foto panorâmica, história em capítulos, valores em lista
+e canais em faixa aberta. Formulário com dados pessoais e mensagem em colunas
+no computador. Login e painel seguem a identidade editorial.
 
-As três vitrines começam como visitante. **Entrar** oferece acesso de cliente
-e acesso separado da equipe. Ferramentas pessoais solicitam login no contexto
-atual e o Painel do Lojista aparece apenas para perfis da equipe. Os acessos
-fictícios estão descritos em [Acessos de demonstração](painel-demonstracao.md).
+## Enterprise — vitrine panorâmica
 
-## Sobre Nós e Contato
+Identidade ciano, vídeo largo em faixa própria, título abaixo e filtros
+horizontais. Veículos em duas colunas amplas no computador; estoque com filtros
+laterais. Comparação/favoritos ficam no estoque, sem atalhos duplicados na
+abertura ou em Serviços. Coração à esquerda dos acessos de conta/painel, visível
+ao visitante e solicitando login.
 
-- **DriveNow:** composição editorial com foto panorâmica, narrativa em capítulos,
-  valores em lista e canais de contato em uma faixa aberta. O formulário tem
-  os dados pessoais em uma coluna e a mensagem em outra, como uma carta à loja.
-- **Enterprise:** navegação pelas seções da página, história e fotografia lado
-  a lado, etapas de compra e uma central de contato. Canais, horários e endereço
-  ficam em painéis expansíveis ao lado do formulário, que começa pelo assunto.
+Sobre Nós e Contato tem navegação por seções, história/fotografia lado a lado,
+etapas de compra e central de contato. Horários, endereço e canais em painéis
+expansíveis junto ao formulário. Login segue a paleta e as linhas de interface.
 
-As páginas mantêm os dados de contato em um único lugar e o rodapé compacto.
-O encaminhamento ao WhatsApp exige o envio explícito do formulário. A interface
-informa que a mensagem foi preparada; o cliente continua no WhatsApp para enviá-la.
-Os formulários validam nome, telefone e mensagem e registram o contato na própria
-loja quando há armazenamento disponível. A foto permanece identificada como
-ilustrativa, com crédito. O modelo 1 mantém sua composição atual.
+## Comportamento compartilhado
 
-## Inicialização e GitHub Pages
+- Tipografia Inter; conteúdo empilhado e filtros antes dos resultados no celular.
+- Animação em destaque, escurecimento mais leve, respeito a movimento reduzido
+  e suspensão das atualizações quando um diálogo está aberto.
+- Anúncio compacto com resumo, seções verticais expansíveis e preço/interesse
+  no rodapé, preservando a identidade de cada modelo.
+- Atendimento e financiamento dentro do anúncio; 360° padrão só no Enterprise.
+- Institucional sem divisórias ou faixas vazias; contatos em um lugar, rodapé
+  compacto e fotos ilustrativas com créditos.
+- Login único para cliente/equipe, identificado pelas credenciais. Cadastro
+  público cria cliente; painel apenas para equipe. Sem acesso separado de equipe.
+- Painel sob demanda; carregamento visível e recuperação de erro de renderização,
+  preservando dados locais.
+- Miniaturas do portal representam as estruturas. Portal sem nome comercial
+  próprio, comparativo de recursos ou catálogo de ferramentas extras.
 
-Os arquivos publicados do primeiro modelo responderam com sucesso durante a
-investigação. O teste dos módulos compilados anteriores também inicializou a
-loja e abriu um anúncio; a falha relatada não foi reproduzida nesse cenário.
-Foi identificado que o HTML do AutoElite deixava uma página branca enquanto
-aguardava o JavaScript. Agora há fundo consistente, indicação imediata de
-carregamento e acesso ao portal. A divisão manual de React/ícones em um arquivo
-adicional foi removida; o Vite gerencia as dependências de inicialização.
+A aparência é conferida manualmente na homologação. `check:ui` e
+`check:runtime` verificam estrutura/fluxos, sem garantir alinhamento em pixels.
+A investigação anterior está no [registro histórico](revisao-sistema-2026-11-11.md).
 
-Os três modelos possuem recuperação visível para erros de renderização, sem
-apagar dados locais. O vídeo também aceita a API antiga de MediaQueryList e
-mantém a imagem estática quando matchMedia não está disponível.
-
-`npm run check:runtime`, após o build, executa os módulos ES de produção em DOM
-simulado, verifica a inicialização e exerce anúncios e navegação. Essa checagem
-também integra a publicação no GitHub Actions. Ela complementa os testes de
-dados e renderização; não mede fluidez nem substitui a inspeção visual manual.
+Veja o [inventário funcional](funcionalidades-dos-modelos.md) e a
+[matriz](matriz-de-funcionalidades.md) para selecionar o modelo. Personalizações
+precisam de escopo próprio na [base para contratação](base-para-contratacao.md).
