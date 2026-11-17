@@ -1,3 +1,5 @@
+import { VehicleAdSections } from '../../../../../packages/merchant-core/src/components/common/VehicleAdSections';
+import { VehicleAdFacts, VehicleTechnicalSheet, VehicleEquipmentList, VehicleInspectionDetails } from '../../../../../packages/merchant-core/src/components/common/VehicleAdInformation';
 import { VehicleAdTools } from '../../../../../packages/merchant-core/src/components/common/VehicleAdTools';
 import { VehicleExpandedGallery } from '../../../../../packages/merchant-core/src/components/common/VehicleExpandedGallery';
 import { VehicleThumbnails } from '../../../../../packages/merchant-core/src/components/common/VehicleThumbnails';
@@ -10,11 +12,7 @@ import { useDialog } from '../../../../../packages/merchant-core/src/components/
 import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  X, ShieldCheck, CheckCircle2, MessageCircle, Calendar,
-  Gauge, Cog, Fuel, ChevronLeft, ChevronRight,
-  RotateCw, Camera
-} from 'lucide-react';
+import { X, ClipboardList, ShieldCheck, CheckCircle2, MessageCircle, ChevronLeft, ChevronRight, RotateCw, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { InspectionBadge } from './InspectionBadge';
@@ -66,14 +64,14 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
 
 
   return (
-    <div data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 animate-fade-in font-sans">
+    <div data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-slate-950/80 animate-fade-in font-sans">
       {/* Container do Modal */}
       <div 
-        className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto"
+        className="relative w-full max-w-3xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh_-_1.5rem)] sm:max-h-[calc(100vh_-_3rem)] my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header do Modal */}
-        <div className="flex items-center justify-between p-5 sm:px-8 border-b border-slate-800 bg-slate-950/60 sticky top-0 z-20 ">
+        <div className="flex items-center justify-between px-3 py-2 sm:px-4 border-b border-slate-800 bg-slate-950/60 sticky top-0 z-20 ">
           <div className="flex items-center gap-3">
             <InspectionBadge text="Perícia Cautelar Certificada" compact={true} />
             <Badge variant="blue" size="xs">Cód. {vehicle.laudoCautelar?.codigoLaudo || 'AMT-AUTO'}</Badge>
@@ -93,24 +91,19 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
         </div>
 
         {/* Conteúdo com Scroll */}
-        <div data-vehicle-ad-scroll className="overflow-y-auto p-5 sm:p-8 space-y-6">
+        <div data-vehicle-ad-scroll className="min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
           {/* Topo: Nome, Ano e Preço */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-slate-800/80">
+          <div className="flex flex-col gap-2 pb-3 border-b border-slate-800/80">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs uppercase tracking-wider text-blue-400 font-semibold">{vehicle.categoria}</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-xs text-slate-400">{vehicle.ano}</span>
-              </div>
-              <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-white">
+              <h2 className="font-heading text-xl sm:text-2xl font-extrabold text-white">
                 {vehicle.nome}
               </h2>
               <p className="text-sm text-slate-400">{vehicle.versao}</p>
             </div>
 
-            <div className="sm:text-right">
+            <div className="text-left">
               <span className="text-xs text-slate-400 block">Preço à vista</span>
-              <span className="font-heading text-2xl sm:text-3xl font-black text-white">
+              <span className="font-heading text-xl sm:text-2xl font-black text-white">
                 {formatCurrency(vehicle.preco)}
               </span>
               <p className="text-xs text-emerald-400 mt-0.5 font-medium">
@@ -120,13 +113,13 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
           </div>
 
           {/* Galeria principal */}
-          <div data-vehicle-gallery className="space-y-3">
-            <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+          <div data-vehicle-gallery className="space-y-1.5">
+            <div className="relative h-[clamp(9rem,24vh,16rem)] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
               <VehicleImage
                 src={currentImage}
                 fetchPriority="high"
                 alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
-                className="w-full h-full object-cover transition-all duration-300"
+                className="w-full h-full object-contain"
               />
 
               {/* Controles de Navegação Anterior / Próxima */}
@@ -158,138 +151,31 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
             <VehiclePhotoCredit src={currentImage} />
 
             {/* Fila de Miniaturas (Thumbnails) */}
-            <VehicleThumbnails images={images} imageIndex={imageIndex} onSelect={setCurrentIndex} vehicleName={vehicle.nome} />
+            <VehicleThumbnails images={images} imageIndex={imageIndex} onSelect={setCurrentIndex} vehicleName={vehicle.nome} compact />
           </div>
 
-          {/* Grid de Especificações Rápidas */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80">
-            <div className="flex items-center gap-2.5">
-              <Calendar className="w-5 h-5 text-blue-400 shrink-0" />
-              <div>
-                <span className="text-[10px] text-slate-400 block uppercase">Ano/Modelo</span>
-                <span className="text-xs font-semibold text-white">{vehicle.ano}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Gauge className="w-5 h-5 text-blue-400 shrink-0" />
-              <div>
-                <span className="text-[10px] text-slate-400 block uppercase">Quilometragem</span>
-                <span className="text-xs font-semibold text-white">{formatKm(vehicle.km)}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Cog className="w-5 h-5 text-blue-400 shrink-0" />
-              <div>
-                <span className="text-[10px] text-slate-400 block uppercase">Transmissão</span>
-                <span className="text-xs font-semibold text-white">{vehicle.cambio}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Fuel className="w-5 h-5 text-blue-400 shrink-0" />
-              <div>
-                <span className="text-[10px] text-slate-400 block uppercase">Combustível</span>
-                <span className="text-xs font-semibold text-white">{vehicle.combustivel}</span>
-              </div>
-            </div>
-          </div>
-
-          <VehicleAdServices key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="autoelite" initialFinancing={initialFinancing} />
-          <VehicleAdTools key={`tools-${vehicle.id}`} theme="blue" tools={[
-            { id: 'galeria', label: `Fotos em Alta Definição (${images.length})`, icon: Camera, content: <VehicleExpandedGallery images={images} vehicleName={vehicle.nome} /> },
-            ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-5 rounded-2xl border border-slate-700 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),
-            { id: 'laudo', label: 'Laudo Pericial Cautelar', icon: ShieldCheck, content: (
-                <div className="space-y-3">
-                  <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-3">
-                    <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                    <div className="text-xs">
-                      <p className="font-bold text-emerald-400">Status da Perícia: {vehicle.laudoCautelar?.status}</p>
-                      <p className="text-slate-300 mt-1 leading-relaxed">
-                        Veículo submetido a inspeção técnica veicular minuciosa com verificação estrutural, análise micrométrica de espessura de pintura, histórico documental e consulta completa em bases de leilão e sinistro.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Estrutura & Chassi</span>
-                        <span className="text-white font-medium">{vehicle.laudoCautelar?.estrutura}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Pintura & Funilaria</span>
-                        <span className="text-white font-medium">{vehicle.laudoCautelar?.pintura}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Mecânica & Transmissão</span>
-                        <span className="text-white font-medium">{vehicle.laudoCautelar?.mecanica}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Histórico de Sinistro / Leilão</span>
-                        <span className="text-white font-medium">{vehicle.laudoCautelar?.sinistroLeilao}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-            ) },
-            { id: 'opcionais', label: 'Itens de Série & Opcionais', icon: CheckCircle2, content: (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  {vehicle.opcionais && vehicle.opcionais.map((opt, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/50 border border-slate-800">
-                      <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
-                      <span className="text-slate-200">{opt}</span>
-                    </div>
-                  ))}
-                </div>
-            ) },
-            { id: 'ficha', label: 'Ficha Técnica Completa', icon: Cog, content: (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  {vehicle.fichaTecnica && Object.entries(vehicle.fichaTecnica).map(([chave, valor], idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 rounded-xl bg-slate-950/50 border border-slate-800">
-                      <span className="text-slate-400 capitalize">{chave.replace(/([A-Z])/g, ' $1')}</span>
-                      <span className="font-semibold text-white">{valor}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-950/50 border border-slate-800">
-                    <span className="text-slate-400">Motor</span>
-                    <span className="font-semibold text-white">{vehicle.motor}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 rounded-xl bg-slate-950/50 border border-slate-800">
-                    <span className="text-slate-400">Potência</span>
-                    <span className="font-semibold text-white">{vehicle.potencia}</span>
-                  </div>
-                </div>
-            ) }
+          <VehicleAdFacts items={[
+            ['Ano/modelo', vehicle.ano], ['Quilometragem', formatKm(vehicle.km)],
+            ['Transmissão', vehicle.cambio], ['Combustível', vehicle.combustivel],
           ]} />
+
+          <VehicleAdSections key={vehicle.id}>
+            <VehicleAdServices key={vehicle.id} vehicle={vehicle} dealership={dealershipInfo} storeKey="autoelite" initialFinancing={initialFinancing} />
+            <VehicleAdTools key={`tools-${vehicle.id}`} theme="blue" tools={[
+              { id: 'ficha', label: 'Ficha Técnica Completa', icon: ClipboardList, content: <VehicleTechnicalSheet vehicle={vehicle} /> },
+              { id: 'opcionais', label: 'Itens de Série & Opcionais', icon: CheckCircle2, content: <VehicleEquipmentList vehicle={vehicle} /> },
+              { id: 'laudo', label: 'Laudo Pericial Cautelar', icon: ShieldCheck, content: <VehicleInspectionDetails vehicle={vehicle} /> },
+
+              { id: 'galeria', label: `Fotos em Alta Definição (${images.length})`, icon: Camera, content: <VehicleExpandedGallery images={images} vehicleName={vehicle.nome} /> },
+              ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-3 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),
+            ]} />
+
+          </VehicleAdSections>
         </div>
 
-        {/* Rodapé Fixo do Modal com CTAs */}
-        <div className="p-4 sm:px-8 border-t border-slate-800 bg-slate-950/90 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-0 z-20">
-          <div className="hidden sm:block">
-            <p className="text-xs text-slate-400">Atendimento imediato via WhatsApp da loja</p>
-            <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Consultor de plantão online
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
-
+        {/* Preço e contato sempre acessíveis */}
+        <div data-ad-contact className="shrink-0 border-t border-slate-700 bg-slate-950 px-3 py-2 sm:px-4 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-base font-bold tabular-nums text-white">{formatCurrency(vehicle.preco)}</span>
             <Button
               variant="whatsapp"
               size="md"
@@ -297,11 +183,10 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-none"
+              className="shrink-0"
             >
               Tenho interesse
             </Button>
-          </div>
         </div>
       </div>
     </div>

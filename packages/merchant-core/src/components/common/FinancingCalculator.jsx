@@ -17,17 +17,21 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
   const label = 'block min-w-0 text-sm font-medium leading-5 text-slate-300';
   const summary = `Olá, gostaria de falar com um funcionário da ${dealership.nome || 'loja'} sobre financiamento. Veículo: ${selectedVehicle?.nome || selectedVehicle?.title || 'a definir'}. Valor: ${money(price)}; entrada: ${money(downPayment)}; ${term} parcelas estimadas de ${money(monthlyPayment)}; ${selectedBank ? `banco selecionado na simulação: ${selectedBank.name}; ` : ''}taxa ilustrativa: ${rate}% a.m.`;
   const whatsapp = String(dealership.whatsapp || '').replace(/\D/g, '');
-  return <div className="w-full min-w-0 max-w-full space-y-6 text-sm leading-relaxed" data-financing-vehicle={selectedVehicle?.id ?? ''} data-financing-bank={selectedBank?.id}>
+  const costRows = [['Saldo financiado', financedAmount], ['Juros estimados no período', Math.max(0, totalInstallments - financedAmount)], ['Total com a entrada', totalInstallments + downPayment]];
+  const costs = <dl className="space-y-2 text-slate-300">
+    {costRows.filter((_, index) => !showBanks || index > 0).map(([label, value]) => <div key={label} className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1"><dt className="min-w-0">{label}</dt><dd className="ml-auto font-medium tabular-nums whitespace-nowrap text-white text-right">{money(value)}</dd></div>)}
+  </dl>;
+  return <div className={`w-full min-w-0 max-w-full ${showBanks ? 'space-y-4' : 'space-y-6'} text-sm leading-relaxed`} data-financing-vehicle={selectedVehicle?.id ?? ''} data-financing-bank={selectedBank?.id}>
     {!lockedVehicle && vehicles.length > 0 && <label htmlFor={`${id}-vehicle`} className={label}>Veículo
       <select id={`${id}-vehicle`} value={selectedVehicle?.id ?? ''} onChange={event => simulation.selectVehicle(event.target.value)} className={`${field} truncate pr-8`}>
         {vehicles.map(vehicle => <option key={vehicle.id} value={vehicle.id}>{vehicle.nome || vehicle.title} · {money(vehicle.preco ?? vehicle.price)}</option>)}
       </select>
     </label>}
     {lockedVehicle && <p className="min-w-0 break-words font-semibold text-white">{selectedVehicle?.nome || selectedVehicle?.title} · {money(price)}</p>}
-    {showBanks && <fieldset className="min-w-0 space-y-3" aria-describedby={`${id}-bank-note`}>
+    {showBanks && <fieldset className="min-w-0 space-y-2" aria-describedby={`${id}-bank-note`}>
       <legend className="text-sm font-semibold text-slate-200">Selecione o banco para simular</legend>
       <p id={`${id}-bank-note`} className="text-xs text-slate-400">Três opções com taxas ilustrativas para comparação.</p>
-      {financingBanks.map(bank => <label key={bank.id} className={`flex min-h-16 min-w-0 cursor-pointer items-center gap-3 rounded-2xl border p-3 sm:p-4 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-blue-400 ${bankId === bank.id ? 'border-blue-400 bg-blue-500/15' : 'border-slate-700 bg-slate-950 hover:border-slate-500'}`}>
+      {financingBanks.map(bank => <label key={bank.id} className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-blue-400 ${bankId === bank.id ? 'border-blue-400 bg-blue-500/15' : 'border-slate-700 bg-slate-950 hover:border-slate-500'}`}>
         <input type="radio" name={`${id}-bank`} value={bank.id} checked={bankId === bank.id} onChange={() => setBankId(bank.id)} className="h-4 w-4 shrink-0 accent-blue-500" />
         <span className="min-w-0 flex-1 font-semibold text-white">{bank.name}</span>
         <span className="shrink-0 text-right font-semibold tabular-nums text-cyan-300">{bank.monthlyRatePercent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% a.m.</span>
@@ -38,8 +42,9 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
         <input id={`${id}-price`} type="number" min={simulation.bounds.minimum} max={simulation.bounds.maximum} step="0.01" value={price} onChange={event => simulation.setPrice(event.target.value)} className={field} />
       </label>}
       <label htmlFor={`${id}-entry`} className={label}>Entrada (R$)
+        {showBanks && <span className="float-right text-xs text-slate-400">{Math.round(downPayment / price * 100)}% do valor</span>}
         <input id={`${id}-entry`} type="number" min={simulation.minimumDownPayment} max={simulation.maximumDownPayment} step="0.01" value={downPayment} onChange={event => simulation.setDownPayment(event.target.value)} className={field} />
-        <span className="block mt-1 text-xs text-slate-400">Até {money(simulation.maximumDownPayment)} (80% do valor).</span>
+        {!showBanks && <span className="block mt-1 text-xs text-slate-400">Até {money(simulation.maximumDownPayment)} (80% do valor).</span>}
       </label>
       {!showBanks && <label htmlFor={`${id}-term`} className={label}>Prazo
         <select id={`${id}-term`} value={term} onChange={event => simulation.setTerm(Number(event.target.value))} className={field}>
@@ -52,9 +57,7 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
     </div>
     {showBanks && <>
       <div className="min-w-0 space-y-3">
-        <label htmlFor={`${id}-entry-range`} className="flex flex-wrap justify-between gap-2 text-sm text-slate-300">
-          Ajuste a entrada <span className="font-semibold tabular-nums text-white">{money(downPayment)} ({Math.round(downPayment / price * 100)}%)</span>
-        </label>
+        <label htmlFor={`${id}-entry-range`} className="sr-only">Ajuste a entrada</label>
         <input id={`${id}-entry-range`} type="range" min={simulation.minimumDownPayment} max={simulation.maximumDownPayment} step="0.01" value={downPayment} onChange={event => simulation.setDownPayment(event.target.value)} aria-valuetext={money(downPayment)} className="block min-h-8 w-full cursor-pointer accent-blue-500" />
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
           <span>{money(simulation.minimumDownPayment)} (0%)</span>
@@ -73,9 +76,13 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
     </>}
     <div aria-live="polite" className="min-w-0 rounded-2xl bg-blue-500/10 border border-blue-400/30 p-4 sm:p-5 space-y-4">
       <p className="text-slate-300">{showBanks ? `${term} parcelas estimadas · ${selectedBank.name}` : 'Parcela estimada'} <strong data-monthly-payment={monthlyPayment} className="block mt-1 text-2xl sm:text-3xl leading-tight tabular-nums break-words text-white">{money(monthlyPayment)} <span className="inline-block text-sm font-normal text-slate-400">/ mês</span></strong></p>
-      <dl className="space-y-2 text-slate-300">
-        {[['Saldo financiado', financedAmount], ['Juros estimados no período', Math.max(0, totalInstallments - financedAmount)], ['Total com a entrada', totalInstallments + downPayment]].map(([label, value]) => <div key={label} className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1"><dt className="min-w-0">{label}</dt><dd className="ml-auto font-medium tabular-nums whitespace-nowrap text-white text-right">{money(value)}</dd></div>)}
-      </dl>
+      {showBanks ? <>
+        <p className="flex flex-wrap justify-between gap-2 text-slate-300">Saldo financiado <span className="font-semibold tabular-nums text-white">{money(financedAmount)}</span></p>
+        <details data-financing-costs className="text-sm">
+          <summary className="min-h-11 cursor-pointer py-3 text-slate-300">Ver juros e custo total</summary>
+          {costs}
+        </details>
+      </> : costs}
     </div>
     <p className="text-xs leading-relaxed text-slate-400">Estimativa pela Tabela Price. Taxa ilustrativa, sem IOF, tarifas ou seguros. A proposta e o CET dependem da instituição e da análise de crédito.</p>
     {showContact && whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(summary)}`} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full min-h-11 items-center px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-semibold">Tenho interesse</a>}

@@ -228,7 +228,14 @@ for (const [model, scenario] of scenarios) {
       const pageScrollCount = windowScrollCalls.length;
       scroller.getBoundingClientRect = () => ({ top: 100 });
       toolsRow.getBoundingClientRect = () => ({ top: 100 + 900 - scroller.scrollTop });
-      for (const control of controls) panelFor(control).getBoundingClientRect = () => ({ top: 100 + 1100 - scroller.scrollTop });
+      const controlTop = control => 888 + controls.indexOf(control) * 48;
+      for (const control of controls) {
+        control.getBoundingClientRect = () => ({ top: 100 + 900 + controls.indexOf(control) * 48 - scroller.scrollTop });
+        panelFor(control).getBoundingClientRect = () => ({ top: 100 + 1100 - scroller.scrollTop });
+        assert.equal(control.nextElementSibling, panelFor(control), 'Painel não está logo abaixo da sua linha vertical');
+      }
+      assert.equal(vehicleAd.querySelectorAll('[data-ad-facts] > div').length, 4, 'Resumo inicial sem as quatro informações essenciais');
+      assert(vehicleAd.querySelector('[data-ad-contact] a[href*="wa.me"]'), 'Contato não está no rodapé fixo');
       assert(controls.length > 0 && controls.every(control => control.getAttribute('aria-expanded') === 'false' && panelFor(control).hidden && !panelFor(control).childElementCount), 'Ferramentas carregadas antes do clique');
       for (const control of controls) {
         const panel = panelFor(control);
@@ -245,7 +252,7 @@ for (const [model, scenario] of scenarios) {
         }
         control.click();
         await wait(() => control.getAttribute('aria-expanded') === 'false' && panel.hidden);
-        await wait(() => elementScrollCalls.at(-1)?.top === 888 && document.activeElement === control);
+        await wait(() => elementScrollCalls.at(-1)?.top === controlTop(control) && document.activeElement === control);
         if (control.dataset.adTool === '360') assert.equal(panel.childElementCount, 0, 'Visualizador 360° continuou ativo após fechar');
         control.click();
         await wait(() => control.getAttribute('aria-expanded') === 'true' && !panel.hidden);
@@ -253,7 +260,7 @@ for (const [model, scenario] of scenarios) {
         if (control.dataset.adTool === 'tco') assert.equal(panel.querySelector('input[type="range"]').value, '1800', 'Fechar a TCO apagou a simulação');
         panel.querySelector('[data-close-ad-tool]').click();
         await wait(() => panel.hidden);
-        await wait(() => elementScrollCalls.at(-1)?.top === 888 && document.activeElement === control);
+        await wait(() => elementScrollCalls.at(-1)?.top === controlTop(control) && document.activeElement === control);
       }
       if (controls.length > 1) {
         controls[0].click();
@@ -269,7 +276,7 @@ for (const [model, scenario] of scenarios) {
       controls[0].click();
       await wait(() => elementScrollCalls.at(-1)?.top === 1088 && elementScrollCalls.at(-1)?.behavior === 'smooth');
       panelFor(controls[0]).querySelector('[data-close-ad-tool]').click();
-      await wait(() => elementScrollCalls.at(-1)?.top === 888 && document.activeElement === controls[0]);
+      await wait(() => elementScrollCalls.at(-1)?.top === controlTop(controls[0]) && document.activeElement === controls[0]);
       window.matchMedia = previousMedia;
       assert.equal(windowScrollCalls.length, pageScrollCount, 'Abrir ou fechar ferramenta rolou a página por trás do anúncio');
       assert(!loginForm(), 'Ferramenta pública do anúncio exigiu login');
@@ -365,12 +372,25 @@ for (const [model, scenario] of scenarios) {
       await wait(() => financing.querySelector('button[aria-label="Prazo de 12 meses"]').getAttribute('aria-pressed') === 'true');
       assert(payment() > longTermPayment, 'Trocar o prazo não recalculou a parcela');
       const shortTermPayment = payment();
+      assert(!financing.querySelector('[data-financing-costs]').open, 'Custos detalhados ocuparam a tela antes de serem solicitados');
       button('Simular financiamento deste veículo').click();
       await wait(() => button('Simular financiamento deste veículo').getAttribute('aria-expanded') === 'false');
       button('Simular financiamento deste veículo').click();
       await wait(() => button('Simular financiamento deste veículo').getAttribute('aria-expanded') === 'true');
       assert.equal(financing.dataset.financingBank, 'bv', 'Reabrir apagou o banco selecionado');
       assert.equal(payment(), shortTermPayment, 'Reabrir apagou os valores da simulação');
+      const openAdSections = () => ad.querySelectorAll('[data-ad-tool][aria-expanded="true"], [data-ad-service][aria-expanded="true"]').length;
+      assert.equal(openAdSections(), 1, 'Financiamento ficou aberto junto com outra seção');
+      button('Atendimento sobre este veículo').click();
+      await wait(() => ad.querySelector('[data-ad-service="chat"]').getAttribute('aria-expanded') === 'true');
+      assert.equal(openAdSections(), 1, 'Abrir atendimento não fechou o financiamento');
+      controls[0].click();
+      await wait(() => controls[0].getAttribute('aria-expanded') === 'true');
+      assert.equal(openAdSections(), 1, 'Abrir ficha técnica não fechou o atendimento');
+      button('Simular financiamento deste veículo').click();
+      await wait(() => ad.querySelector('[data-ad-service="financing"]').getAttribute('aria-expanded') === 'true');
+      assert.equal(openAdSections(), 1, 'Abrir financiamento não fechou os detalhes técnicos');
+      assert.equal(payment(), shortTermPayment, 'Trocar de seção apagou a simulação');
       assertSingleWhatsapp();
       if (model === 'popular-dealership') {
         const ad = document.querySelector('[role="dialog"]');

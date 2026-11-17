@@ -20,6 +20,7 @@ import AutoApp from './sites/auto-dealership/src/App.jsx';
 import LuxuryApp from './sites/luxury-dealership/src/App.jsx';
 import PopularApp from './sites/popular-dealership/src/App.jsx';
 import { VehicleComparatorModal } from './sites/popular-dealership/src/components/vehicles/VehicleComparatorModal.jsx';
+import { VehicleTechnicalSheet } from './packages/merchant-core/src/components/common/VehicleAdInformation.jsx';
 import { AboutContactPage as AutoAbout } from './sites/auto-dealership/src/pages/AboutContactPage.jsx';
 import { AboutContactPage as LuxuryAbout } from './sites/luxury-dealership/src/pages/AboutContactPage.jsx';
 import { AboutContactPage as PopularAbout } from './sites/popular-dealership/src/pages/AboutContactPage.jsx';
@@ -45,6 +46,7 @@ function AboutWithFooter({ Page, dealership }) {
 }
 for (const [name, Component, props] of [
   ['portal', PortalApp], ['modelo-1', AutoApp], ['modelo-2', LuxuryApp], ['modelo-3', PopularApp],
+  ...[autoVehicles, luxuryVehicles, popularVehicles].map((vehicles, index) => ['ficha-compacta-' + (index + 1), VehicleTechnicalSheet, { vehicle: vehicles[0] }]),
   ['selecao-comparacao', VehicleComparatorModal, { vehicles: popularVehicles, comparedVehicles: [], onClose: () => {}, onConfirm: () => {}, onSelectVehicle: () => {} }],
   ['servicos-modelo-2', StoreServicesPage, { premium: true, onNavigate: () => {} }],
   ['servicos-modelo-3', StoreServicesPage, { onNavigate: () => {} }],
@@ -71,6 +73,13 @@ for (const [name, Component, props] of [
   try {
     const html = renderToString(React.createElement(StoreAccessProvider, { storeKey: 'qa', storeName: 'Loja de teste' }, React.createElement(Component, props)));
     if (!html.length) throw new Error('Conteúdo vazio');
+    if (name.startsWith('ficha-compacta-')) {
+      const vehicle = props.vehicle;
+      for (const value of [vehicle.motor, vehicle.potencia, vehicle.aceleracao, ...Object.values(vehicle.fichaTecnica || {})].filter(value => value != null && value !== '')) {
+        const encoded = renderToString(React.createElement(React.Fragment, null, value));
+        if (!html.includes(encoded)) throw new Error('Ficha compacta perdeu uma especificação do veículo: ' + value);
+      }
+    }
     const whatsappLinks = html.split('<a ').slice(1).map(part => part.slice(0, part.indexOf('</a>'))).filter(part => part.includes('href="https://wa.me/'));
     const elementText = part => part.slice(part.indexOf('>') + 1).replace(/<[^>]*>/g, '').trim();
     const interestButtons = html.split('<button ').slice(1).map(part => elementText(part.slice(0, part.indexOf('</button>')))).filter(text => text === 'Tenho interesse');
