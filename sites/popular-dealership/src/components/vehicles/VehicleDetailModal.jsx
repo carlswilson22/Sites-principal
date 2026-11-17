@@ -76,8 +76,8 @@ export function VehicleDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header do Modal */}
-        <div className="flex items-center justify-between px-3 py-2 sm:px-4 border-b border-slate-800 bg-slate-950/80 sticky top-0 z-20 ">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-between gap-3 px-3 py-2 sm:px-4 border-b border-slate-800 bg-slate-950/80 sticky top-0 z-20 ">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-semibold border border-cyan-500/30">
               Estoque Certificado
             </span>
@@ -89,7 +89,17 @@ export function VehicleDetailModal({
             <span className="text-xs text-slate-400 font-mono hidden sm:inline">Cód. {vehicle.laudoCautelar?.codigoLaudo}</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onOpenPriceAlert && onOpenPriceAlert(vehicle)}
+              title="Avise-me se o preço cair"
+              className="p-2 rounded-full border border-slate-700 bg-slate-800 text-cyan-400 hover:bg-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400"
+            >
+              <Bell aria-hidden="true" className="w-4 h-4" />
+              <span className="sr-only">Alerta de Preço</span>
+            </button>
+
             <button
               onClick={() => onToggleFavorite && onToggleFavorite(vehicle.id)}
               className={`p-2 rounded-full border transition-colors ${
@@ -190,7 +200,6 @@ export function VehicleDetailModal({
               { id: 'galeria', label: `Galeria Expandida (${images.length})`, icon: Camera, content: <VehicleExpandedGallery images={images} vehicleName={vehicle.nome} /> },
               ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-3 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),
             ]} />
-            <button type="button" onClick={() => onOpenPriceAlert && onOpenPriceAlert(vehicle)} title="Avise-me se o preço cair" className="flex w-full min-h-11 items-center gap-3 rounded-xl border border-slate-700 bg-slate-950/40 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 hover:bg-slate-800"><Bell aria-hidden="true" className="h-4 w-4 text-cyan-400" />Alerta de Preço</button>
           </VehicleAdSections>
         </div>
 
