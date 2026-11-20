@@ -32,14 +32,8 @@ export async function lookupFipe({ brand, model, year }) {
     return matched;
   }
 
-  // Fallback padrão se não houver match direto
-  const defaultResult = {
-    fipePrice: 85000,
-    code: '000000-0',
-    refMonth: 'Referência Atual de Mercado',
-    isManualFallback: true
-  };
-  return defaultResult;
+  // Sem correspondência: não inventamos valor. A loja informa a referência manualmente.
+  return { fipePrice: null, code: null, refMonth: null, isManualFallback: true, message: 'Valor FIPE não encontrado. Informe a referência manualmente.' };
 }
 
 /**

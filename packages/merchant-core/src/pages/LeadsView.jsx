@@ -98,13 +98,13 @@ export function LeadsView({ storeKey = 'autoelite' }) {
   }, [leads, searchTerm, statusFilter]);
 
   // Atualizar situação do lead com storeSync
-  const handleUpdateStatus = () => {
+  const handleUpdateStatus = async () => {
     if (!selectedLead) return;
     try {
       const latestLead = storeSync.getLeads(storeKey).find(lead => lead.id === selectedLeadId);
       if (!latestLead) throw new Error('Este contato não está mais disponível. Atualize a lista para continuar.');
       const updates = buildLeadStatusUpdates(latestLead, newStatus, statusNote);
-      const updated = storeSync.updateLead(storeKey, selectedLead.id, updates);
+      const updated = await storeSync.updateLead(storeKey, selectedLead.id, updates);
       setLeads(updated);
       setSelectedLeadId(null);
       setStatusNote('');

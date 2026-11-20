@@ -29,8 +29,8 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
     </label>}
     {lockedVehicle && <p className="min-w-0 break-words font-semibold text-white">{selectedVehicle?.nome || selectedVehicle?.title} · {money(price)}</p>}
     {showBanks && <fieldset className="min-w-0 space-y-2" aria-describedby={`${id}-bank-note`}>
-      <legend className="text-sm font-semibold text-slate-200">Selecione o banco para simular</legend>
-      <p id={`${id}-bank-note`} className="text-xs text-slate-400">Três opções com taxas ilustrativas para comparação.</p>
+      <legend className="text-sm font-semibold text-slate-200">Selecione a condição para simular</legend>
+      <p id={`${id}-bank-note`} className="text-xs text-slate-400">Três condições com taxas ilustrativas para comparação. A loja define as taxas reais.</p>
       {financingBanks.map(bank => <label key={bank.id} className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-blue-400 ${bankId === bank.id ? 'border-blue-400 bg-blue-500/15' : 'border-slate-700 bg-slate-950 hover:border-slate-500'}`}>
         <input type="radio" name={`${id}-bank`} value={bank.id} checked={bankId === bank.id} onChange={() => setBankId(bank.id)} className="h-4 w-4 shrink-0 accent-blue-500" />
         <span className="min-w-0 flex-1 font-semibold text-white">{bank.name}</span>

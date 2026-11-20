@@ -19,7 +19,14 @@
     "check:ui": "node scripts/check-ui.mjs",
     "check:dev": "node scripts/check-dev.mjs",
     "preview": "vite preview --base /Sites-principal/ --outDir dist --host 127.0.0.1 --port 4173",
-    "check:runtime": "node --experimental-vm-modules scripts/check-runtime.mjs"
+    "check:runtime": "node --experimental-vm-modules scripts/check-runtime.mjs",
+    "build:loja": "npm --workspace=loja run build",
+    "test:loja": "npm run build:loja && node --test sites/loja/tests/*.test.mjs",
+    "dev:loja": "npm --workspace=loja run dev",
+    "build:painel": "npm --workspace=painel run build",
+    "test:painel": "npm run build:painel && node --test sites/painel/tests/*.test.mjs",
+    "dev:painel": "npm --workspace=painel run dev",
+    "demo": "node scripts/demo.mjs"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.28.1"

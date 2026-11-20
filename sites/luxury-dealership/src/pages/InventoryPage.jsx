@@ -1,8 +1,8 @@
 ﻿import React, { useState, useMemo } from 'react';
 import { VehicleCard } from '../components/vehicles/VehicleCard';
-import { Search, Filter, Shield, RotateCcw, Crown } from 'lucide-react';
+import { Search, Filter, Shield, RotateCcw, Crown, Heart } from 'lucide-react';
 
-export function InventoryPage({ vehicles, onSelectVehicle }) {
+export function InventoryPage({ vehicles, onSelectVehicle, isFavorite, onToggleFavorite, onNavigate, favoritesCount = 0 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('todas');
   const [selectedBlindado, setSelectedBlindado] = useState('todos'); // 'todos' | 'sim' | 'nao'
@@ -55,7 +55,7 @@ export function InventoryPage({ vehicles, onSelectVehicle }) {
             Acervo de Superesportivos & Exóticos
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
-            Conheça nossa seleção de modelos raros, inspecionados em concessionárias oficiais, com laudo cautelar liberado e visualização 360°.
+            Conheça nossa seleção de modelos raros, com galeria de fotos, ficha técnica e laudo cautelar informado pela loja em cada anúncio.
           </p>
         </div>
       </div>
@@ -119,6 +119,7 @@ export function InventoryPage({ vehicles, onSelectVehicle }) {
 
           <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/5">
             <span>Exibindo <strong className="text-amber-400">{filteredVehicles.length}</strong> veículos disponíveis</span>
+            {onNavigate && <button type="button" onClick={() => onNavigate('favoritos')} className="min-h-11 inline-flex items-center gap-2 rounded-xl border border-amber-500/30 px-3 text-amber-300 hover:bg-amber-500/10 font-semibold"><Heart aria-hidden="true" className="w-4 h-4" />Meus favoritos<span className="ml-1">{favoritesCount}</span></button>}
             {(searchTerm || selectedBrand !== 'todas' || selectedBlindado !== 'todos') && (
               <button
                 onClick={clearFilters}
@@ -135,7 +136,7 @@ export function InventoryPage({ vehicles, onSelectVehicle }) {
         {filteredVehicles.length > 0 ? (
           <div className="grid grid-cols-1 gap-8">
             {filteredVehicles.map(v => (
-              <VehicleCard key={v.id} vehicle={v} onSelect={onSelectVehicle} layout="editorial" />
+              <VehicleCard key={v.id} vehicle={v} onSelect={onSelectVehicle} layout="editorial" isFavorite={isFavorite ? isFavorite(v.id) : false} onToggleFavorite={onToggleFavorite} />
             ))}
           </div>
         ) : (

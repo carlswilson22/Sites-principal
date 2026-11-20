@@ -1,0 +1,70 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import { api, errorText } from '../../lib/api';
+import { flashCookie, sameOrigin } from '../../lib/forms';
+
+const { token, user } = Astro.locals;
+if (user?.role === 'atendente') return new Response(null, { status: 403 });
+
+let csv = '';
+let outcome: { mode: string; valid: number; rejected: number; total: number; errors: { line: number; message: string }[]; limit?: any } | null = null;
+let failure = '';
+
+if (Astro.request.method === 'POST') {
+  if (!sameOrigin(Astro.request)) return new Response('Origem não permitida.', { status: 403 });
+  const form = await Astro.request.formData();
+  const file = form.get('arquivo');
+  csv = file instanceof File && file.size > 0 ? await file.text() : String(form.get('csv') || '');
+  const mode = String(form.get('modo') || 'conferir');
+  if (!csv.trim()) failure = 'Escolha o arquivo da planilha (CSV) ou cole o conteúdo.';
+  else if (csv.length > 2_000_000) failure = 'Arquivo grande demais. Envie até 1.000 veículos por vez.';
+  else {
+    const result = await api(token, 'POST', '/api/vehicles/import', { csv, dry_run: mode === 'conferir' });
+    if (result.status === 201) {
+      return new Response(null, { status: 303, headers: { Location: '/estoque', 'Set-Cookie': flashCookie(`${result.data.imported} veículos importados. Agora envie as fotos de cada um.`, 'ok'), 'Cache-Control': 'no-store' } });
+    }
+    if (result.ok || result.status === 422) {
+      outcome = { mode, valid: result.data.valid ?? 0, rejected: result.data.rejected ?? 0, total: result.data.total_lines ?? 0, errors: result.data.errors || [], limit: result.data.vehicles };
+    } else failure = errorText(result);
+  }
+}
+---
+<Panel title="Importar planilha" current="estoque">
+  <div class="main__head"><h1>Importar planilha de estoque</h1><a class="btn btn--ghost" href="/estoque">Voltar</a></div>
+
+  <div class="panel">
+    <p>Prepare a planilha com as colunas do modelo, salve como <strong>CSV</strong> e envie aqui. A importação é <strong>tudo ou nada</strong>: se houver erro em alguma linha, nada é cadastrado e você vê quais linhas corrigir.</p>
+    <p><a href="/estoque/modelo.csv" download>Baixar o modelo (CSV)</a></p>
+    {failure && <p class="status status--err" role="alert">{failure}</p>}
+    <form class="form" method="post" action="/estoque/importar" enctype="multipart/form-data">
+      <label class="field">Arquivo CSV<input type="file" name="arquivo" accept=".csv,text/csv" /></label>
+      <input type="hidden" name="modo" value="conferir" />
+      <div><button class="btn btn--accent" type="submit">Conferir planilha</button></div>
+    </form>
+  </div>
+
+  {outcome && (
+    <section class="panel" aria-labelledby="resultado">
+      <h2 id="resultado">Resultado da conferência</h2>
+      <p style="margin-top:0.6rem"><strong>{outcome.valid}</strong> {outcome.valid === 1 ? 'linha válida' : 'linhas válidas'}{outcome.rejected > 0 ? <>, <strong>{outcome.rejected}</strong> com erro</> : ''}.</p>
+      {outcome.rejected > 0 ? (
+        <>
+          <div class="scroll"><table class="list">
+            <thead><tr><th>Linha</th><th>O que corrigir</th></tr></thead>
+            <tbody>{outcome.errors.map(e => <tr><td>{e.line}</td><td>{e.message}</td></tr>)}</tbody>
+          </table></div>
+          <p class="muted small" style="margin-top:0.8rem">Corrija a planilha e envie de novo. Nada foi cadastrado.</p>
+        </>
+      ) : outcome.valid > 0 ? (
+        <form class="form" method="post" action="/estoque/importar" style="margin-top:0.8rem">
+          <input type="hidden" name="modo" value="importar" />
+          <textarea name="csv" hidden>{csv}</textarea>
+          {outcome.limit && outcome.limit.published + outcome.valid > outcome.limit.limit && (
+            <p class="status status--err" role="alert">Atenção: com esta importação a loja passa do limite de {outcome.limit.limit} veículos publicados do pacote. O excedente é cobrado em blocos de 50, conforme o contrato.</p>
+          )}
+          <div><button class="btn btn--accent" type="submit">Importar {outcome.valid} {outcome.valid === 1 ? 'veículo' : 'veículos'}</button></div>
+        </form>
+      ) : <p class="muted">Nenhuma linha com veículo foi encontrada.</p>}
+    </section>
+  )}
+</Panel>

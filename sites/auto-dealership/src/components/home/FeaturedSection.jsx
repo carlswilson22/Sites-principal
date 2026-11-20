@@ -25,7 +25,7 @@ export function FeaturedSection({ vehicle, onSelect }) {
                 <Sparkles className="w-3.5 h-3.5" />
                 Destaque da Semana
               </span>
-              <InspectionBadge text="Perícia Cautelar Aprovada" compact={true} />
+              <InspectionBadge text="Laudo informado pela loja" compact={true} />
             </div>
 
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-xl group cursor-pointer" onClick={() => onSelect(vehicle)}>

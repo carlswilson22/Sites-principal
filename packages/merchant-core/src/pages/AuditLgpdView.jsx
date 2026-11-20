@@ -44,7 +44,7 @@ export function AuditLgpdView({ storeKey = 'apexluxury' }) {
 
   const handleAnonymize = async () => {
     if (!clientIdToExport) return;
-    if (!window.confirm(isDemoMode ? 'Anonimizar o cliente de exemplo? Depois, exporte os dados novamente para comparar o resultado.' : 'Atenção: A anonimização dos dados do titular é irreversível e atende ao Artigo 18 da LGPD (Direito ao Esquecimento). Deseja continuar?')) {
+    if (!window.confirm(isDemoMode ? 'Anonimizar o cliente de exemplo? Depois, exporte os dados novamente para comparar o resultado.' : 'Atenção: a anonimização é irreversível. Ela apaga os dados pessoais do titular no cadastro, contatos, conta no site e pedidos de troca. Contratos já emitidos e a trilha de auditoria são mantidos pelo prazo legal. Deseja continuar?')) {
       return;
     }
     setError('');
@@ -66,7 +66,7 @@ export function AuditLgpdView({ storeKey = 'apexluxury' }) {
             <h1 className="text-2xl font-bold text-slate-100">Governança, Auditoria & LGPD</h1>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Histórico de ações da loja e atendimento às solicitações dos clientes.
+            Histórico de ações da equipe no sistema e apoio ao atendimento de solicitações de titulares. Ferramentas de apoio: a conformidade com a LGPD depende também dos processos e da política da loja.
           </p>
         </div>
       </div>
@@ -104,13 +104,14 @@ export function AuditLgpdView({ storeKey = 'apexluxury' }) {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-bold rounded-xl border border-red-500/40 transition-colors"
           >
             <UserX className="w-4 h-4" />
-            Anonimizar Titular (Art. 18, VI)
+            Anonimizar Titular (Art. 18, IV e VI)
           </button>
         </form>
 
         {anonFeedback && (
           <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300">
-            {anonFeedback.message}
+            <p>{anonFeedback.message}</p>
+            {anonFeedback.mantidos && <p className="mt-1 text-emerald-200/80">{anonFeedback.mantidos}</p>}
           </div>
         )}
 
@@ -118,7 +119,7 @@ export function AuditLgpdView({ storeKey = 'apexluxury' }) {
           <div className="p-4 bg-slate-800/60 rounded-xl border border-slate-700 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-400" />
-              Dossiê Exportado do Titular
+              Dados exportados do titular
             </h4>
             <pre className="text-[11px] bg-slate-950 p-3 rounded-lg overflow-x-auto text-emerald-400 font-mono">
               {JSON.stringify(exportResult, null, 2)}
@@ -166,7 +167,7 @@ export function AuditLgpdView({ storeKey = 'apexluxury' }) {
               ) : (
                 logs.map(l => (
                   <tr key={l.id} className="hover:bg-slate-800/30 transition-colors text-xs font-mono">
-                    <td className="px-5 py-3 text-slate-400">{new Date(l.created_at).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-3 text-slate-400">{new Date(String(l.created_at).includes('T') ? l.created_at : `${String(l.created_at).replace(' ', 'T')}Z`).toLocaleString('pt-BR')}</td>
                     <td className="px-5 py-3 font-sans font-medium text-slate-200">{l.user_name || 'Sistema'}</td>
                     <td className="px-5 py-3">
                       <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-slate-800 border border-slate-700 text-slate-300">
@@ -175,7 +176,7 @@ export function AuditLgpdView({ storeKey = 'apexluxury' }) {
                     </td>
                     <td className="px-5 py-3 font-bold text-emerald-400">{l.action}</td>
                     <td className="px-5 py-3 text-slate-300">{l.entity} #{l.entity_id}</td>
-                    <td className="px-5 py-3 text-slate-500">{l.ip_address || '127.0.0.1'}</td>
+                    <td className="px-5 py-3 text-slate-500">{l.ip_address || '—'}</td>
                   </tr>
                 ))
               )}

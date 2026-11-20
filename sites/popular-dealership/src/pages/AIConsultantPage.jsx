@@ -9,10 +9,10 @@ export function AIConsultantPage({ vehicles, onSelectVehicle }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-violet-500/10 text-violet-400 border border-violet-500/20 mb-2">
             <Bot className="w-3.5 h-3.5" />
-            <span>Consultoria Especializada por IA</span>
+            <span>Atendimento virtual</span>
           </div>
           <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Consultor Automotivo Inteligente
+            Consultor virtual
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
             Tire dúvidas em tempo real, descubra quais carros cabem na sua parcela mensal e compare custos de combustível e manutenção.
@@ -32,9 +32,9 @@ export function AIConsultantPage({ vehicles, onSelectVehicle }) {
           </div>
           <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-1">
             <span className="font-bold text-white flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Laudo Pericial
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Dados do laudo
             </span>
-            <p className="text-slate-400">Recomenda apenas veículos 100% aprovados sem sinistros.</p>
+            <p className="text-slate-400">Mostra o laudo e o dossiê informados pela loja em cada veículo.</p>
           </div>
           <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-1">
             <span className="font-bold text-white flex items-center gap-1.5">

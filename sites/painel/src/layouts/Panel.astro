@@ -1,0 +1,54 @@
+---
+import '@fontsource-variable/archivo/wdth.css';
+import '../styles/panel.css';
+import { ROLE_LABEL } from '../lib/format';
+import { textOn } from '../lib/color';
+import Flash from '../components/Flash.astro';
+
+interface Props { title: string; current?: 'inicio' | 'estoque' | 'contatos' | 'config' | 'equipe'; bare?: boolean }
+const { title, current, bare = false } = Astro.props;
+const settings = Astro.locals.settings || {};
+const user = Astro.locals.user;
+const store = settings.store || {};
+const primary = /^#[0-9a-f]{6}$/i.test(settings.theme?.primary || '') ? settings.theme.primary : '#0f6cbd';
+const isOwner = user?.role === 'proprietario';
+---
+<!doctype html>
+<html lang="pt-BR" style={`--accent:${primary};--on-accent:${textOn(primary)}`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} | Painel</title>
+  </head>
+  <body>
+    {bare ? (
+      <main><slot /></main>
+    ) : (
+      <div class="shell">
+        <aside class="side">
+          <a class="side__brand" href="/">{store.name || 'Painel'}</a>
+          <nav aria-label="Principal">
+            <a href="/" aria-current={current === 'inicio' ? 'page' : undefined}>Início</a>
+            <a href="/estoque" aria-current={current === 'estoque' ? 'page' : undefined}>Estoque</a>
+            <a href="/contatos" aria-current={current === 'contatos' ? 'page' : undefined}>Contatos</a>
+            {isOwner && <a href="/configuracoes" aria-current={current === 'config' ? 'page' : undefined}>Configurações</a>}
+            {isOwner && <a href="/equipe" aria-current={current === 'equipe' ? 'page' : undefined}>Equipe</a>}
+          </nav>
+          {user && (
+            <div class="side__user">
+              <strong>{user.name}</strong>
+              {ROLE_LABEL[user.role]}
+              <div><a href="/senha">Trocar senha</a></div>
+              <form method="post" action="/acoes/sair"><button class="btn btn--ghost btn--small" type="submit">Sair</button></form>
+            </div>
+          )}
+        </aside>
+        <main class="main">
+          <Flash />
+          <slot />
+        </main>
+      </div>
+    )}
+  </body>
+</html>

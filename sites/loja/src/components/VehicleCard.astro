@@ -1,0 +1,27 @@
+---
+import PriceTag from './PriceTag.astro';
+import { vehicleLine } from '../lib/format';
+const { v, compare = null, back = '/estoque' } = Astro.props as { v: any; compare?: string[] | null; back?: string };
+const inCompare = compare ? compare.includes(v.slug) : false;
+const alt = [v.title, v.version, v.year].filter(Boolean).join(' ');
+---
+<li>
+  <a class="vcard" href={`/veiculo/${v.slug}`}>
+    <div class="vcard__photo">
+      {v.cover_photo ? <img src={v.cover_photo} alt={alt} width="800" height="600" loading="lazy" decoding="async" /> : <div class="vcard__empty">Foto em breve</div>}
+      {v.status === 'reservado' && <span class="badge">Reservado</span>}
+      <PriceTag price={v.price} />
+    </div>
+    <h3>{v.title}</h3>
+    {v.version && <p class="ver">{v.version}</p>}
+    <ul class="facts">{vehicleLine(v).map(item => <li>{item}</li>)}</ul>
+  </a>
+  {compare && (
+    <form class="vcard__compare" method="post" action="/comparar-acao">
+      <input type="hidden" name="slug" value={v.slug} />
+      <input type="hidden" name="acao" value={inCompare ? 'remover' : 'adicionar'} />
+      <input type="hidden" name="voltar" value={back} />
+      <button type="submit" class="linklike" aria-pressed={inCompare}>{inCompare ? 'Remover da comparação' : 'Comparar'}</button>
+    </form>
+  )}
+</li>

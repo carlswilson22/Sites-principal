@@ -1,11 +1,11 @@
 /**
- * Gerador compartilhado de minutas
- * Gerador de minutas contratuais avançadas (Nível 3 - A2):
- * - Consignação de Veículos (terceiros)
- * - Compra e Venda com Veículo na Troca
- * - Termo Aditivo vinculado a contrato original
+ * Gerador compartilhado de minutas avançadas (Premium):
+ * - Consignação de veículo de terceiro
+ * - Compra e venda com veículo na troca
+ * - Termo aditivo vinculado a contrato anterior
  *
- * Regra obrigatória: Contém aviso explícito sobre necessidade de revisão jurídica.
+ * São modelos de apoio, não aconselhamento jurídico: trazem aviso de revisão por advogado.
+ * Nenhum dado da loja é inventado: nome, CNPJ e endereço vêm do cadastro (ou aparecem como campo a preencher).
  */
 
 export function generateContractCode(prefix = 'CTR', sequenceNumber = 1) {
@@ -22,13 +22,9 @@ export function generateAdvancedContractHtml({
   vehicle,
   tradeVehicle = null,
   terms = {},
-  store = {
-    name: 'Auto-Dealership Enterprise Veículos',
-    cnpj: '00.123.456/0001-99',
-    address: 'Av. das Concessionárias, 5000 - Setor Automotivo'
-  }
+  store = {}
 }) {
-  const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
   const fields = object => Object.fromEntries(Object.entries(object || {}).map(([key, value]) => [key, typeof value === 'string' ? escape(value) : value]));
   client = fields(client);
   vehicle = fields(vehicle);
@@ -37,84 +33,113 @@ export function generateAdvancedContractHtml({
   store = fields(store);
   code = escape(code);
   parentCode = parentCode ? escape(parentCode) : null;
+  const blank = '[preencher]';
+  const storeName = store.name || blank;
+  const storeCnpj = store.cnpj || blank;
+  const storeAddress = store.address || blank;
   const currentDate = new Date().toLocaleDateString('pt-BR');
-  const valorFormatado = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const warrantyDays = Number(terms.warrantyDays);
+  const warrantyText = Number.isFinite(warrantyDays) && warrantyDays > 0
+    ? `Além da garantia legal, a VENDEDORA oferece garantia contratual de ${warrantyDays} dias, nas condições informadas ao COMPRADOR.`
+    : 'Não há garantia contratual adicional, ficando mantida a garantia legal prevista na legislação aplicável.';
 
   let title = 'INSTRUMENTO CONTRATUAL';
   let specificBody = '';
+  let forum = 'As partes elegem o foro da comarca da sede da loja para dirimir dúvidas decorrentes deste instrumento, ressalvados os foros que a lei considere obrigatórios.';
 
   if (type === 'consignacao') {
     title = 'CONTRATO DE CONSIGNAÇÃO MERCANTIL DE VEÍCULO';
     specificBody = `
       <div class="section">
-        <h3>CLÁUSULA 1ª - DO OBJETO E CONDIÇÕES DE VENDA</h3>
-        <p>O <strong>CONSIGNANTE</strong> confere à <strong>CONSIGNATÁRIA</strong> poderes de intermediação para alienação do seguinte veículo de sua propriedade:</p>
+        <h3>CLÁUSULA 1ª - DO OBJETO E DO PREÇO</h3>
+        <p>O <strong>CONSIGNANTE</strong> entrega à <strong>CONSIGNATÁRIA</strong> o veículo abaixo, de sua propriedade, para exposição e intermediação da venda:</p>
         <table class="data-table">
           <tr><td><strong>Veículo:</strong> ${vehicle.title} ${vehicle.version || ''}</td><td><strong>Ano:</strong> ${vehicle.year || '-'}</td></tr>
-          <tr><td><strong>Placa / Chassi:</strong> ${vehicle.plate || 'Em vistoria'} / ${vehicle.chassi || 'Constante no CRLV'}</td><td><strong>Km:</strong> ${vehicle.km ? vehicle.km.toLocaleString('pt-BR') + ' km' : '-'}</td></tr>
-          <tr><td><strong>Valor Sugerido para Venda:</strong> ${valorFormatado(vehicle.price)}</td><td><strong>Prazo de Vigência:</strong> ${terms.contractEnd || '30 dias'}</td></tr>
+          <tr><td><strong>Placa / Chassi:</strong> ${vehicle.plate || blank} / ${vehicle.chassi || blank}</td><td><strong>Km:</strong> ${vehicle.km ? Number(vehicle.km).toLocaleString('pt-BR') + ' km' : '-'}</td></tr>
+          <tr><td><strong>Preço de anúncio:</strong> ${money(vehicle.price)}</td><td><strong>Preço mínimo autorizado:</strong> ${terms.minSalePrice ? money(terms.minSalePrice) : blank}</td></tr>
+          <tr><td colspan="2"><strong>Vigência até:</strong> ${terms.contractEnd || blank}</td></tr>
         </table>
       </div>
 
       <div class="section">
         <h3>CLÁUSULA 2ª - DA REMUNERAÇÃO, TAXAS E DIÁRIAS</h3>
-        <p>A remuneração pelos serviços de corretagem e consignação será fixada nos seguintes termos:</p>
         <ul>
-          <li><strong>Modalidade de Remuneração:</strong> ${terms.remunerationType === 'percentual' ? `${terms.remunerationValue}% sobre o valor final de venda (mínimo de ${valorFormatado(terms.minRemuneration)})` : `Valor líquido garantido ao proprietário de ${valorFormatado(terms.remunerationValue)}`}</li>
-          <li><strong>Taxa de Entrada / Preparação Estética:</strong> ${valorFormatado(terms.serviceFee)}</li>
-          <li><strong>Diária de Guarda / Estacionamento:</strong> ${valorFormatado(terms.dailyStorageFee)} por dia decorrido até a venda ou retirada</li>
-          <li><strong>Prazo Máximo de Repasse Financeiro:</strong> Até ${terms.payoutDeadlineDays || 5} dias úteis após a compensação integral do pagamento</li>
+          <li><strong>Remuneração da CONSIGNATÁRIA:</strong> ${terms.remunerationType === 'percentual' ? `${terms.remunerationValue}% sobre o valor efetivo da venda (mínimo de ${money(terms.minRemuneration)})` : `o que exceder ${money(terms.remunerationValue)}, valor líquido garantido ao CONSIGNANTE`}</li>
+          <li><strong>Taxa de entrada / preparação:</strong> ${money(terms.serviceFee)}</li>
+          <li><strong>Diária de guarda:</strong> ${money(terms.dailyStorageFee)} por dia, contada do início da vigência até a venda ou a retirada do veículo</li>
+          <li><strong>Despesas adiantadas pela CONSIGNATÁRIA, mediante comprovação:</strong> ${money(terms.advancedExpenses)}</li>
+          <li><strong>Prestação de contas e repasse:</strong> em até ${terms.payoutDeadlineDays || 5} dias úteis após a compensação integral do pagamento do comprador</li>
         </ul>
       </div>
 
       <div class="section">
-        <h3>CLÁUSULA 3ª - DA VISTORIA CAUTELAR E RESPONSABILIDADES</h3>
-        <p>O veículo foi entregue à CONSIGNATÁRIA acompanhado de chave principal, manual e documento CRLV vigente, sendo conferido o estado geral de conservação sem avarias ocultas ou pendências judiciais de responsabilidade do CONSIGNANTE.</p>
+        <h3>CLÁUSULA 3ª - DA ENTREGA, DA PROPRIEDADE E DAS RESPONSABILIDADES</h3>
+        <p>As condições do veículo, os acessórios, as chaves e os documentos entregues serão registrados em termo de vistoria de entrada, assinado pelas partes. O CONSIGNANTE declara ser o legítimo proprietário, que o veículo está livre de ônus, gravames, restrições judiciais e débitos não informados por escrito, e responde por multas, impostos e taxas anteriores à entrega e por vícios que tenha omitido. A CONSIGNATÁRIA zela pelo veículo durante a guarda e responde pelos danos a que der causa, salvo caso fortuito ou força maior.</p>
+      </div>
+
+      <div class="section">
+        <h3>CLÁUSULA 4ª - DA VIGÊNCIA E DA RETIRADA</h3>
+        <p>Qualquer das partes pode encerrar a consignação mediante aviso por escrito. Em caso de retirada do veículo antes da venda, ficam devidas as diárias e as despesas adiantadas comprovadas até a data da retirada, conforme a Cláusula 2ª.</p>
       </div>
     `;
   } else if (type === 'compra_venda_troca') {
-    title = 'CONTRATO DE COMPRA E VENDA COM DAÇÃO DE VEÍCULO EM PAGAMENTO (TROCA)';
+    title = 'CONTRATO DE COMPRA E VENDA COM VEÍCULO DADO NA TROCA';
+    forum = 'As partes elegem o foro da comarca do domicílio do COMPRADOR para dirimir dúvidas decorrentes deste instrumento, ressalvados os foros que a lei considere obrigatórios.';
+    const price = Number(vehicle.price || 0);
+    const trade = Number(terms.tradeValue || 0);
+    const cash = Number(terms.cashDownPayment || 0);
+    const computed = Math.max(0, price - trade - cash);
+    const informed = terms.financedBalance === undefined || terms.financedBalance === '' ? computed : Number(terms.financedBalance);
+    const mismatch = Math.abs(informed - computed) > 0.01;
     specificBody = `
       <div class="section">
-        <h3>CLÁUSULA 1ª - DO OBJETO PRINCIPAL</h3>
-        <p>A VENDEDORA aliena ao COMPRADOR o veículo automotor discriminado:</p>
-        <p><strong>Veículo Adquirido:</strong> ${vehicle.title} ${vehicle.version || ''} | Ano: ${vehicle.year || '-'} | Valor: <strong>${valorFormatado(vehicle.price)}</strong></p>
+        <h3>CLÁUSULA 1ª - DO VEÍCULO VENDIDO</h3>
+        <p>A VENDEDORA vende ao COMPRADOR o veículo <strong>${vehicle.title} ${vehicle.version || ''}</strong>, ano ${vehicle.year || '-'}, placa ${vehicle.plate || blank}, pelo preço de <strong>${money(vehicle.price)}</strong>.</p>
       </div>
 
       <div class="section">
-        <h3>CLÁUSULA 2ª - DO VEÍCULO DADO NA TROCA (DAÇÃO EM PAGAMENTO)</h3>
-        <p>Como parte integrante do pagamento, o COMPRADOR entrega à VENDEDORA, livre de quaisquer ônus fiscais, multas e gravames:</p>
+        <h3>CLÁUSULA 2ª - DO VEÍCULO DADO NA TROCA</h3>
+        <p>Como parte do pagamento, o COMPRADOR entrega o veículo abaixo e declara ser seu legítimo proprietário:</p>
         <table class="data-table">
-          <tr><td><strong>Veículo na Troca:</strong> ${tradeVehicle?.title || 'Veículo dado em dação'}</td><td><strong>Ano / Modelo:</strong> ${tradeVehicle?.year || '-'}</td></tr>
-          <tr><td><strong>Valor de Avaliação da Troca:</strong> ${valorFormatado(terms.tradeValue)}</td><td><strong>Quitação de Saldo Pendente:</strong> ${terms.tradeHasDebt ? valorFormatado(terms.tradeDebtAmount) : 'Quitado'}</td></tr>
+          <tr><td><strong>Veículo:</strong> ${tradeVehicle?.title || blank}</td><td><strong>Ano / modelo:</strong> ${tradeVehicle?.year || '-'}</td></tr>
+          <tr><td><strong>Placa:</strong> ${tradeVehicle?.plate || blank}</td><td><strong>Valor atribuído à troca:</strong> ${money(trade)}</td></tr>
+          <tr><td colspan="2"><strong>Saldo de financiamento ou débito a quitar:</strong> ${terms.tradeHasDebt ? money(terms.tradeDebtAmount) : 'Nenhum informado'}</td></tr>
         </table>
+        <p>O COMPRADOR responde por multas, impostos, taxas e gravames do veículo dado na troca até a data da entrega, e deve quitar o saldo acima informado, quando houver.</p>
       </div>
 
       <div class="section">
-        <h3>CLÁUSULA 3ª - DA COMPOSIÇÃO DO SALDO FINAL</h3>
+        <h3>CLÁUSULA 3ª - DA COMPOSIÇÃO DO PAGAMENTO</h3>
         <ul>
-          <li><strong>Valor Total do Veículo Adquirido:</strong> ${valorFormatado(vehicle.price)}</li>
-          <li><strong>(-) Crédito da Troca:</strong> ${valorFormatado(terms.tradeValue)}</li>
-          <li><strong>(-) Entrada em Moeda Corrente:</strong> ${valorFormatado(terms.cashDownPayment)}</li>
-          <li><strong>(=) Saldo Remanescente Financiado:</strong> ${valorFormatado(terms.financedBalance)}</li>
+          <li>Preço do veículo vendido: ${money(price)}</li>
+          <li>(-) Valor atribuído à troca: ${money(trade)}</li>
+          <li>(-) Entrada em dinheiro: ${money(cash)}</li>
+          <li>(=) Saldo a pagar${terms.paymentMethod ? ` (${terms.paymentMethod})` : ''}: <strong>${money(informed)}</strong></li>
         </ul>
+        ${mismatch ? `<p><em>Atenção: o saldo informado difere do cálculo (${money(computed)}). Confira os valores antes de assinar.</em></p>` : ''}
+      </div>
+
+      <div class="section">
+        <h3>CLÁUSULA 4ª - DA TRANSFERÊNCIA E DA GARANTIA</h3>
+        <p>As partes providenciarão a transferência de propriedade e a comunicação de venda dos veículos nos prazos da legislação de trânsito. Os débitos e as infrações do veículo vendido anteriores à entrega são de responsabilidade da VENDEDORA. ${warrantyText}</p>
       </div>
     `;
   } else if (type === 'termo_aditivo') {
     title = 'TERMO ADITIVO DE CONTRATO';
     specificBody = `
       <div class="section">
-        <h3>CLÁUSULA 1ª - DO VÍNCULO AO INSTRUMENTO ORIGINAL</h3>
-        <p>O presente Termo Aditivo vincula-se e integra para todos os fins de direito o <strong>Contrato Original sob código ${parentCode || 'CTR-ANTERIOR'}</strong> celebrado entre as partes.</p>
+        <h3>CLÁUSULA 1ª - DO CONTRATO ORIGINAL</h3>
+        <p>Este Termo Aditivo integra o <strong>contrato de código ${parentCode || blank}</strong>, celebrado entre as partes.</p>
       </div>
 
       <div class="section">
-        <h3>CLÁUSULA 2ª - DAS ALTERAÇÕES E PACTUAÇÕES</h3>
-        <p>Pelo presente instrumento, as partes deliberam e acordam as seguintes modificações contratuais:</p>
+        <h3>CLÁUSULA 2ª - DAS ALTERAÇÕES</h3>
+        <p>As partes acordam a seguinte modificação:</p>
         <div style="background: #f8fafc; border: 1px dashed #94a3b8; padding: 12px; margin: 10px 0; border-radius: 6px;">
-          ${terms.amendmentReason || 'Pactuação de prorrogação de prazo e adequação de valores conforme acordo mútuo.'}
+          ${terms.amendmentReason || blank}
         </div>
-        <p>Permanecem inalteradas, válidas e vigentes todas as demais cláusulas e condições não expressamente modificadas por este aditivo.</p>
+        <p>Permanecem inalteradas as demais cláusulas e condições não modificadas por este aditivo.</p>
       </div>
     `;
   }
@@ -135,69 +160,45 @@ export function generateAdvancedContractHtml({
     .section h3 { font-size: 11pt; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px; }
     .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 12px; font-size: 11pt; }
     .data-table td { border: 1px solid #cbd5e1; padding: 6px 10px; }
-    .signatures { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; font-size: 11pt; }
-    .witness-signatures { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; font-size: 10pt; }
+    .signatures, .witness-signatures { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: center; font-size: 11pt; }
     .sign-line { border-top: 1px solid #111; padding-top: 6px; }
-    @media print {
-      body { margin: 20mm; }
-      .legal-alert { display: block !important; }
-    }
+    @media print { body { margin: 20mm; } .legal-alert { display: block !important; } }
   </style>
 </head>
 <body>
 
   <div class="legal-alert">
-    <strong>AVISO LEGAL OBRIGATÓRIO:</strong> Este documento é uma minuta contratual padronizada gerada pelo sistema de gestão da loja. Para sua plena validade jurídica e adequação ao caso concreto, deve ser submetida à revisão e aprovação prévia de advogado legalmente habilitado antes de qualquer assinatura.
+    <strong>AVISO:</strong> Este documento é uma minuta-modelo gerada pelo sistema de gestão da loja, sem validade jurídica própria. Antes de qualquer assinatura, deve ser revisada e adequada ao caso concreto por advogado habilitado. O sistema não presta assessoria jurídica.
   </div>
 
   <div class="header">
     <h1>${title}</h1>
-    <div class="code">DOCUMENTO Nº: ${code} ${parentCode ? `(Vinculado a: ${parentCode})` : ''}</div>
+    <div class="code">DOCUMENTO Nº: ${code} ${parentCode ? `(vinculado a: ${parentCode})` : ''}</div>
   </div>
 
   <div class="section">
     <h3>DAS PARTES</h3>
-    <p><strong>CONTRATADA/LOJA:</strong> ${store.name}, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº ${store.cnpj}, com sede em ${store.address}.</p>
-    <p><strong>CONTRATANTE/CLIENTE:</strong> ${client.name || 'Cliente'}, portador(a) do CPF sob o nº ${client.cpf_masked || '000.***.***-00'}, telefone de contato: ${client.phone || '-'}, residente em ${client.address || 'Endereço cadastrado'}.</p>
+    <p><strong>LOJA:</strong> ${storeName}, inscrita no CNPJ sob o nº ${storeCnpj}, com sede em ${storeAddress}.</p>
+    <p><strong>CLIENTE:</strong> ${client.name || blank}, CPF nº ${client.cpf_masked || blank}, telefone ${client.phone || '-'}, residente em ${client.address || blank}.</p>
   </div>
 
   ${specificBody}
 
   <div class="section">
     <h3>DO FORO</h3>
-    <p>As partes elegem o foro da Comarca da sede da CONTRATADA para dirimir quaisquer dúvidas decorrentes do presente instrumento, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
+    <p>${forum}</p>
   </div>
 
-  <p style="text-align: right; margin-top: 30px;">Data de Emissão: ${currentDate}</p>
+  <p style="text-align: right; margin-top: 30px;">Data de emissão: ${currentDate}</p>
 
   <div class="signatures">
-    <div>
-      <div class="sign-line">
-        <strong>${store.name}</strong><br>
-        CNPJ: ${store.cnpj}
-      </div>
-    </div>
-    <div>
-      <div class="sign-line">
-        <strong>${client.name || 'CLIENTE'}</strong><br>
-        CPF: ${client.cpf_masked || '000.***.***-00'}
-      </div>
-    </div>
+    <div><div class="sign-line"><strong>${storeName}</strong><br>CNPJ: ${storeCnpj}</div></div>
+    <div><div class="sign-line"><strong>${client.name || 'CLIENTE'}</strong><br>CPF: ${client.cpf_masked || ''}</div></div>
   </div>
 
   <div class="witness-signatures">
-    <div>
-      <div class="sign-line">
-        1ª Testemunha: ${terms.witness1_name || 'Nome:'} ____________________<br>
-        CPF: ${terms.witness1_cpf || '000.***.***-00'}
-      </div>
-    </div>
-    <div>
-      <div class="sign-line">
-        2ª Testemunha: ${terms.witness2_name || 'Nome:'} ____________________<br>
-        CPF: ${terms.witness2_cpf || '000.***.***-00'}
-      </div>
-    </div>
+    <div><div class="sign-line">1ª testemunha: ${terms.witness1_name || ''}<br>CPF: ${terms.witness1_cpf || ''}</div></div>
+    <div><div class="sign-line">2ª testemunha: ${terms.witness2_name || ''}<br>CPF: ${terms.witness2_cpf || ''}</div></div>
   </div>
 
 </body>

@@ -56,7 +56,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
     laudoCautelar: {
       status: "100% Aprovado",
       codigoLaudo: "DN-89214-DF",
-      perito: "Perícia Cautelar Certificada",
+      perito: "Informado pela loja",
       estrutura: "Estrutura e longarinas originais e intocadas",
       pintura: "Pintura original de fábrica sem repinturas",
       mecanica: "Motor, injeção e transmissão revisados",
@@ -135,7 +135,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
     laudoCautelar: {
       status: "100% Aprovado",
       codigoLaudo: "DN-47102-DF",
-      perito: "Perícia Cautelar Certificada",
+      perito: "Informado pela loja",
       estrutura: "Integridade total atestada",
       pintura: "Original sem retoques",
       mecanica: "Revisão dos 20.000 km antecipada",
@@ -214,7 +214,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
     laudoCautelar: {
       status: "100% Aprovado",
       codigoLaudo: "DN-33190-GO",
-      perito: "Perícia Cautelar Certificada",
+      perito: "Informado pela loja",
       estrutura: "Estrutura e torre dos amortecedores originais",
       pintura: "Original de fábrica",
       mecanica: "Turbina e injeção direta 100% calibradas",
@@ -293,7 +293,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
     laudoCautelar: {
       status: "100% Aprovado",
       codigoLaudo: "DN-11928-DF",
-      perito: "Perícia Cautelar Certificada",
+      perito: "Informado pela loja",
       estrutura: "Estrutura e assoalho intactos",
       pintura: "Original sem detalhes",
       mecanica: "Revisão dos 20 mil km carimbada",
@@ -372,7 +372,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
     laudoCautelar: {
       status: "100% Aprovado",
       codigoLaudo: "DN-66201-DF",
-      perito: "Perícia Cautelar Certificada",
+      perito: "Informado pela loja",
       estrutura: "Longarinas e teto originais",
       pintura: "Original Sapphire Blue",
       mecanica: "Garantia de fábrica de 5 anos até 2028",
@@ -451,7 +451,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
     laudoCautelar: {
       status: "100% Aprovado",
       codigoLaudo: "DN-99410-GO",
-      perito: "Perícia Cautelar Certificada",
+      perito: "Informado pela loja",
       estrutura: "Estrutura intacta",
       pintura: "Original Preto Carbon",
       mecanica: "Motor T270 revisado com fluido e filtros novos",

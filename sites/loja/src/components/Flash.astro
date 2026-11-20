@@ -1,0 +1,7 @@
+---
+import { readFlash } from '../lib/forms';
+// Mensagem de uma só leitura, vinda de um cookie curto (nunca da URL).
+const flash = readFlash(Astro.request);
+if (flash) Astro.cookies.delete('flash', { path: '/' });
+---
+{flash && <div class:list={['status', flash.kind === 'ok' ? 'status--ok' : 'status--err']} role={flash.kind === 'ok' ? 'status' : 'alert'}>{flash.message}</div>}

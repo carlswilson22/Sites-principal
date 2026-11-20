@@ -8,6 +8,8 @@ import { FeaturedPage } from './pages/FeaturedPage';
 import { FinancingPage } from './pages/FinancingPage';
 import { TradeInPage } from './pages/TradeInPage';
 import { AboutContactPage } from './pages/AboutContactPage';
+import { FavoritesPage } from './pages/FavoritesPage';
+import { useFavorites } from '../../../packages/merchant-core/src/hooks/useFavorites';
 import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { dealershipInfo } from './data/dealershipInfo';
@@ -34,6 +36,7 @@ function StoreApp() {
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
   const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('drivenow', vehiclesData));
   const publishedVehicles = vehicles.filter(isPublishedVehicle);
+  const { toggleFavorite, isFavorite, favoritesCount, favoriteVehicles } = useFavorites(publishedVehicles);
 
   React.useEffect(() => {
     const unsub = storeSync.subscribe('drivenow', (detail) => {
@@ -72,7 +75,7 @@ function StoreApp() {
   return (
     <div className="min-h-screen bg-[#050508] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black relative">
       {/* Navegacao principal e atendimento da loja */}
-      <Navbar currentPage={currentPage} onNavigate={navigateTo} />
+      <Navbar currentPage={currentPage} onNavigate={navigateTo} favoritesCount={favoritesCount} />
 
       {/* Conteúdo Dinâmico da Página Ativa */}
       <main className="flex-1">
@@ -81,6 +84,8 @@ function StoreApp() {
             vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
           />
         )}
 
@@ -88,6 +93,10 @@ function StoreApp() {
           <InventoryPage
             vehicles={publishedVehicles}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            onNavigate={navigateTo}
+            favoritesCount={favoritesCount}
           />
         )}
 
@@ -96,6 +105,8 @@ function StoreApp() {
             vehicles={publishedVehicles}
             onNavigate={navigateTo}
             onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
           />
         )}
 
@@ -110,6 +121,16 @@ function StoreApp() {
 
         {currentPage === 'troca' && isAuthenticated && (
           <TradeInPage vehicles={publishedVehicles} />
+        )}
+
+        {currentPage === 'favoritos' && isAuthenticated && (
+          <FavoritesPage
+            favoriteVehicles={favoriteVehicles}
+            onNavigate={navigateTo}
+            onSelectVehicle={(v) => setSelectedVehicleForModal(v)}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+          />
         )}
 
         {currentPage === 'sobre-contato' && (

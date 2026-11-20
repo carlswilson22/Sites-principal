@@ -1,0 +1,39 @@
+# Um bloco por cliente, no Caddy do servidor. Substitua os domínios e as portas (as do docker-compose do cliente:
+# a do site é a da API mais 1000). O Caddy obtém e renova o certificado HTTPS sozinho.
+# O Caddy também precisa repassar o IP real do visitante: o padrão do Caddy já substitui o X-Forwarded-For recebido.
+
+# Site público
+www.loja-exemplo.com.br {
+	encode gzip
+	reverse_proxy 127.0.0.1:4101
+}
+loja-exemplo.com.br {
+	redir https://www.loja-exemplo.com.br{uri} permanent
+}
+
+# Painel da loja (porta da API + 2000)
+painel.loja-exemplo.com.br {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+	}
+	reverse_proxy 127.0.0.1:5101
+}
+
+# API (uso interno e integrações)
+
+api.loja-exemplo.com.br {
+	encode gzip
+	# Limite de corpo acima do máximo de upload do sistema (12 MB)
+	request_body {
+		max_size 13MB
+	}
+	reverse_proxy 127.0.0.1:3101 {
+		health_uri /api/health
+		health_interval 30s
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

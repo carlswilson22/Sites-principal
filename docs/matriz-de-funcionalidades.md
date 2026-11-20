@@ -13,7 +13,7 @@ demonstrada; a seleção contratual será feita na [base técnica](base-para-con
 | Cadastro e login de cliente | Sim | Sim | Sim | Conta local neste navegador |
 | Financiamento no anúncio com três bancos ilustrativos | Sim | Sim | Sim | Exige login; sem consulta/aprovação bancária |
 | Serviços, financiamento independente e formulário de troca | Não | Sim | Sim | Referências manuais e registro de interesse |
-| Favoritos | Não | Não | Sim | Exige login; conta/loja local |
+| Favoritos | Não | Sim | Sim | Exige login; conta/loja local |
 | Comparação de dois a três veículos | Não | Não | Sim | Pública, sem login |
 | Visualizador 360° padrão | Não | Não | Sim | Exige sequência própria por veículo |
 | TCO, dossiê e interesse em condição de preço | Não | Não | Sim | Estimativas/cadastro, sem notificações automáticas |

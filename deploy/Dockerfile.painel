@@ -1,0 +1,18 @@
+# Imagem do PAINEL de uma loja (Astro, renderizado no servidor, sempre atrás de login).
+# Construir na raiz do repositório:  docker build -f deploy/Dockerfile.painel -t up-merchant-painel:latest .
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY sites ./sites
+COPY packages ./packages
+RUN npm ci -w painel --include-workspace-root && npm run build -w painel
+
+FROM node:24-alpine
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=4400 TZ=America/Sao_Paulo
+WORKDIR /app/sites/painel
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/sites/painel/dist ./dist
+COPY --from=build /app/sites/painel/package.json ./package.json
+USER node
+EXPOSE 4400
+CMD ["node", "dist/server/entry.mjs"]

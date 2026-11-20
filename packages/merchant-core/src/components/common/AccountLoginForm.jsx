@@ -11,6 +11,7 @@ export function AccountLoginForm({ staffOnly = false, onSuccess, theme = getAcco
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mode, setMode] = useState('login');
@@ -22,7 +23,7 @@ export function AccountLoginForm({ staffOnly = false, onSuccess, theme = getAcco
     if (busy.current) return;
     busy.current = true; setLoading(true); setError('');
     try {
-      const user = creating ? await register({ name, email, password, confirmPassword }) : await login(email, password, { staffOnly });
+      const user = creating ? await register({ name, email, password, confirmPassword, consent }) : await login(email, password, { staffOnly });
       onSuccess?.(user);
     }
     catch (failure) { setError(failure.message || 'Não foi possível entrar.'); }
@@ -48,9 +49,11 @@ export function AccountLoginForm({ staffOnly = false, onSuccess, theme = getAcco
           <div className={field}><LockKeyhole aria-hidden="true" className="w-4 h-4 shrink-0 text-slate-500" /><input id={`${id}-password`} type={showPassword ? 'text' : 'password'} name="password" autoComplete={creating ? 'new-password' : 'current-password'} required minLength={creating ? 8 : undefined} maxLength={128} placeholder={creating ? 'Mínimo 8 caracteres' : 'Sua senha'} value={password} onChange={event => setPassword(event.target.value)} className={input} /><button type="button" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword} aria-controls={`${id}-password`} onClick={() => setShowPassword(value => !value)} className={`shrink-0 min-w-11 min-h-11 flex items-center justify-center rounded text-slate-400 hover:text-white ${accountFocus} ${theme.focus}`}>{showPassword ? <EyeOff aria-hidden="true" className="w-4 h-4" /> : <Eye aria-hidden="true" className="w-4 h-4" />}</button></div>
         </div>
         {creating && <div className="space-y-2"><label htmlFor={`${id}-confirm`} className="block text-xs font-semibold uppercase tracking-widest text-slate-300">Confirmar senha</label><div className={field}><LockKeyhole aria-hidden="true" className="w-4 h-4 shrink-0 text-slate-500" /><input id={`${id}-confirm`} type="password" name="confirmPassword" autoComplete="new-password" required minLength={8} maxLength={128} placeholder="Repita sua senha" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className={input} /></div></div>}
-        {creating && <p className="text-xs leading-relaxed text-slate-400">{isDemoMode ? 'Sua conta de demonstração fica salva apenas neste navegador.' : 'O cadastro precisa ser conectado ao servidor da loja.'}</p>}
+        {creating && (isDemoMode
+          ? <p className="text-xs leading-relaxed text-slate-400">Sua conta de demonstração fica salva apenas neste navegador.</p>
+          : <label htmlFor={`${id}-consent`} className="flex items-start gap-3 text-xs leading-relaxed text-slate-300"><input id={`${id}-consent`} type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0" /><span>Autorizo a loja a guardar meu nome, e-mail e preferências para me atender e mostrar meus favoritos (LGPD). Posso pedir a exclusão a qualquer momento.</span></label>)}
         {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
-        <button type="submit" disabled={loading || (creating && !isDemoMode)} className={primary}>{loading ? creating ? 'Criando conta…' : 'Entrando…' : creating ? 'Criar minha conta' : staffOnly ? 'Acessar painel da loja' : 'Acessar plataforma'}<ArrowRight aria-hidden="true" className="w-4 h-4 shrink-0" /></button>
+        <button type="submit" disabled={loading || (creating && !isDemoMode && !consent)} className={primary}>{loading ? creating ? 'Criando conta…' : 'Entrando…' : creating ? 'Criar minha conta' : staffOnly ? 'Acessar painel da loja' : 'Acessar plataforma'}<ArrowRight aria-hidden="true" className="w-4 h-4 shrink-0" /></button>
       </form>
       {staffOnly ? <p className="text-xs leading-relaxed text-slate-400">Use as credenciais fornecidas pela loja. Este acesso é reservado à equipe.</p> : <div className={`flex flex-wrap items-center justify-center gap-x-2 border-t pt-4 text-sm text-slate-400 ${theme.divider}`}><span>{creating ? 'Já tem uma conta?' : 'Ainda não tem conta?'}</span><button type="button" disabled={loading} onClick={() => changeMode(creating ? 'login' : 'create')} className={`${link} uppercase`}>{creating ? 'Entrar na minha conta' : 'Cadastre-se'}</button></div>}
     </> : <section aria-label="Recuperar acesso" className="space-y-5">

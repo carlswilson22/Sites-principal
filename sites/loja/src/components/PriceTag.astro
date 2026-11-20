@@ -1,0 +1,6 @@
+---
+import { brl } from '../lib/format';
+interface Props { price: number; large?: boolean; class?: string }
+const { price, large = false, class: extra = '' } = Astro.props;
+---
+<span class:list={['tag', { 'tag--lg': large }, extra]}><span class="vh">Preço: </span>{brl(price)}</span>

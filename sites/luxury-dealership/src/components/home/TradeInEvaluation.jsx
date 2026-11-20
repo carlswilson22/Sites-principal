@@ -29,13 +29,14 @@ export function TradeInEvaluation({ vehicles = [] }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
-      storeSync.addLead('drivenow', {
+      Promise.resolve(storeSync.addLead('drivenow', {
         name: formData.nome.trim(),
         phone: formData.telefone.trim(),
         vehicle_title: formData.interesse,
         source: 'avaliacao_troca',
+        consent: true,
         message: `Veículo na troca: ${formData.marca} ${formData.modelo} ${formData.ano} (${formData.km} km) - Blindado: ${formData.blindado ? 'Sim' : 'Não'}. Interesse: ${formData.interesse || 'Em aberto'}. Observações: ${formData.observacoes || 'Nenhuma'}`
-      });
+      })).catch(() => {});
     } catch {}
     const url = buildTradeInWhatsappLink(formData);
     siteAnalytics.track('drivenow', { type: 'whatsapp_click', page: 'troca' });

@@ -20,11 +20,11 @@ Os módulos administrativos são cumulativos; as propostas visuais são distinta
   separada por loja/veículo. Não é atendimento humano ao vivo.
 - Um único botão de WhatsApp no rodapé do anúncio: **Tenho interesse**.
   Encaminhamento ao funcionário por ação explícita do visitante.
-- Financiamento no anúncio, após login: **Itaú Auto, Santander Auto e BV
-  Financeira**, com taxas ilustrativas de 1,42%, 1,45% e 1,49% ao mês. Entrada
+- Financiamento no anúncio, após login: **Condição A, Condição B e Condição C**
+  (nomes e taxas configuráveis pela loja), com taxas ilustrativas de 1,42%, 1,45% e 1,49% ao mês. Entrada
   entre 0% e 80%, atalhos 20%/30%/50% e prazos 12/24/36/48/60 meses. Tabela
   Price para parcela, juros e total. Sem IOF, tarifas, seguros ou CET; sem
-  consulta/aprovação de crédito ou vínculo comercial comprovado com os bancos.
+  consulta/aprovação de crédito ou vínculo comercial com instituição financeira.
 - Contato institucional: registro local e mensagem preparada para WhatsApp.
   Não envia e-mail nem agenda visitas.
 - Login único de cliente ou equipe, reconhecido pelas credenciais. Cadastro
@@ -78,9 +78,11 @@ Acrescenta à base:
   quilometragem, blindagem, interesse e observações; registra contato e prepara
   negociação no WhatsApp. Não calcula oferta automática de compra.
 - Atendimento/concierge em tela própria e no anúncio, com lógica automática local.
+- **Favoritos:** salvar/remover e consultar após login, por conta e loja no
+  navegador. Coração no cabeçalho e nos cartões; atalho "Meus favoritos" no estoque.
 - Sobre Nós e Contato editorial, com história, valores, foto e contato.
 
-Não inclui favoritos, comparador, TCO, dossiê ampliado ou 360° padrão.
+Não inclui comparador, TCO, dossiê ampliado ou 360° padrão.
 
 ### Painel — nove módulos para o proprietário
 
@@ -108,9 +110,8 @@ Sobre Nós e Contato com navegação por seções e painéis expansíveis de con
 
 Acrescenta:
 
-- **Favoritos:** salvar/remover e consultar após login, por conta e loja no
-  navegador. Coração à esquerda dos acessos de conta/painel, visível ao
-  visitante, solicitando login. Atalhos completos ficam no estoque.
+- **Favoritos** (também no DriveNow): coração à esquerda dos acessos de conta/painel,
+  visível ao visitante, solicitando login. Atalhos completos ficam no estoque.
 - **Comparador público:** selecionar dois a três veículos; fotos/dados lado
   a lado e resumo de menor preço, menor quilometragem e ano mais recente.
   Cinco seções: preço/FIPE, uso, laudo, documentação e especificações.

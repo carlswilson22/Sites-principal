@@ -1,0 +1,56 @@
+---
+import Panel from '../layouts/Panel.astro';
+import { api } from '../lib/api';
+import { ROLE_LABEL, when } from '../lib/format';
+
+const { token, user } = Astro.locals;
+if (user?.role !== 'proprietario') Astro.response.status = 403;
+const result = user?.role === 'proprietario' ? await api(token, 'GET', '/api/users') : null;
+const people: any[] = result?.ok ? result.data : [];
+---
+<Panel title="Equipe" current="equipe">
+  {!result ? (
+    <div class="empty"><p><strong>Só o proprietário da loja gerencia a equipe.</strong></p><a class="btn btn--accent" href="/">Voltar ao início</a></div>
+  ) : (
+    <>
+      <div class="main__head"><h1>Equipe</h1></div>
+      <div class="scroll"><table class="list">
+        <thead><tr><th>Pessoa</th><th>Cargo</th><th>Situação</th><th>Alterar</th></tr></thead>
+        <tbody>
+          {people.map(p => (
+            <tr>
+              <td><strong>{p.name}</strong><br /><span class="muted small">{p.email}</span></td>
+              <td>{ROLE_LABEL[p.role] || p.role}</td>
+              <td><span class:list={['badge', p.active ? 'badge--ok' : 'badge--bad']}>{p.active ? 'Ativo' : 'Desativado'}</span></td>
+              <td>
+                {p.id === user.id ? <span class="muted small">Esta é a sua conta</span> : (
+                  <form class="form" method="post" action="/acoes/equipe-alterar" style="min-width:230px;gap:0.4rem">
+                    <input type="hidden" name="id" value={p.id} />
+                    <select name="role" aria-label={`Cargo de ${p.name}`}>{Object.entries(ROLE_LABEL).map(([k, l]) => <option value={k} selected={k === p.role}>{l}</option>)}</select>
+                    <select name="ativo" aria-label={`Situação de ${p.name}`}><option value="1" selected={Boolean(p.active)}>Ativo</option><option value="0" selected={!p.active}>Desativado</option></select>
+                    <input name="password" type="password" autocomplete="new-password" placeholder="Nova senha (opcional)" aria-label={`Nova senha de ${p.name}`} minlength="10" />
+                    <button class="btn btn--small" type="submit">Salvar</button>
+                  </form>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table></div>
+
+      <section class="panel" style="margin-top:1rem" aria-labelledby="nova">
+        <h2 id="nova">Adicionar pessoa</h2>
+        <p class="muted small" style="margin-top:0.4rem"><strong>Atendente</strong>: estoque e contatos. <strong>Gerente</strong>: também importa planilha, exclui veículos e vê relatórios. <strong>Proprietário</strong>: tudo, inclusive configurações e equipe.</p>
+        <form class="form" method="post" action="/acoes/equipe-criar" style="margin-top:0.8rem">
+          <div class="grid2">
+            <label class="field">Nome<input name="name" required maxlength="120" /></label>
+            <label class="field">E-mail<input name="email" type="email" required maxlength="160" autocomplete="off" /></label>
+            <label class="field">Cargo<select name="role">{Object.entries(ROLE_LABEL).filter(([k]) => k !== 'proprietario').map(([k, l]) => <option value={k}>{l}</option>)}<option value="proprietario">Proprietário</option></select></label>
+            <label class="field">Senha provisória <small>mínimo de 10 caracteres, com letras e números</small><input name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" /></label>
+          </div>
+          <div><button class="btn btn--accent" type="submit">Adicionar</button></div>
+        </form>
+      </section>
+    </>
+  )}
+</Panel>

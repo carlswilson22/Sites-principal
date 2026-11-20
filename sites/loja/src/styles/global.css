@@ -1,0 +1,213 @@
+/* Vitrine de loja de veículos. A cor da loja (--accent) vem das Configurações; todo o resto é neutro.
+   Ideia central: a etiqueta de preço do para-brisa. O preço é a única forma desenhada da página. */
+:root {
+  --paper: #f2f3f3;
+  --white: #ffffff;
+  --ink: #151a1f;
+  --muted: #56616a;
+  --line: #d3d8db;
+  --accent: #0f6cbd;
+  --on-accent: #ffffff;
+  --gap: clamp(1rem, 2.5vw, 1.75rem);
+  --wrap: 1200px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: 'Archivo Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-stretch: 100%; font-size: 1.0625rem; line-height: 1.55;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; }
+h1, h2, h3 { font-stretch: 72%; font-weight: 800; line-height: 1.02; margin: 0; text-wrap: balance; letter-spacing: 0.005em; }
+h1 { font-size: clamp(2.6rem, 2rem + 4vw, 5rem); }
+h2 { font-size: clamp(1.8rem, 1.4rem + 1.6vw, 2.6rem); }
+h3 { font-size: 1.45rem; }
+p { margin: 0 0 1em; max-width: 68ch; }
+.muted { color: var(--muted); }
+.wrap { max-width: var(--wrap); margin-inline: auto; padding-inline: clamp(1rem, 4vw, 2rem); }
+.stack > * + * { margin-top: var(--gap); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; box-shadow: 0 0 0 2px var(--white); }
+.skip { position: absolute; left: 0.5rem; top: -4rem; background: var(--ink); color: #fff; padding: 0.75rem 1rem; z-index: 20; }
+.skip:focus { top: 0.5rem; }
+
+/* Cabeçalho */
+.site-header { background: var(--white); border-bottom: 1px solid var(--line); }
+.site-header .wrap { display: flex; align-items: center; gap: 1.5rem; min-height: 4.25rem; flex-wrap: wrap; padding-block: 0.5rem; }
+.brand { text-decoration: none; font-stretch: 72%; font-weight: 800; font-size: 1.7rem; line-height: 1; margin-right: auto; display: flex; align-items: center; gap: 0.6rem; }
+.brand img { max-height: 44px; width: auto; }
+.nav { display: flex; gap: 1.5rem; }
+.nav a { text-decoration: none; font-weight: 600; padding-block: 0.6rem; border-bottom: 3px solid transparent; }
+.nav a:hover, .nav a[aria-current='page'] { border-bottom-color: var(--accent); }
+
+/* Botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 46px; padding: 0 1.4rem;
+  font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+  background: var(--ink); color: #fff; border: 2px solid var(--ink); border-radius: 2px;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn--accent { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn--ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+.btn--block { width: 100%; }
+@media (prefers-reduced-motion: no-preference) { .btn { transition: filter 0.15s; } }
+
+/* Etiqueta de preço */
+.tag {
+  display: inline-block; position: relative; background: var(--accent); color: var(--on-accent);
+  font-stretch: 72%; font-weight: 800; font-size: 1.7rem; line-height: 1; letter-spacing: 0.01em;
+  padding: 0.55em 0.9em 0.55em 1.75em;
+  clip-path: polygon(0.95em 0, 100% 0, 100% 100%, 0.95em 100%, 0 50%);
+  -webkit-mask-image: radial-gradient(circle 0.2em at 0.78em 50%, transparent 97%, #000 100%);
+  mask-image: radial-gradient(circle 0.2em at 0.78em 50%, transparent 97%, #000 100%);
+}
+.tag--lg { font-size: 2.4rem; }
+.was { display: block; font-size: 0.95rem; color: var(--muted); text-decoration: line-through; margin-top: 0.35rem; }
+
+/* Linha de dados do veículo */
+.facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0; font-size: 0.95rem; color: var(--muted); }
+.facts li { padding-inline: 0.75rem; border-left: 1px solid var(--line); }
+.facts li:first-child { padding-left: 0; border-left: 0; }
+
+/* Destaque da página inicial */
+.hero { padding-block: clamp(1.5rem, 4vw, 3rem) 0; }
+.hero h1 { max-width: 14ch; }
+.hero p.lead { margin-top: 1rem; font-size: 1.2rem; color: var(--muted); }
+.feature { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); margin-top: clamp(1.5rem, 3vw, 2.5rem); background: var(--white); border: 1px solid var(--line); }
+.feature__photo { position: relative; min-height: clamp(260px, 38vw, 520px); background: var(--line); overflow: hidden; }
+.feature__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; }
+.feature__body { padding: clamp(1.25rem, 3vw, 2.25rem); display: flex; flex-direction: column; gap: 1rem; justify-content: flex-end; }
+.feature__body h2 { font-size: clamp(2rem, 1.5rem + 2vw, 3.2rem); }
+.feature__body h2 a { text-decoration: none; }
+.feature .tag { align-self: flex-start; margin-left: -1.75rem; }
+
+/* Faixa de busca */
+.finder { margin-top: clamp(1.5rem, 3vw, 2.5rem); }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; align-items: end; background: var(--white); border: 1px solid var(--line); padding: 1rem; }
+.field { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+.field input, .field select, .field textarea {
+  font: inherit; font-weight: 400; min-height: 46px; padding: 0.5rem 0.7rem; background: #fff; color: var(--ink);
+  border: 1px solid #9aa3a9; border-radius: 2px; width: 100%;
+}
+.field textarea { min-height: 96px; resize: vertical; }
+
+/* Grade de veículos */
+.section { padding-block: clamp(2rem, 5vw, 3.5rem); }
+.section__head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: var(--gap); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 2.25rem var(--gap); list-style: none; margin: 0; padding: 0; }
+.vcard { display: block; text-decoration: none; }
+.vcard__photo { position: relative; aspect-ratio: 4 / 3; background: var(--line); margin-bottom: 1.6rem; }
+.vcard__photo img { width: 100%; height: 100%; object-fit: cover; }
+.vcard__empty { height: 100%; display: grid; place-items: center; color: var(--muted); font-weight: 600; }
+.vcard .tag { position: absolute; left: 0; bottom: 0; transform: translateY(50%); font-size: 1.45rem; }
+.vcard h3 { margin-top: 0.4rem; }
+.vcard:hover h3 { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+.vcard .ver { margin: 0.2rem 0 0.5rem; color: var(--muted); font-size: 0.95rem; }
+.badge { position: absolute; top: 0; left: 0; background: var(--ink); color: #fff; font-weight: 700; font-size: 0.85rem; padding: 0.3rem 0.7rem; }
+.empty { background: var(--white); border: 1px dashed #9aa3a9; padding: 2rem; }
+
+.pager { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 2.5rem; }
+.pager a { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; border: 1px solid var(--ink); text-decoration: none; font-weight: 700; padding-inline: 0.8rem; }
+.pager a[aria-current='page'] { background: var(--ink); color: #fff; }
+
+/* Página do veículo */
+.crumbs { font-size: 0.95rem; color: var(--muted); padding-block: 1rem; }
+.crumbs a { color: inherit; }
+.vehicle { display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: "gallery buy" "details buy"; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+.vehicle .gallery { grid-area: gallery; }
+.vehicle .details { grid-area: details; }
+.vehicle .buy { grid-area: buy; }
+.gallery__main { aspect-ratio: 4 / 3; background: var(--line); overflow: hidden; }
+.gallery__main img { width: 100%; height: 100%; object-fit: cover; }
+.gallery__thumbs { display: flex; gap: 0.5rem; margin-top: 0.5rem; overflow-x: auto; padding-bottom: 0.3rem; }
+.gallery__thumbs a { flex: 0 0 96px; aspect-ratio: 4 / 3; background: var(--line); border: 2px solid transparent; }
+.gallery__thumbs a[aria-current='true'] { border-color: var(--ink); }
+.gallery__thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.buy { position: sticky; top: 1rem; background: var(--white); border: 1px solid var(--line); padding: 1.5rem; display: grid; gap: 1rem; }
+.buy h1 { font-size: clamp(2rem, 1.6rem + 1.2vw, 2.8rem); }
+.buy .tag { justify-self: start; margin-left: -1.5rem; }
+.specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2rem; margin: 0; }
+.specs div { border-bottom: 1px solid var(--line); padding-block: 0.7rem; }
+.specs dt { color: var(--muted); font-size: 0.88rem; }
+.specs dd { margin: 0; font-weight: 700; }
+.opts { columns: 2 220px; margin: 0; padding-left: 1.1rem; }
+.opts li { break-inside: avoid; margin-bottom: 0.3rem; }
+.note { border-left: 4px solid var(--ink); background: var(--white); padding: 0.9rem 1rem; max-width: 68ch; }
+.sim { background: var(--white); border: 1px solid var(--line); padding: 1.25rem; display: grid; gap: 1rem; }
+.sim__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
+.sim__out { font-weight: 700; font-size: 1.15rem; min-height: 1.5em; }
+.form { display: grid; gap: 0.85rem; }
+.check { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.92rem; }
+.check input { margin-top: 0.3rem; width: 1.15rem; height: 1.15rem; flex: none; }
+.status { padding: 0.7rem 0.9rem; font-weight: 600; }
+.status--ok { background: #e3f3e6; border-left: 4px solid #1b7a2f; }
+.status--err { background: #fbe7e7; border-left: 4px solid #b3261e; }
+
+/* Sobre e contato */
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 4vw, 3rem); }
+.hours { border-collapse: collapse; width: 100%; max-width: 420px; }
+.hours th, .hours td { text-align: left; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-weight: 400; }
+.hours tr[data-today='true'] { font-weight: 800; }
+.hours tr[data-today='true'] th, .hours tr[data-today='true'] td { font-weight: 800; border-bottom-color: var(--ink); }
+.prose h2 { margin-top: 2rem; font-size: 1.7rem; }
+.prose ul { max-width: 68ch; }
+
+/* Rodapé */
+.site-footer { background: var(--ink); color: #e9ecee; margin-top: 3rem; padding-block: 2.5rem; font-size: 0.95rem; }
+.site-footer .wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; }
+.site-footer h2 { font-size: 1.3rem; color: #fff; margin-bottom: 0.6rem; }
+.site-footer a { color: #fff; }
+.site-footer p { margin: 0 0 0.4rem; }
+
+@media (max-width: 880px) {
+  .feature, .two { grid-template-columns: 1fr; }
+  .vehicle { grid-template-columns: minmax(0, 1fr); grid-template-areas: "gallery" "buy" "details"; }
+  .feature .tag { margin-left: 0; }
+  .buy { position: static; }
+  .buy .tag { margin-left: 0; }
+}
+@media (max-width: 520px) {
+  .nav { gap: 1rem; }
+}
+@media (max-width: 400px) {
+  .specs { grid-template-columns: 1fr; }
+}
+
+/* Conta, serviços e perguntas rápidas */
+.nav__out { margin: 0; display: inline; }
+.nav__out button { font: inherit; font-weight: 600; background: none; border: 0; border-bottom: 3px solid transparent; padding: 0.6rem 0; cursor: pointer; color: inherit; }
+.nav__out button:hover { border-bottom-color: var(--accent); }
+.svc { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem var(--gap); }
+.svc h2 { font-size: 1.6rem; margin-bottom: 0.4rem; }
+.faq details { border-bottom: 1px solid var(--line); padding-block: 0.8rem; }
+.faq summary { font-weight: 700; cursor: pointer; }
+.faq p { margin: 0.6rem 0 0; }
+.fav { margin: 0; }
+
+/* Premium: comparação, 360°, consultor */
+.linklike { font: inherit; background: none; border: 0; padding: 0.4rem 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 0.95rem; }
+.vcard__compare { margin: 0.4rem 0 0; }
+.plain { list-style: none; margin: 0; padding: 0; }
+.why { margin: 0.6rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.95rem; }
+.cmp-wrap { overflow-x: auto; }
+.cmp { border-collapse: collapse; min-width: 560px; width: 100%; background: var(--white); border: 1px solid var(--line); }
+.cmp th, .cmp td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.cmp thead th { min-width: 220px; font-stretch: 72%; font-weight: 800; font-size: 1.3rem; line-height: 1.1; }
+.cmp thead th a { text-decoration: none; display: block; margin-bottom: 0.3rem; }
+.cmp thead img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; margin-bottom: 0.6rem; background: var(--line); }
+.cmp tbody th { font-weight: 600; color: var(--muted); white-space: nowrap; }
+.cmp td[data-best='true'] { font-weight: 800; }
+.best { font-weight: 600; color: var(--muted); font-size: 0.85rem; }
+.v360-box { background: var(--white); border: 1px solid var(--line); margin-bottom: 0.75rem; }
+.v360-box > summary { cursor: pointer; font-weight: 700; padding: 0.8rem 1rem; }
+.v360 { padding: 0 1rem 1rem; }
+.v360__img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; background: var(--line); cursor: ew-resize; touch-action: pan-y; user-select: none; }
+.v360__range { width: 100%; margin-top: 0.6rem; accent-color: var(--accent); }
+.alert { border: 1px solid var(--line); padding: 0.2rem 0.9rem; }
+.alert > summary { cursor: pointer; font-weight: 700; padding: 0.6rem 0; }
+.alert .form { padding-bottom: 0.9rem; }

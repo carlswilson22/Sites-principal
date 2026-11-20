@@ -8,12 +8,9 @@
 
 export function getPortalAdaptersManifest() {
   return {
-    disclaimer: 'A publicação direta automatizada em portais (OLX, Mercado Livre, WebMotors) requer contratação de planos de revenda e tokens parceiros oficiais. O sistema disponibiliza o arquivo padronizado de carga e integração.',
-    availablePortals: [
-      { id: 'olx', name: 'OLX Automóveis', format: 'CSV/XML Carga', status: 'adaptador_pronto' },
-      { id: 'webmotors', name: 'WebMotors Pro', format: 'Integrador Estoque', status: 'adaptador_pronto' },
-      { id: 'mercadolivre', name: 'Mercado Livre Veículos', format: 'Planilha / API Carga', status: 'adaptador_pronto' }
-    ]
+    disclaimer: 'Este arquivo é um catálogo genérico do estoque (CSV e JSON). Ele não está no layout de nenhum portal específico e não publica nada em portais. Para anunciar em OLX, WebMotors, Mercado Livre ou similares, é preciso contrato com o portal e, quando houver, integração própria (serviço à parte).',
+    formats: ['csv', 'json'],
+    availablePortals: []
   };
 }
 
@@ -52,7 +49,7 @@ export function exportVehiclesToCsv(vehicles = []) {
 
 export function exportVehiclesToJson(vehicles = [], storeInfo = {}) {
   return {
-    generator: 'Auto-Dealership Enterprise / Merchant Core Catalog Export',
+    generator: 'Catálogo de estoque (exportação genérica)',
     generatedAt: new Date().toISOString(),
     store: storeInfo,
     totalVehicles: vehicles.length,

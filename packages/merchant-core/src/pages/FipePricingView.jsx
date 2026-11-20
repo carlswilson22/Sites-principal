@@ -79,7 +79,7 @@ export function FipePricingView() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Consulte a Tabela FIPE oficial com cache local e calcule proposta máxima de compra e margem de venda.
+            Informe a referência FIPE do veículo e calcule a proposta máxima de compra e a margem de venda.
           </p>
         </div>
       </div>
@@ -215,7 +215,7 @@ export function FipePricingView() {
                 <span>R$ {pricingResult.prepCost?.toLocaleString('pt-BR')}</span>
               </div>
               <div className="flex justify-between text-xs text-slate-400">
-                <span>Referência FIPE Oficial:</span>
+                <span>Referência FIPE informada:</span>
                 <span>R$ {pricingResult.fipePrice?.toLocaleString('pt-BR')}</span>
               </div>
             </div>

@@ -1,0 +1,106 @@
+---
+import { CATEGORIES, dossierForm, FUELS, TRANSMISSIONS } from '../lib/vehicleForm';
+import { OWNERSHIP, VEHICLE_STATUS } from '../lib/format';
+
+interface Props { vehicle?: any; modules: string[] }
+const { vehicle = null, modules } = Astro.props;
+const v = vehicle || { status: 'disponivel', ownership_type: 'proprio', is_published: 1, highlight: 0, doors: 4, category: 'sedan', transmission: 'Automático', fuel: 'Flex', features: [] };
+const d = dossierForm(v.dossier);
+const dossierOn = modules.includes('dossier');
+---
+<form class="form" method="post" action="/acoes/veiculo-salvar">
+  {vehicle && <input type="hidden" name="id" value={vehicle.id} />}
+
+  <fieldset>
+    <legend>Identificação</legend>
+    <div class="grid2">
+      <label class="field" style="grid-column: span 2">Título (marca e modelo) *<input name="title" required maxlength="120" value={v.title || ''} placeholder="Honda Civic EXL" /></label>
+      <label class="field">Versão<input name="version" maxlength="120" value={v.version || ''} placeholder="2.0 Flex Automático" /></label>
+      <label class="field">Marca<input name="brand" maxlength="60" value={v.brand || ''} /></label>
+      <label class="field">Tipo
+        <select name="category">{CATEGORIES.map(([k, l]) => <option value={k} selected={k === (v.category === 'picape' ? 'pickup' : v.category)}>{l}</option>)}</select>
+      </label>
+      <label class="field">Ano * <small>2021 ou 2021/2022</small><input name="year" required pattern="\d{4}(/\d{4})?" maxlength="9" value={v.year || ''} /></label>
+      <label class="field">Quilometragem<input name="km" inputmode="numeric" value={v.km ?? ''} /></label>
+      <label class="field">Cor<input name="color" maxlength="40" value={v.color && v.color !== 'Não especificada' ? v.color : ''} /></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Ficha técnica</legend>
+    <div class="grid2">
+      <label class="field">Câmbio
+        <select name="transmission">{TRANSMISSIONS.map(t => <option value={t} selected={t === v.transmission}>{t}</option>)}</select>
+      </label>
+      <label class="field">Combustível
+        <select name="fuel">{FUELS.map(t => <option value={t} selected={t === v.fuel}>{t}</option>)}</select>
+      </label>
+      <label class="field">Portas<input name="doors" inputmode="numeric" value={v.doors ?? ''} /></label>
+      <label class="field">Motor<input name="engine" maxlength="60" value={v.engine || ''} placeholder="2.0" /></label>
+      <label class="field">Potência<input name="power" maxlength="40" value={v.power || ''} placeholder="155 cv" /></label>
+    </div>
+    <label class="field" style="margin-top:0.9rem">Opcionais <small>um por linha</small>
+      <textarea name="features" rows="5">{(v.features || []).join('\n')}</textarea>
+    </label>
+    <label class="field" style="margin-top:0.9rem">Laudo cautelar <small>aparece no site como “informado pela loja”. Ex.: Aprovado</small>
+      <input name="laudo" maxlength="120" value={v.report_data?.status || ''} />
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Preço e situação</legend>
+    <div class="grid2">
+      <label class="field">Preço de venda (R$) *<input name="price" required inputmode="decimal" value={v.price ?? ''} /></label>
+      <label class="field">Preço anterior (R$) <small>para mostrar “de / por”</small><input name="original_price" inputmode="decimal" value={v.original_price ?? ''} /></label>
+      <label class="field">{vehicle ? 'Dias em estoque (total)' : 'Dias que já está na loja'}<input name="days_in_stock" inputmode="numeric" value={v.days_in_stock ?? 0} /></label>
+      {vehicle ? (
+        <label class="field">Situação
+          <select name="status">{Object.entries(VEHICLE_STATUS).filter(([k]) => k !== 'vendido' || v.status === 'vendido').map(([k, l]) => <option value={k} selected={k === v.status}>{l}</option>)}</select>
+        </label>
+      ) : <input type="hidden" name="status" value="disponivel" />}
+      <label class="field">Tipo de estoque
+        <select name="ownership_type">{Object.entries(OWNERSHIP).map(([k, l]) => <option value={k} selected={k === v.ownership_type}>{l}</option>)}</select>
+      </label>
+    </div>
+    <div class="actions" style="margin-top:0.9rem">
+      <label class="check"><input type="checkbox" name="is_published" checked={Boolean(v.is_published)} /> Mostrar no site</label>
+      <label class="check"><input type="checkbox" name="highlight" checked={Boolean(v.highlight)} /> Destaque na página inicial</label>
+    </div>
+    <p class="muted small" style="margin-top:0.6rem">Para registrar uma venda, use “Marcar como vendido” na página do veículo.</p>
+  </fieldset>
+
+  {dossierOn && (
+    <fieldset>
+      <legend>Dossiê (Premium)</legend>
+      <p class="muted small">Só informe o que a loja pode comprovar. Campo em branco aparece no site como “Não informado”.</p>
+      <div class="grid2">
+        <label class="field">Histórico de leilão
+          <select name="d_leilao"><option value="">Não informado</option><option value="nao" selected={d.leilao === 'nao'}>Sem registro</option><option value="sim" selected={d.leilao === 'sim'}>Com registro</option></select>
+        </label>
+        <label class="field">Recall pendente
+          <select name="d_recall"><option value="">Não informado</option><option value="nao" selected={d.recall === 'nao'}>Sem pendência</option><option value="sim" selected={d.recall === 'sim'}>Com pendência</option></select>
+        </label>
+        <label class="field">Quilometragem verificada
+          <select name="d_km"><option value="">Não informado</option><option value="sim" selected={d.km === 'sim'}>Verificada</option><option value="nao" selected={d.km === 'nao'}>Pendente</option></select>
+        </label>
+        <label class="field">Sinistros
+          <select name="d_sinistros"><option value="">Não informado</option><option value="nenhum" selected={d.sinistros === 'nenhum'}>Nenhum</option><option value="lista" selected={d.sinistros === 'lista'}>Informar abaixo</option></select>
+        </label>
+        <label class="field">Proprietários anteriores<input name="d_proprietarios" inputmode="numeric" value={d.proprietarios} /></label>
+        <label class="field">Última revisão<input name="d_revisao" maxlength="40" value={d.revisao} placeholder="03/2026" /></label>
+        <label class="field">Cidade de registro<input name="d_cidade" maxlength="60" value={d.cidade} /></label>
+      </div>
+      <label class="field" style="margin-top:0.9rem">Ocorrências de sinistro <small>uma por linha, só se escolheu “Informar abaixo”</small><textarea name="d_sinistros_lista" rows="3">{d.sinistrosLista}</textarea></label>
+    </fieldset>
+  )}
+
+  <fieldset>
+    <legend>Observações internas</legend>
+    <label class="field"><small>Só a equipe vê. Nunca aparece no site.</small><textarea name="notes" rows="3" maxlength="2000">{v.notes || ''}</textarea></label>
+  </fieldset>
+
+  <div class="actions">
+    <button class="btn btn--accent" type="submit">{vehicle ? 'Salvar alterações' : 'Cadastrar veículo'}</button>
+    <a class="btn btn--ghost" href="/estoque">Cancelar</a>
+  </div>
+</form>

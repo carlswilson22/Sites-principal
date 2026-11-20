@@ -22,7 +22,7 @@ export const dealershipInfo = {
   beneficios: [
     { titulo: "Galeria de Fotos", desc: "Fotos e detalhes do veículo dentro do anúncio." },
     { titulo: "Simulação de Financiamento", desc: "Estimativa pela Tabela Price com taxa ilustrativa ajustável." },
-    { titulo: "Avaliação Trade-In", desc: "Proposta rápida para entrada com seu veículo usado." },
-    { titulo: "Perícia Certificada", desc: "Laudo cautelar 100% aprovado e garantia estendida." }
+    { titulo: "Avaliação Trade-In", desc: "Envie os dados do seu usado e converse com a loja sobre a entrada na troca." },
+    { titulo: "Laudo informado pela loja", desc: "Laudo cautelar e ficha de cada veículo no anúncio, conforme informado pela loja. Confirme a documentação com a equipe." }
   ]
 };

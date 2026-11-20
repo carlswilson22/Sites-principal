@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro';
+import VehicleCard from '../components/VehicleCard.astro';
+import { getVehicles } from '../lib/api';
+import { PAGE_SIZE } from '../lib/config';
+import { trackView } from '../lib/track';
+import { readCompare } from '../lib/compare';
+
+const all = await getVehicles();
+trackView(Astro.request, Astro.clientAddress, 'page_view', 'estoque');
+
+const params = Astro.url.searchParams;
+const plain = (text: string) => String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const q = (params.get('q') || '').trim().slice(0, 60);
+const categoria = params.get('categoria') || '';
+const marca = params.get('marca') || '';
+const ate = Number(params.get('ate')) > 0 ? Number(params.get('ate')) : 0;
+const ordem = params.get('ordem') || '';
+const filtered = Boolean(q || categoria || marca || ate || ordem);
+
+let list = all.filter(v => {
+  if (categoria && v.category !== categoria) return false;
+  if (marca && v.brand !== marca) return false;
+  if (ate && v.price > ate) return false;
+  if (q) {
+    const haystack = plain([v.title, v.version, v.brand, v.color].join(' '));
+    if (!plain(q).split(/\s+/).every(word => haystack.includes(word))) return false;
+  }
+  return true;
+});
+const sorters: Record<string, (a: any, b: any) => number> = {
+  preco_asc: (a, b) => a.price - b.price, preco_desc: (a, b) => b.price - a.price,
+  ano: (a, b) => String(b.year).localeCompare(String(a.year)), km: (a, b) => a.km - b.km
+};
+if (sorters[ordem]) list = [...list].sort(sorters[ordem]);
+
+const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+const page = Math.min(pages, Math.max(1, parseInt(params.get('pagina') || '1', 10) || 1));
+const shown = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+const brands = [...new Set(all.map(v => v.brand).filter(Boolean))].sort();
+const categories = [...new Set(all.map(v => v.category).filter(Boolean))].sort();
+const CATEGORY = { sedan: 'Sedã', hatch: 'Hatch', suv: 'SUV', pickup: 'Picape', picape: 'Picape', esportivo: 'Esportivo', outro: 'Outros' } as Record<string, string>;
+const store = Astro.locals.settings.store || {};
+const compareOn = (Astro.locals.settings.modules || []).includes('compare');
+const compare = compareOn ? readCompare(Astro.request) : null;
+
+const link = (n: number) => { const next = new URLSearchParams(params); next.set('pagina', String(n)); return `/estoque?${next}`; };
+const canonical = filtered ? '/estoque' : (page > 1 ? `/estoque?pagina=${page}` : '/estoque');
+---
+<Base title="Estoque" description={`Todos os veículos de ${store.name || 'nossa loja'}: fotos, preços e condições.`} path={canonical} noindex={filtered} current="estoque">
+  <div class="section wrap">
+    <div class="section__head">
+      <h1>Estoque</h1>
+      <p class="muted" role="status">{list.length} {list.length === 1 ? 'veículo' : 'veículos'}{filtered ? ' com estes filtros' : ''}</p>
+    </div>
+
+    <form class="filters" method="get" action="/estoque" role="search" aria-label="Filtrar estoque" style="margin-bottom: 2.5rem">
+      <label class="field">Marca ou modelo<input name="q" type="search" value={q} maxlength="60" /></label>
+      <label class="field">Marca
+        <select name="marca"><option value="">Todas</option>{brands.map(b => <option value={b} selected={b === marca}>{b}</option>)}</select>
+      </label>
+      <label class="field">Tipo
+        <select name="categoria"><option value="">Todos</option>{categories.map(c => <option value={c} selected={c === categoria}>{CATEGORY[c] || c}</option>)}</select>
+      </label>
+      <label class="field">Preço até (R$)<input name="ate" type="number" min="0" step="1000" inputmode="numeric" value={ate || ''} /></label>
+      <label class="field">Ordenar
+        <select name="ordem">
+          <option value="">Destaques</option>
+          <option value="preco_asc" selected={ordem === 'preco_asc'}>Menor preço</option>
+          <option value="preco_desc" selected={ordem === 'preco_desc'}>Maior preço</option>
+          <option value="ano" selected={ordem === 'ano'}>Mais novos</option>
+          <option value="km" selected={ordem === 'km'}>Menor quilometragem</option>
+        </select>
+      </label>
+      <button class="btn" type="submit">Filtrar</button>
+    </form>
+
+    {shown.length > 0
+      ? <ul class="grid">{shown.map(v => <VehicleCard v={v} compare={compare} back={Astro.url.pathname + Astro.url.search} />)}</ul>
+      : <div class="empty">
+          <p><strong>Nenhum veículo encontrado.</strong></p>
+          <p>{filtered ? 'Tente outro modelo ou aumente o preço máximo.' : 'O estoque está sendo atualizado. Fale com a loja pelo WhatsApp.'}</p>
+          {filtered && <a class="btn btn--ghost" href="/estoque">Limpar filtros</a>}
+        </div>}
+
+    {pages > 1 && (
+      <nav class="pager" aria-label="Páginas do estoque">
+        {Array.from({ length: pages }, (_, i) => i + 1).map(n => <a href={link(n)} aria-current={n === page ? 'page' : undefined}>{n}</a>)}
+      </nav>
+    )}
+  </div>
+</Base>

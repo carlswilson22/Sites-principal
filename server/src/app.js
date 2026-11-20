@@ -12,15 +12,34 @@ import { handleLeadRoutes } from './routes/leadRoutes.js';
 import { handleTier2Routes } from './routes/tier2Routes.js';
 import { handleTier3Routes } from './routes/tier3Routes.js';
 import { getStoreTier } from './middlewares/tierGate.js';
+import { config } from './config.js';
+import { findPolicy } from './policy.js';
+import { isModuleEnabled } from './modules.js';
+import { authenticate } from './middlewares/authMiddleware.js';
+import { authenticateCustomer, handleCustomerRoutes } from './routes/customerRoutes.js';
+import { handleSettingsRoutes } from './routes/settingsRoutes.js';
+import { handleUserRoutes } from './routes/userRoutes.js';
+import { handleMediaRoutes } from './routes/mediaRoutes.js';
+import { handleSiteRoutes } from './routes/siteRoutes.js';
+import { allowedOrigin, readJsonBody, BodyTooLargeError } from './security/http.js';
 
-export function createServer() {
+export function createServer(settings = config) {
   return http.createServer(async (req, res) => {
-    // 1. Configuração de CORS para desenvolvimento e produção
-    const origin = req.headers.origin || '*';
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // 1. CORS por lista de origens (nunca reflete qualquer origem) e cabeçalhos de segurança
+    const origin = allowedOrigin(req.headers.origin, settings);
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Vary', 'Origin');
+    }
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (settings.isProduction) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    req.trustProxy = settings.trustProxy;
+    req.settings = settings;
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
@@ -29,25 +48,51 @@ export function createServer() {
 
     const { pathname } = parseUrl(req.url, true);
 
-    // 2. Leitura do corpo JSON para requisições com payload
+    // 2. Leitura do corpo JSON com limite de tamanho
     let body = null;
     if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
       try {
-        const buffers = [];
-        for await (const chunk of req) {
-          buffers.push(chunk);
-        }
-        const rawBody = Buffer.concat(buffers).toString('utf8');
-        if (rawBody) {
-          body = JSON.parse(rawBody);
-        }
+        const isUpload = /^\/api\/vehicles\/\d+\/media$/.test(pathname);
+        body = await readJsonBody(req, isUpload ? settings.maxUploadBytes : settings.maxBodyBytes);
       } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Payload JSON inválido.' }));
+        const tooLarge = err instanceof BodyTooLargeError;
+        res.writeHead(tooLarge ? 413 : 400, { 'Content-Type': 'application/json', ...(tooLarge ? { Connection: 'close' } : {}) });
+        res.end(JSON.stringify({ error: tooLarge ? 'Conteúdo grande demais.' : 'Payload JSON inválido.' }));
+        // Só fecha a conexão depois que a resposta foi entregue.
+        if (tooLarge) res.on('finish', () => req.destroy());
+        return;
       }
     }
 
     try {
+      // 2.5 Política central de acesso (negar por padrão) e módulos contratados
+      const rule = findPolicy(req.method, pathname);
+      const deny = (status, error) => {
+        res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error }));
+      };
+      if (!rule) return deny(404, 'Endpoint não encontrado ou não disponível neste modelo.');
+      if (rule.module && !isModuleEnabled(rule.module)) return deny(404, 'Recurso não contratado nesta instalação.');
+      req.moduleApproved = Boolean(rule.module);
+      if (rule.access === 'staff') {
+        const auth = authenticate(req);
+        if (!auth.authenticated) return deny(auth.status, auth.error);
+        // Senha provisória: nada funciona até a troca.
+        if (auth.user.mustChangePassword && !['/api/auth/me', '/api/auth/change-password'].includes(pathname)) {
+          return deny(403, 'Troque a senha provisória para continuar.');
+        }
+        if (rule.roles && auth.user.role !== 'proprietario' && !rule.roles.includes(auth.user.role)) {
+          return deny(403, `Acesso negado: perfil '${auth.user.role}' sem permissão para esta operação.`);
+        }
+      } else if (rule.access === 'customer' && !authenticateCustomer(req)) {
+        return deny(401, 'Entre na sua conta para continuar.');
+      }
+
+      // 2.6 Rotas da fase M2
+      for (const handler of [handleSettingsRoutes, handleUserRoutes, handleMediaRoutes, handleCustomerRoutes, handleSiteRoutes]) {
+        if (await handler(req, res, pathname, body)) return;
+      }
+
       // 3. Rota de Health Check e status da loja
       if (pathname === '/api/health' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });

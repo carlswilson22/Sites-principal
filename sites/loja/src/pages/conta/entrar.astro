@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import Flash from '../../components/Flash.astro';
+import { safeBackPath } from '../../lib/security';
+
+const settings = Astro.locals.settings;
+if (!(settings.modules || []).includes('customers')) return new Response(null, { status: 404 });
+const back = safeBackPath(Astro.url.searchParams.get('voltar'), '/');
+if (Astro.locals.customer) return Astro.redirect(back);
+const name = settings.store?.name || 'a loja';
+---
+<Base title="Entrar" path="/conta/entrar" noindex>
+  <div class="section wrap">
+    <h1>Entrar ou criar conta</h1>
+    <p class="muted" style="margin-top:1rem">Com uma conta você salva os carros de que gostou e acompanha tudo em um lugar só.</p>
+    <div style="margin-top:1.5rem"><Flash /></div>
+    <div class="two" style="margin-top:1.5rem">
+      <form class="form" method="post" action="/conta/login" aria-labelledby="t-entrar">
+        <h2 id="t-entrar">Já tenho conta</h2>
+        <input type="hidden" name="voltar" value={back} />
+        <label class="field">E-mail<input name="email" type="email" autocomplete="email" required maxlength="160" /></label>
+        <label class="field">Senha<input name="password" type="password" autocomplete="current-password" required maxlength="128" /></label>
+        <button class="btn btn--accent btn--block" type="submit">Entrar</button>
+        <p><a href="/esqueci-senha">Esqueci minha senha</a></p>
+      </form>
+      <form class="form" method="post" action="/conta/criar" aria-labelledby="t-criar">
+        <h2 id="t-criar">Criar conta</h2>
+        <input type="hidden" name="voltar" value={back} />
+        <label class="field">Nome<input name="name" autocomplete="name" required minlength="2" maxlength="120" /></label>
+        <label class="field">E-mail<input name="email" type="email" autocomplete="email" required maxlength="160" /></label>
+        <label class="field">Telefone com DDD (opcional)<input name="phone" type="tel" autocomplete="tel" maxlength="30" /></label>
+        <label class="field">Senha (mínimo de 8 caracteres, com letras e números)<input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" /></label>
+        <div class="vh" aria-hidden="true"><label>Não preencha <input name="site" tabindex="-1" autocomplete="off" /></label></div>
+        <label class="check"><input type="checkbox" name="consent" required /><span>Li o <a href="/privacidade">aviso de privacidade</a> e autorizo {name} a guardar meus dados para manter minha conta e entrar em contato sobre os carros de meu interesse.</span></label>
+        <button class="btn btn--block" type="submit">Criar conta</button>
+      </form>
+    </div>
+  </div>
+</Base>

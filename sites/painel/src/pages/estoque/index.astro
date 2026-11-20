@@ -1,0 +1,77 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import { api } from '../../lib/api';
+import { brl, OWNERSHIP, VEHICLE_STATUS } from '../../lib/format';
+
+const { token } = Astro.locals;
+const params = Astro.url.searchParams;
+const q = (params.get('q') || '').trim().slice(0, 60);
+const status = params.get('status') || '';
+const ownership = params.get('tipo') || '';
+const page = Math.max(1, parseInt(params.get('p') || '1', 10) || 1);
+const SIZE = 30;
+
+const query = new URLSearchParams({ limit: String(SIZE + 1), offset: String((page - 1) * SIZE) });
+if (q) query.set('q', q);
+if (status) query.set('status', status);
+if (ownership) query.set('ownership', ownership);
+const result = await api(token, 'GET', `/api/vehicles?${query}`);
+const rows: any[] = result.ok ? result.data : [];
+const more = rows.length > SIZE;
+const list = rows.slice(0, SIZE);
+const link = (n: number) => { const next = new URLSearchParams(params); next.set('p', String(n)); return `/estoque?${next}`; };
+const canImport = Astro.locals.user?.role !== 'atendente';
+---
+<Panel title="Estoque" current="estoque">
+  <div class="main__head">
+    <h1>Estoque</h1>
+    <div class="actions">
+      {canImport && <a class="btn btn--ghost" href="/estoque/importar">Importar planilha</a>}
+      <a class="btn btn--accent" href="/estoque/novo">Cadastrar veículo</a>
+    </div>
+  </div>
+
+  <form class="filters" method="get" action="/estoque" role="search">
+    <label class="field">Buscar<input name="q" value={q} maxlength="60" placeholder="Modelo, marca ou cor" /></label>
+    <label class="field">Situação
+      <select name="status"><option value="">Todas</option>{Object.entries(VEHICLE_STATUS).map(([k, v]) => <option value={k} selected={k === status}>{v}</option>)}</select>
+    </label>
+    <label class="field">Tipo
+      <select name="tipo"><option value="">Todos</option>{Object.entries(OWNERSHIP).map(([k, v]) => <option value={k} selected={k === ownership}>{v}</option>)}</select>
+    </label>
+    <button class="btn" type="submit">Filtrar</button>
+  </form>
+
+  {list.length > 0 ? (
+    <div class="scroll"><table class="list">
+      <thead><tr><th></th><th>Veículo</th><th>Preço</th><th>Dias</th><th>Situação</th><th>No site</th><th></th></tr></thead>
+      <tbody>
+        {list.map(v => (
+          <tr>
+            <td>{v.cover_photo ? <img src={v.cover_photo} alt="" width="64" height="48" loading="lazy" /> : <span class="muted small">sem foto</span>}</td>
+            <td><a href={`/estoque/${v.id}`}><strong>{v.title}</strong></a><br /><span class="muted small">{[v.version, v.year].filter(Boolean).join(' · ')}</span></td>
+            <td>{brl(v.price)}</td>
+            <td>{v.days_in_stock}</td>
+            <td><span class:list={['badge', { 'badge--ok': v.status === 'disponivel', 'badge--warn': v.status === 'reservado' }]}>{VEHICLE_STATUS[v.status] || v.status}</span> {v.ownership_type !== 'proprio' && <span class="badge">{OWNERSHIP[v.ownership_type]}</span>}</td>
+            <td>{v.is_published && v.status !== 'vendido' ? <span class="badge badge--ok">Visível</span> : <span class="badge">Oculto</span>}</td>
+            <td><a class="btn btn--ghost btn--small" href={`/estoque/${v.id}`}>Editar</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table></div>
+  ) : (
+    <div class="empty">
+      <p><strong>{q || status || ownership ? 'Nenhum veículo com esses filtros.' : 'Seu estoque está vazio.'}</strong></p>
+      <p>{q || status || ownership ? 'Tente outro filtro.' : 'Cadastre o primeiro veículo ou importe uma planilha com todo o estoque.'}</p>
+      <a class="btn btn--accent" href="/estoque/novo">Cadastrar veículo</a>
+    </div>
+  )}
+
+  {(page > 1 || more) && (
+    <p class="actions" style="margin-top:1rem">
+      {page > 1 && <a class="btn btn--ghost btn--small" href={link(page - 1)}>Anterior</a>}
+      <span class="muted small">Página {page}</span>
+      {more && <a class="btn btn--ghost btn--small" href={link(page + 1)}>Próxima</a>}
+    </p>
+  )}
+</Panel>

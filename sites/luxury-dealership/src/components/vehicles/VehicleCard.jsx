@@ -3,11 +3,11 @@ import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/s
 import { dealershipInfo } from '../../data/dealershipInfo';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
-import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, MessageCircle } from 'lucide-react';
+import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, MessageCircle, Heart } from 'lucide-react';
 import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
-export function VehicleCard({ vehicle, onSelect, layout = 'grid', index }) {
+export function VehicleCard({ vehicle, onSelect, layout = 'grid', index, isFavorite = false, onToggleFavorite }) {
   const editorial = layout === 'editorial';
   const whatsappUrl = buildVehicleWhatsappLink(vehicle);
 
@@ -33,6 +33,7 @@ export function VehicleCard({ vehicle, onSelect, layout = 'grid', index }) {
           </span>
 
           <div className="flex items-center gap-1.5">
+            {onToggleFavorite && <button type="button" onClick={() => onToggleFavorite(vehicle.id)} aria-pressed={isFavorite} title={isFavorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'} className={`relative z-10 min-h-9 min-w-9 inline-flex items-center justify-center rounded-full border backdrop-blur-md transition-colors ${isFavorite ? 'bg-amber-500 text-black border-amber-400' : 'bg-black/70 text-amber-300 border-white/10 hover:border-amber-500/50'}`}><Heart aria-hidden="true" className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} /></button>}
             {vehicle.blindado && (
               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-950/80 backdrop-blur-md text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
                 <Shield className="w-3 h-3 text-emerald-400" />

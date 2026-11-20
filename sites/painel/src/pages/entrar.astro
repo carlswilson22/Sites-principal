@@ -1,0 +1,20 @@
+---
+import Panel from '../layouts/Panel.astro';
+import Flash from '../components/Flash.astro';
+const store = Astro.locals.settings?.store || {};
+---
+<Panel title="Entrar" bare>
+  <div class="login">
+    <h1>{store.name || 'Painel da loja'}</h1>
+    <p class="muted" style="margin-top:0.5rem">Entre com o e-mail e a senha que a loja cadastrou para você.</p>
+    <div class="panel">
+      <Flash />
+      <form class="form" method="post" action="/acoes/entrar">
+        <label class="field">E-mail<input name="email" type="email" autocomplete="username" required maxlength="160" autofocus /></label>
+        <label class="field">Senha<input name="password" type="password" autocomplete="current-password" required maxlength="128" /></label>
+        <button class="btn btn--accent" type="submit">Entrar</button>
+      </form>
+      <p style="margin:1rem 0 0"><a href="/esqueci-senha">Esqueci minha senha</a></p>
+    </div>
+  </div>
+</Panel>

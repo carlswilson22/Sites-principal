@@ -29,7 +29,7 @@ export function PriceAlertModal({ vehicle, onClose }) {
     try {
       const contact = validatePriceAlert({ name: nome, phone: telefone, targetPrice }, vehicle.preco);
       url = buildPriceAlertWhatsappLink({ vehicle, targetPrice: contact.targetPrice, nome: contact.name, telefone: contact.phone });
-      storeSync.addLead('apexluxury', { name: contact.name, phone: contact.phone, source: 'alerta_preco', vehicle_id: vehicle.id, vehicle_title: vehicle.nome, message: `Interesse em condição de preço: ${formatCurrency(contact.targetPrice)} para ${vehicle.nome}.`, targetPrice: contact.targetPrice });
+      Promise.resolve(storeSync.addLead('apexluxury', { name: contact.name, phone: contact.phone, source: 'alerta_preco', vehicle_id: vehicle.id, vehicle_title: vehicle.nome, message: `Interesse em condição de preço: ${formatCurrency(contact.targetPrice)} para ${vehicle.nome}.`, targetPrice: contact.targetPrice, consent: true })).catch(() => {});
     } catch (failure) {
       submitting.current = false;
       setError(failure.message || 'Não foi possível registrar seu interesse.');

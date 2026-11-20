@@ -1,0 +1,18 @@
+# Imagem do SITE público de uma loja (Astro, renderizado no servidor a cada visita).
+# Construir na raiz do repositório:  docker build -f deploy/Dockerfile.site -t up-merchant-site:latest .
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY sites ./sites
+COPY packages ./packages
+RUN npm ci -w loja --include-workspace-root && npm run build -w loja
+
+FROM node:24-alpine
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=4321 TZ=America/Sao_Paulo
+WORKDIR /app/sites/loja
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/sites/loja/dist ./dist
+COPY --from=build /app/sites/loja/package.json ./package.json
+USER node
+EXPOSE 4321
+CMD ["node", "dist/server/entry.mjs"]

@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from './AuthContext';
 import { AccountLoginDialog } from '../components/common/AccountLoginDialog';
 import { customerPages } from '../utils/siteAccess';
 import { isStaffUser } from '../services/demoConfig';
+import { storeSync } from '../services/storeSync';
 
 const StoreAccessContext = createContext(null);
 
@@ -14,6 +15,14 @@ function StoreAccess({ storeKey, storeName, children }) {
   const auth = useAuth();
   const [loginRequest, setLoginRequest] = useState(null);
   const pending = useRef(null);
+  // Modo real: carrega estoque e configurações do servidor e recarrega ao entrar ou sair (equipe vê contatos).
+  const [storeError, setStoreError] = useState('');
+  useEffect(() => {
+    if (!storeSync.isRemote) return undefined;
+    const off = storeSync.subscribe(storeKey, detail => { if (detail.type === 'STORE_ERROR') setStoreError(detail.message); });
+    storeSync.hydrate(storeKey, { force: true }).then(() => setStoreError('')).catch(() => {});
+    return off;
+  }, [storeKey, auth.user?.id, auth.user?.role]);
   const requestLogin = (reason = '', action = null) => {
     pending.current = action;
     setLoginRequest({ reason });
@@ -36,7 +45,7 @@ function StoreAccess({ storeKey, storeName, children }) {
     setLoginRequest(null);
     action?.(account);
   };
-  return <StoreAccessContext.Provider value={{ ...auth, storeKey, storeName, requestLogin, requireLogin, authorizeNavigation }}>
+  return <StoreAccessContext.Provider value={{ ...auth, storeKey, storeName, storeError, requestLogin, requireLogin, authorizeNavigation }}>
     {children}
     {loginRequest && <AccountLoginDialog reason={loginRequest.reason} storeKey={storeKey} storeName={storeName} onClose={close} onSuccess={onLogin} />}
   </StoreAccessContext.Provider>;

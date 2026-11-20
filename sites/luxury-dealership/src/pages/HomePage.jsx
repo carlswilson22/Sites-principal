@@ -5,7 +5,7 @@ import { HeroVideoScrub } from '../components/home/HeroVideoScrub';
 import { VehicleCard } from '../components/vehicles/VehicleCard';
 import { dealershipInfo } from '../data/dealershipInfo';
 
-export function HomePage({ vehicles = [], onNavigate, onSelectVehicle }) {
+export function HomePage({ vehicles = [], onNavigate, onSelectVehicle, isFavorite, onToggleFavorite }) {
   const selection = selectHomeVehicles(vehicles);
   return <div data-store-layout="editorial" className="pb-16 sm:pb-24">
     <HeroVideoScrub>
@@ -28,7 +28,7 @@ export function HomePage({ vehicles = [], onNavigate, onSelectVehicle }) {
         <p className="text-sm text-slate-400 leading-relaxed">Fotografias, detalhes e o que você precisa saber para escolher seu próximo carro.</p>
         <button type="button" onClick={() => onNavigate('estoque')} className="inline-flex items-center gap-2 text-sm text-amber-200 min-h-11 underline underline-offset-4">Ver acervo completo<ArrowUpRight aria-hidden="true" className="w-4 h-4" /></button>
       </div>
-      <div className="space-y-8 sm:space-y-12 min-w-0">{selection.length ? selection.map((vehicle, index) => <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={onSelectVehicle} layout="editorial" index={index + 1} />) : <p className="text-slate-300 py-8">Em breve, novas escolhas no nosso acervo. Converse com a loja para saber mais.</p>}</div>
+      <div className="space-y-8 sm:space-y-12 min-w-0">{selection.length ? selection.map((vehicle, index) => <VehicleCard key={vehicle.id} vehicle={vehicle} onSelect={onSelectVehicle} layout="editorial" index={index + 1} isFavorite={isFavorite ? isFavorite(vehicle.id) : false} onToggleFavorite={onToggleFavorite} />) : <p className="text-slate-300 py-8">Em breve, novas escolhas no nosso acervo. Converse com a loja para saber mais.</p>}</div>
     </section>
   </div>;
 }

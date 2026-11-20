@@ -7,6 +7,9 @@ import { getDb } from '../database/db.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { checkRole } from '../middlewares/rbacMiddleware.js';
 import { assertTier } from '../middlewares/tierGate.js';
+import { config } from '../config.js';
+import { readSetting } from '../modules.js';
+import { recordUsage } from '../services/usage.js';
 import { encryptSensitive, decryptSensitive, maskCPF } from '../security/crypto.js';
 import { calculatePriceFinancing } from '../services/financeCalculator.js';
 import { generateVehicleDescription, estimateVehicleCosts } from '../services/aiDescriptionAdapter.js';
@@ -17,7 +20,7 @@ export async function handleTier2Routes(req, res, pathname, body) {
   // Financiamento e documentos básicos fazem parte do atendimento em todas as edições.
   const basicService = ['/api/financing/calculate', '/api/contracts', '/api/contracts/generate'].includes(pathname);
   const tierCheck = assertTier(basicService ? 1 : 2);
-  if (!tierCheck.allowed) {
+  if (!tierCheck.allowed && !req.moduleApproved) {
     // Retorna false para cair no 404 geral ou envia 404 explícito
     return false;
   }
@@ -30,6 +33,7 @@ export async function handleTier2Routes(req, res, pathname, body) {
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
     const vehicleData = body || {};
+    recordUsage('ai', 1, auth.user.id);
     const description = await generateVehicleDescription(vehicleData);
     const costsEstimate = estimateVehicleCosts(vehicleData);
 
@@ -46,6 +50,8 @@ export async function handleTier2Routes(req, res, pathname, body) {
     const vehicleId = parseInt(costsMatch[1], 10);
 
     if (req.method === 'GET') {
+      const authCosts = authenticate(req);
+      if (!authCosts.authenticated) return sendJson(res, authCosts.status, { error: authCosts.error });
       const costs = db.prepare('SELECT * FROM vehicle_costs WHERE vehicle_id = ?').get(vehicleId);
       return sendJson(res, 200, costs || {});
     }
@@ -139,6 +145,8 @@ export async function handleTier2Routes(req, res, pathname, body) {
 
   // 6. I6: GET /api/fipe/lookup & POST /api/fipe/calculate-margin - Precificador
   if (pathname === '/api/fipe/lookup' && req.method === 'GET') {
+    const authFipe = authenticate(req);
+    if (!authFipe.authenticated) return sendJson(res, authFipe.status, { error: authFipe.error });
     const url = new URL(req.url, 'http://localhost');
     const brand = url.searchParams.get('brand') || '';
     const model = url.searchParams.get('model') || '';
@@ -188,11 +196,12 @@ export async function handleTier2Routes(req, res, pathname, body) {
     const rawCpf = decryptSensitive(client.cpf_encrypted);
     const clientFormatted = { ...client, cpfMasked: maskCPF(rawCpf) };
 
+    const savedStore = readSetting('store', {}) || {};
     const dealership = {
-      nome: 'Auto-Dealership Pro',
-      cnpj: '42.880.192/0001-90',
-      cidade: 'Brasília',
-      uf: 'DF'
+      nome: savedStore.name || config.store.name,
+      cnpj: savedStore.cnpj || config.store.cnpj,
+      cidade: savedStore.city || config.store.city,
+      uf: savedStore.uf || config.store.uf
     };
 
     const doc = generateContractDocument({
@@ -255,14 +264,21 @@ export async function handleTier2Routes(req, res, pathname, body) {
     if (!roleCheck.allowed) return sendJson(res, roleCheck.status, { error: 'Lançamento financeiro restrito ao Proprietário.' });
 
     const { vehicle_id, category, description, amount, expense_date } = body || {};
-    if (!vehicle_id || !category || !amount) {
-      return sendJson(res, 400, { error: 'Veículo, categoria e valor são obrigatórios.' });
+    const categories = ['compra', 'documentacao', 'funilaria', 'mecanica', 'pecas', 'estetica', 'outros'];
+    const value = Number(amount);
+    if (!Number.isInteger(vehicle_id) || !categories.includes(category) || !Number.isFinite(value) || value <= 0 || value > 100000000) {
+      return sendJson(res, 400, { error: `Informe o veículo, uma categoria (${categories.join(', ')}) e um valor maior que zero.` });
     }
+    if ((description !== undefined && (typeof description !== 'string' || description.length > 300)) ||
+        (expense_date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(expense_date))) {
+      return sendJson(res, 400, { error: 'Descrição (até 300 caracteres) ou data (AAAA-MM-DD) inválida.' });
+    }
+    if (!db.prepare('SELECT id FROM vehicles WHERE id = ?').get(vehicle_id)) return sendJson(res, 404, { error: 'Veículo não encontrado.' });
 
     const resExp = db.prepare(`
       INSERT INTO vehicle_expenses (vehicle_id, category, description, amount, expense_date, created_by)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(vehicle_id, category, description || '', parseFloat(amount), expense_date || new Date().toISOString().split('T')[0], auth.user.id);
+    `).run(vehicle_id, category, description || '', value, expense_date || new Date().toISOString().split('T')[0], auth.user.id);
 
     return sendJson(res, 201, { id: resExp.lastInsertRowid, message: 'Despesa lançada com sucesso!' });
   }

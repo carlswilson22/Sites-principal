@@ -5,9 +5,9 @@ export const modelsList = [
     id: 'auto-dealership',
     title: 'AutoElite Seminovos (Modelo 1)',
     tagline: 'Vitrine direta · Busca em primeiro plano',
-    tier: 'Básico',
-    category: 'Tier 1 • Básico',
-    badge: 'Tier 1 • Básico',
+    tier: 'Basic',
+    category: 'Pacote Basic',
+    badge: 'Pacote Basic',
     status: 'available',
     path: 'auto-dealership/',
     previewImage: 'images/tracker.jpg',
@@ -26,9 +26,9 @@ export const modelsList = [
     id: 'luxury-dealership',
     title: 'DriveNow Multimarcas (Modelo 2)',
     tagline: 'Showroom editorial · Fotografia em destaque',
-    tier: 'Intermediário',
-    category: 'Tier 2 • Intermediário',
-    badge: 'Tier 2 • Intermediário',
+    tier: 'Expert',
+    category: 'Pacote Expert',
+    badge: 'Pacote Expert',
     status: 'available',
     path: 'luxury-dealership/',
     previewImage: 'images/corolla.jpg',
@@ -39,6 +39,7 @@ export const modelsList = [
       'Anúncios horizontais com fotos amplas',
       'Simulação de financiamento no anúncio',
       'Avaliação do usado na troca',
+      'Favoritos para o cliente salvar veículos',
       'Concierge no anúncio e módulos de gestão'
     ],
     techStack: ['React 18', 'Tailwind CSS', 'Finance Engine', 'Vite']
@@ -47,9 +48,9 @@ export const modelsList = [
     id: 'popular-dealership',
     title: 'Enterprise Veículos',
     tagline: 'Vitrine panorâmica · Escolhas lado a lado',
-    tier: 'Completo',
-    category: 'Tier 3 • Mais Completo',
-    badge: 'Tier 3 • Mais Completo',
+    tier: 'Premium',
+    category: 'Pacote Premium',
+    badge: 'Pacote Premium',
     status: 'available',
     path: 'popular-dealership/',
     previewImage: enterpriseHome,
@@ -62,6 +63,6 @@ export const modelsList = [
       'Calculadora de custo total e dossiê do veículo',
       'Atendimento e financiamento dentro do anúncio'
     ],
-    techStack: ['React 18', 'AI Engine', 'Local Storage', 'Tailwind CSS', 'Vite']
+    techStack: ['React 18', 'Local Storage', 'Tailwind CSS', 'Vite']
   }
 ];

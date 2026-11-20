@@ -2,24 +2,31 @@
  * server/src/index.js
  * Inicialização do serviço de backend da loja individual.
  */
-import { createServer } from './app.js';
-import { runSeed } from './database/seed.js';
-import { getStoreTier } from './middlewares/tierGate.js';
+import { assertProductionReady, config } from './config.js';
+assertProductionReady();
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
+const { createServer } = await import('./app.js');
+const { runSeed } = await import('./database/seed.js');
+const { getStoreTier } = await import('./middlewares/tierGate.js');
+
 const TIER = getStoreTier();
 
-// Inicializa banco de dados com seed caso necessário
-try {
-  await runSeed(TIER);
-  console.log(`✅ [Database] Banco de dados SQLite inicializado para o Nível ${TIER}.`);
-} catch (err) {
-  console.error('❌ [Database] Erro ao carregar seed inicial:', err);
+// Dados fictícios só em desenvolvimento ou na instalação de demonstração (SEED_DEMO=true).
+if (config.seedDemo) {
+  try {
+    await runSeed(TIER);
+    console.log(`✅ [Database] Dados de demonstração carregados (Nível ${TIER}).`);
+  } catch (err) {
+    console.error('❌ [Database] Erro ao carregar seed inicial:', err);
+  }
+} else {
+  const { getDb } = await import('./database/db.js');
+  getDb();
+  console.log(`✅ [Database] Banco inicializado sem dados fictícios (Nível ${TIER}).`);
 }
 
 const server = createServer();
 
-server.listen(PORT, () => {
-  console.log(`🚀 [Merchant Server] Painel do Lojista API ativo na porta ${PORT} (Nível ${TIER})`);
+server.listen(config.port, () => {
+  console.log(`🚀 [Merchant Server] API ativa na porta ${config.port} (Nível ${TIER})`);
 });
-

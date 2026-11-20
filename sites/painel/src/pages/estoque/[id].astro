@@ -1,0 +1,96 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import VehicleForm from '../../components/VehicleForm.astro';
+import PhotoManager from '../../components/PhotoManager.astro';
+import { api } from '../../lib/api';
+import { brl, VEHICLE_STATUS } from '../../lib/format';
+
+const { token, user } = Astro.locals;
+const modules: string[] = Astro.locals.settings?.modules || [];
+const id = Number(Astro.params.id);
+const result = Number.isInteger(id) && id > 0 ? await api(token, 'GET', `/api/vehicles/${id}`) : null;
+if (!result?.ok) Astro.response.status = 404;
+const v = result?.ok ? result.data : null;
+const costs = v && modules.includes('tco') ? (await api(token, 'GET', `/api/vehicles/${id}/costs`)).data || {} : null;
+const siteUrl = (process.env.SITE_URL || '').replace(/\/$/, '');
+const canDelete = user?.role !== 'atendente';
+---
+<Panel title={v ? v.title : 'Veículo não encontrado'} current="estoque">
+  {!v ? (
+    <div class="empty"><p><strong>Veículo não encontrado.</strong></p><a class="btn btn--accent" href="/estoque">Voltar ao estoque</a></div>
+  ) : (
+    <>
+      <div class="main__head">
+        <div>
+          <h1>{v.title}</h1>
+          <p class="muted" style="margin:0.3rem 0 0">{[v.version, v.year].filter(Boolean).join(' · ')} · {brl(v.price)} · <span class:list={['badge', { 'badge--ok': v.status === 'disponivel', 'badge--warn': v.status === 'reservado' }]}>{VEHICLE_STATUS[v.status]}</span></p>
+        </div>
+        <div class="actions">
+          {siteUrl && v.slug && v.is_published && v.status !== 'vendido' && <a class="btn btn--ghost" href={`${siteUrl}/veiculo/${v.slug}`} target="_blank" rel="noopener">Ver no site</a>}
+          <a class="btn btn--ghost" href="/estoque">Voltar</a>
+        </div>
+      </div>
+
+      <div class="panel" aria-labelledby="situacao">
+        <h2 id="situacao">Venda</h2>
+        {v.status === 'vendido' ? (
+          <>
+            <p style="margin:0.6rem 0">Vendido{v.sale_price ? <> por <strong>{brl(v.sale_price)}</strong></> : ''}. Este carro não aparece mais no site.</p>
+            <form method="post" action="/acoes/veiculo-reabrir"><input type="hidden" name="id" value={v.id} /><button class="btn btn--ghost" type="submit">A venda caiu: voltar para o estoque</button></form>
+          </>
+        ) : (
+          <form class="form" method="post" action="/acoes/veiculo-vender" style="margin-top:0.6rem;max-width:28rem">
+            <input type="hidden" name="id" value={v.id} />
+            <label class="field">Valor da venda (R$) <small>o preço realmente fechado; alimenta o financeiro e as comissões</small><input name="sale_price" required inputmode="decimal" value={v.price} /></label>
+            <div><button class="btn" type="submit">Marcar como vendido</button></div>
+          </form>
+        )}
+      </div>
+
+      <div style="margin-top:1rem">
+        <PhotoManager vehicleId={v.id} items={v.photos || []} kind="photo" max={20} title="Fotos"
+          help="Até 20 fotos. Elas são reduzidas automaticamente antes de subir. A foto de capa aparece na lista do site." />
+      </div>
+
+      {modules.includes('viewer360') && (
+        <div style="margin-top:1rem">
+          <PhotoManager vehicleId={v.id} items={v.frames360 || []} kind="frame360" max={72} title="Visualizador 360°"
+            help="Envie a sequência do carro girando, na ordem, do mesmo ponto. O site mostra o 360° com 8 quadros ou mais (o ideal é de 24 a 72)." />
+        </div>
+      )}
+
+      <div style="margin-top:1rem"><VehicleForm vehicle={v} modules={modules} /></div>
+
+      {costs && (
+        <section class="panel" style="margin-top:1rem" aria-labelledby="custos">
+          <h2 id="custos">Custos de manutenção (Premium)</h2>
+          <p class="muted small" style="margin-top:0.4rem">Alimentam a calculadora “Quanto custa manter este carro” do anúncio. Manutenção e seguro são valores por ano.</p>
+          <form class="form" method="post" action="/acoes/veiculo-custos" style="margin-top:0.8rem">
+            <input type="hidden" name="id" value={v.id} />
+            <div class="grid2">
+              <label class="field">Consumo na cidade (km/l)<input name="city_consumption" inputmode="decimal" value={costs.city_consumption ?? ''} /></label>
+              <label class="field">Consumo na estrada (km/l)<input name="road_consumption" inputmode="decimal" value={costs.road_consumption ?? ''} /></label>
+              <label class="field">Tanque (litros)<input name="tank_capacity" inputmode="numeric" value={costs.tank_capacity ?? ''} /></label>
+              <label class="field">Manutenção média por ano (R$)<input name="avg_maintenance" inputmode="decimal" value={costs.avg_maintenance ?? ''} /></label>
+              <label class="field">Seguro por ano (R$)<input name="annual_insurance" inputmode="decimal" value={costs.annual_insurance ?? ''} /></label>
+            </div>
+            <div><button class="btn" type="submit">Salvar custos</button></div>
+          </form>
+        </section>
+      )}
+
+      {canDelete && (
+        <details class="panel more" style="margin-top:1rem">
+          <summary>Excluir este veículo</summary>
+          <form class="form" method="post" action="/acoes/veiculo-excluir" style="margin-top:0.8rem">
+            <input type="hidden" name="id" value={v.id} />
+            <p class="muted small">A exclusão apaga o veículo e as fotos e não pode ser desfeita. Se o carro foi vendido, use “Marcar como vendido”: assim o histórico e o financeiro são mantidos.</p>
+            <label class="check"><input type="checkbox" name="confirmo" /> Entendo que não dá para desfazer</label>
+            <div><button class="btn btn--danger" type="submit">Excluir veículo</button></div>
+          </form>
+        </details>
+      )}
+    </>
+  )}
+</Panel>
+<script>import '../../scripts/upload';</script>

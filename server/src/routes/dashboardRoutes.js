@@ -2,6 +2,7 @@
  * server/src/routes/dashboardRoutes.js
  * Indicadores e Métricas do Painel por Nível Cumulativo
  */
+import { daysInStockSql } from './util.js';
 import { getDb } from '../database/db.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { assertTier, getStoreTier } from '../middlewares/tierGate.js';
@@ -22,13 +23,13 @@ export async function handleDashboardRoutes(req, res, pathname) {
     // 2. Vendas do mês
     const monthlySales = db.prepare(`
       SELECT COUNT(*) as count FROM vehicles 
-      WHERE status = 'vendido' AND updated_at >= date('now', '-30 days')
+      WHERE status = 'vendido' AND COALESCE(sold_at, updated_at) >= date('now', '-30 days')
     `).get();
 
     // 3. Parados há mais de 60 dias
     const staleVehicles = db.prepare(`
       SELECT COUNT(*) as count FROM vehicles 
-      WHERE status = 'disponivel' AND days_in_stock > 60
+      WHERE status = 'disponivel' AND ${daysInStockSql()} > 60
     `).get();
 
     // 4. Contatos novos
@@ -62,24 +63,32 @@ export async function handleDashboardRoutes(req, res, pathname) {
 
     // Barreira de Nível: Retorna 404 se o modelo for Tier 1
     const tierCheck = assertTier(2);
-    if (!tierCheck.allowed) {
+    if (!tierCheck.allowed && !req.moduleApproved) {
       return sendJson(res, tierCheck.status, { error: tierCheck.error });
     }
 
-    // Estatísticas analíticas (anônimas) de 7, 30 e 90 dias
-    return sendJson(res, 200, {
-      period: '30d',
-      metrics: {
-        pageViews: { current: 3420, previous: 2980, deltaPct: 14.7 },
-        vehicleViews: { current: 8950, previous: 7600, deltaPct: 17.8 },
-        whatsappClicks: { current: 284, previous: 210, deltaPct: 35.2 },
-        simulationsCount: { current: 156, previous: 120, deltaPct: 30.0 }
-      },
-      topVehicles: [
-        { title: 'Aventureiro Cross Pro', views: 1420, leads: 48 },
-        { title: 'Sedan Urbano Confort', views: 1180, leads: 32 }
-      ]
-    });
+    const url = new URL(req.url, 'http://localhost');
+    const days = [7, 30, 90].includes(Number(url.searchParams.get('days'))) ? Number(url.searchParams.get('days')) : 30;
+    const now = Date.now();
+    const since = new Date(now - days * 86400000).toISOString();
+    const before = new Date(now - 2 * days * 86400000).toISOString();
+    const count = (type, from, to) => db.prepare('SELECT COUNT(*) AS n FROM access_events WHERE type = ? AND created_at >= ? AND created_at < ?').get(type, from, to).n;
+    const nowIso = new Date(now + 1000).toISOString();
+    const metric = type => {
+      const current = count(type, since, nowIso);
+      const previous = count(type, before, since);
+      return { current, previous, deltaPct: previous > 0 ? Math.round(((current - previous) / previous) * 1000) / 10 : null };
+    };
+    const metrics = { pageViews: metric('page_view'), vehicleViews: metric('vehicle_view'), whatsappClicks: metric('whatsapp_click') };
+    const total = Object.values(metrics).reduce((sum, item) => sum + item.current + item.previous, 0);
+    const topVehicles = db.prepare(`
+      SELECT v.id, v.title,
+        SUM(CASE WHEN e.type = 'vehicle_view' THEN 1 ELSE 0 END) AS views,
+        SUM(CASE WHEN e.type = 'whatsapp_click' THEN 1 ELSE 0 END) AS whatsapp
+      FROM access_events e JOIN vehicles v ON v.id = e.vehicle_id
+      WHERE e.created_at >= ? GROUP BY v.id ORDER BY views DESC, whatsapp DESC LIMIT 5
+    `).all(since);
+    return sendJson(res, 200, { hasData: total > 0, period: `${days}d`, metrics, topVehicles });
   }
 
   // GET /api/dashboard/funnel (A5 - Nível 3 Apenas)
@@ -89,23 +98,20 @@ export async function handleDashboardRoutes(req, res, pathname) {
 
     // Barreira de Nível: Retorna 404 se o modelo for Tier 1 ou 2
     const tierCheck = assertTier(3);
-    if (!tierCheck.allowed) {
+    if (!tierCheck.allowed && !req.moduleApproved) {
       return sendJson(res, tierCheck.status, { error: tierCheck.error });
     }
 
+    const count = sql => db.prepare(sql).get().count || 0;
+    const totalLeads = count('SELECT COUNT(*) as count FROM leads');
     return sendJson(res, 200, {
+      hasData: totalLeads > 0,
       funnel: [
-        { stage: 'Visitas ao Site', count: 4200, rate: 100 },
-        { stage: 'Carros Visualizados', count: 2890, rate: 68.8 },
-        { stage: 'Simulações / WhatsApp', count: 480, rate: 16.6 },
-        { stage: 'Leads Qualificados', count: 185, rate: 38.5 },
-        { stage: 'Negociações Atendidas', count: 74, rate: 40.0 },
-        { stage: 'Vendas Fechadas', count: 18, rate: 24.3 }
+        { stage: 'Contatos recebidos', count: totalLeads },
+        { stage: 'Em atendimento ou ganhos', count: count("SELECT COUNT(*) as count FROM leads WHERE status IN ('em_atendimento','ganho')") },
+        { stage: 'Vendas fechadas', count: count("SELECT COUNT(*) as count FROM leads WHERE status = 'ganho'") }
       ],
-      avgResponseTimeMinutes: 14,
-      stalePriceAlerts: [
-        { vehicleId: 2, title: 'Aventureiro Cross Pro', daysInStock: 68, suggestedPriceDropPct: 4.5 }
-      ]
+      avgResponseTimeMinutes: null
     });
   }
 

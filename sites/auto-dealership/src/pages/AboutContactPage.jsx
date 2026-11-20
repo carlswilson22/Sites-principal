@@ -34,7 +34,7 @@ export function AboutContactPage() {
             <div className="space-y-2">
               <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Nossa História</span>
               <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-                Pioneiros em Seminovos com Procedência Certificada
+                Seminovos selecionados, com informações claras sobre cada veículo
               </h2>
             </div>
 

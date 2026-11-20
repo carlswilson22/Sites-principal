@@ -73,7 +73,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
         {/* Header do Modal */}
         <div className="flex items-center justify-between px-3 py-2 sm:px-4 border-b border-slate-800 bg-slate-950/60 sticky top-0 z-20 ">
           <div className="flex items-center gap-3">
-            <InspectionBadge text="Perícia Cautelar Certificada" compact={true} />
+            <InspectionBadge text="Laudo informado pela loja" compact={true} />
             <Badge variant="blue" size="xs">Cód. {vehicle.laudoCautelar?.codigoLaudo || 'AMT-AUTO'}</Badge>
             {orbitalImages.length > 0 && <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
               <RotateCw className="w-3 h-3 text-blue-400" />
@@ -114,12 +114,13 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
 
           {/* Galeria principal */}
           <div data-vehicle-gallery className="space-y-1.5">
-            <div className="relative h-[clamp(9rem,24vh,16rem)] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+            <div className="relative h-[clamp(11rem,34vh,22rem)] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+              {currentImage && <VehicleImage src={currentImage} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40" />}
               <VehicleImage
                 src={currentImage}
                 fetchPriority="high"
                 alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
-                className="w-full h-full object-contain"
+                className="relative w-full h-full object-contain"
               />
 
               {/* Controles de Navegação Anterior / Próxima */}

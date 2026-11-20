@@ -7,6 +7,10 @@ import crypto from 'node:crypto';
 
 // Chave padrão para desenvolvimento/demonstração (em produção vem de process.env.DATA_ENCRYPTION_KEY)
 const DEFAULT_KEY_HEX = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+// Em produção a chave é obrigatória (ver assertProductionReady em config.js).
+if (process.env.NODE_ENV === 'production' && !/^[0-9a-fA-F]{64}$/.test(process.env.DATA_ENCRYPTION_KEY || '')) {
+  throw new Error('DATA_ENCRYPTION_KEY obrigatória em produção: 32 bytes em hexadecimal.');
+}
 const ENCRYPTION_KEY = Buffer.from(process.env.DATA_ENCRYPTION_KEY || DEFAULT_KEY_HEX, 'hex');
 const ALGORITHM = 'aes-256-gcm';
 

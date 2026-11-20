@@ -18,6 +18,8 @@ export function generateContractDocument({
   dealership = escapeFields(dealership);
   client = escapeFields(client);
   vehicle = escapeFields(vehicle);
+  terms = escapeFields(terms);
+  const cnpj = dealership.cnpj || '[CNPJ a preencher]';
   const code = contractCode ? escape(contractCode) : `CTR-${createRecordId()}`;
 
   const disclaimer = `⚠️ AVISO LEGAL: Este documento foi gerado pelo sistema como modelo referencial genérico. Deve ser submetido à revisão e validação de um advogado ou departamento jurídico antes do uso comercial definitivo.`;
@@ -33,12 +35,12 @@ export function generateContractDocument({
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #1e293b; line-height: 1.6;">
           <div style="text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 16px; margin-bottom: 24px;">
             <h1 style="font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase;">${dealership.nome || 'CONCESSIONÁRIA'}</h1>
-            <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">CNPJ: ${dealership.cnpj || '12.345.678/0001-90'} • Contrato nº ${code}</p>
+            <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">CNPJ: ${cnpj} • Contrato nº ${code}</p>
           </div>
 
           <h2 style="font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 20px;">INSTRUMENTO PARTICULAR DE COMPRA E VENDA DE VEÍCULO</h2>
 
-          <p><strong>VENDEDOR(A):</strong> ${dealership.nome}, com sede em ${dealership.cidade || 'Brasília'}-${dealership.uf || 'DF'}, inscrita no CNPJ sob o nº ${dealership.cnpj || '12.345.678/0001-90'}.</p>
+          <p><strong>VENDEDOR(A):</strong> ${dealership.nome}, com sede em ${[dealership.cidade, dealership.uf].filter(Boolean).join('/') || '[cidade a preencher]'}, inscrita no CNPJ sob o nº ${cnpj}.</p>
           <p><strong>COMPRADOR(A):</strong> ${client.name}, portador(a) do CPF nº ${client.cpfMasked || '***.***.***-**'}, residente em ${client.address || 'Endereço cadastrado'}.</p>
 
           <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">1. DO OBJETO</h3>
@@ -51,10 +53,16 @@ export function generateContractDocument({
           </ul>
 
           <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">2. DO PREÇO E CONDIÇÕES DE PAGAMENTO</h3>
-          <p>O valor total ajustado para a presente transação é de <strong>R$ ${vehicle.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>, a ser liquidado conforme estipulado entre as partes na proposta comercial.</p>
+          <p>O valor total ajustado para a presente transação é de <strong>R$ ${vehicle.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>, ${terms?.paymentConditions ? `a ser liquidado da seguinte forma: ${terms.paymentConditions}.` : 'a ser liquidado conforme a proposta comercial assinada pelas partes.'}</p>
 
-          <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">3. DA PROCEDÊNCIA E VISTORIA</h3>
-          <p>O comprador declara que inspecionou o veículo, tendo ciência de suas condições mecânicas, estruturais e de conservação externa e interna.</p>
+          <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">3. DA VISTORIA E DA GARANTIA</h3>
+          <p>O comprador declara que vistoriou o veículo e recebeu as informações sobre suas condições e procedência. Isso não afasta a garantia legal contra vícios previstos na legislação aplicável. ${Number(terms?.warrantyDays) > 0 ? `A vendedora oferece ainda garantia contratual de ${Number(terms.warrantyDays)} dias.` : 'Não há garantia contratual adicional.'}</p>
+
+          <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">4. DA DOCUMENTAÇÃO E DA TRANSFERÊNCIA</h3>
+          <p>As partes providenciarão a transferência de propriedade e a comunicação de venda nos prazos da legislação de trânsito. Débitos e infrações anteriores à entrega do veículo são de responsabilidade da vendedora.</p>
+
+          <h3 style="font-size: 14px; font-weight: bold; margin-top: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">5. DO FORO</h3>
+          <p>Fica eleito o foro da comarca do domicílio do comprador, ressalvados os foros que a lei considere obrigatórios.</p>
 
           <div style="margin-top: 40px; display: flex; justify-content: space-between;">
             <div style="width: 45%; text-align: center; border-top: 1px solid #94a3b8; padding-top: 8px;">
@@ -80,7 +88,7 @@ export function generateContractDocument({
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #1e293b; line-height: 1.6;">
           <div style="text-align: center; border-bottom: 2px solid #16a34a; padding-bottom: 16px; margin-bottom: 24px;">
             <h1 style="font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase;">${dealership.nome || 'CONCESSIONÁRIA'}</h1>
-            <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">CNPJ: ${dealership.cnpj || '12.345.678/0001-90'} • Recibo nº ${code}</p>
+            <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">CNPJ: ${cnpj} • Recibo nº ${code}</p>
           </div>
 
           <h2 style="font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 20px;">RECIBO DE RESERVA E SINAL</h2>
@@ -91,7 +99,7 @@ export function generateContractDocument({
             <p style="margin: 0;"><strong>${vehicle.title} ${vehicle.version || ''}</strong> - Ano: ${vehicle.year} - Preço Total: R$ ${vehicle.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
 
-          <p>A reserva garante exclusividade para finalização do pagamento ou aprovação de financiamento no prazo improrrogável de ${terms?.validityDays || 3} dias úteis.</p>
+          <p>A reserva garante exclusividade para finalização do pagamento ou aprovação de financiamento no prazo de ${terms?.validityDays || 3} dias úteis. Em caso de desistência ou de o negócio não se concretizar, a devolução ou retenção do sinal segue o que as partes combinarem por escrito: ${terms?.refundCondition || '[a definir entre as partes]'}.</p>
 
           <div style="margin-top: 40px; text-align: center;">
             <div style="display: inline-block; width: 60%; border-top: 1px solid #94a3b8; padding-top: 8px;">
