@@ -21,6 +21,7 @@ export function MerchantShell({
       <MerchantNavbar
         storeName={storeName}
         onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)}
+        mobileMenuOpen={mobileMenuOpen}
         onExitToSite={onExitToSite}
       />
 

@@ -10,7 +10,7 @@ export function getVehicleGallery(vehicle) {
   return [cover, ...photos].map(photoSource).filter(source => {
     if (!source) return false;
     const key = resolveAssetUrl(source, '/');
-    if (key === '/images/placeholder-carro.jpg' || seen.has(key)) return false;
+    if (/(?:^|\/)images\/placeholder-carro\.jpg(?:[?#].*)?$/i.test(key) || seen.has(key)) return false;
     seen.add(key);
     return true;
   });

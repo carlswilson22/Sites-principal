@@ -3,7 +3,7 @@ import { canAccessMerchantRoute } from '../../utils/merchantAccess';
  * packages/merchant-core/src/components/layout/MerchantSidebar.jsx
  * Menu lateral de navegação com filtragem estrita de Nível Cumulativo (Tier Gate) e Perfil (RBAC).
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   LayoutDashboard,
   Car,
@@ -24,6 +24,13 @@ import { useAuth } from '../../context/AuthContext';
 export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, storeName }) {
   const { tier } = useTier();
   const { role } = useAuth();
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const closeOnEscape = event => { if (event.key === 'Escape') onClose?.(); };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [isOpen, onClose]);
 
   // Definição dos itens de menu com restrição de tier mínimo e papéis permitidos
   const menuSections = [
@@ -141,9 +148,8 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 lg:top-16 left-0 h-screen lg:h-[calc(100vh-4rem)] w-64 shrink-0 bg-[#080d1a] border-r border-slate-800 flex flex-col z-50 lg:z-20 transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        id="merchant-navigation"
+        className={`fixed lg:sticky top-0 lg:top-16 left-0 h-[100dvh] lg:h-[calc(100vh-4rem)] w-64 max-w-[85vw] shrink-0 bg-[#080d1a] border-r border-slate-800 flex-col z-50 lg:z-20 ${isOpen ? 'flex' : 'hidden lg:flex'}`}
       >
         {/* Header mobile com botão de fechar */}
         <div className="lg:hidden h-16 border-b border-slate-800 px-4 flex items-center justify-between">
@@ -158,7 +164,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           </button>
         </div>
 
-        <nav aria-label="Navegação do painel" className="flex-1 overflow-y-auto p-4 pb-8 space-y-5">
+        <nav aria-label="Navegação do painel" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-8 space-y-5">
           {menuSections.map((section, idx) => {
             // Oculta a seção inteira se o tier da loja for menor que o mínimo exigido
             if (section.minTier && tier < section.minTier) return null;

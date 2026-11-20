@@ -243,7 +243,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     setError('');
     setSelectedVehicle(v);
     const gallery = getVehicleGallery(v);
-    setPhotosList(gallery.length > 0 ? gallery : ['/images/placeholder-carro.jpg']);
+    setPhotosList(gallery);
     setIsPhotosModalOpen(true);
   };
 
@@ -330,10 +330,6 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   // Remover foto
   const handleRemovePhoto = (index) => {
-    if (photosList.length <= 1) {
-      alert('O veículo deve possuir ao menos 1 foto.');
-      return;
-    }
     setPhotosList(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -343,7 +339,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     if (selectedVehicle) {
       const updatedVehicle = {
         ...selectedVehicle,
-        cover_photo: photosList[0] || selectedVehicle.cover_photo,
+        cover_photo: photosList[0] || '',
         photos: photosList
       };
       if (!(await saveVehicle(updatedVehicle))) return;
@@ -422,6 +418,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
           return (
             <div
               key={car.id}
+              data-inventory-vehicle-id={car.id}
               className={`rounded-2xl bg-slate-900/80 border transition-all flex flex-col justify-between overflow-hidden group ${
                 isStale ? 'border-amber-500/40 shadow-lg shadow-amber-500/5' : 'border-slate-800 hover:border-slate-700'
               }`}
@@ -723,7 +720,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
       {/* 5. Modal do Gestor de Fotos (E4: até 20 fotos, capa, reordenar, remover) */}
       {isPhotosModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+          <div data-photo-manager className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
@@ -737,6 +734,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               <button
                 type="button"
                 onClick={closePhotos}
+                aria-label="Fechar gerenciador de fotos"
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
@@ -766,6 +764,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               </label>
 
               {/* Grid de Fotos com Capa e Reordenação (E4) */}
+              {photosList.length === 0 && <p className="text-sm text-slate-400">Nenhuma foto cadastrada. Adicione imagens para exibi-las no anúncio.</p>}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {photosList.map((url, index) => {
                   const isCover = index === 0;
@@ -788,7 +787,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                       )}
 
                       {/* Botões de Ação na Foto (E4: Capa, Reordenar, Remover) */}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+                      <div className="absolute inset-0 bg-black/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
                         {!isCover && (
                           <button
                             type="button"

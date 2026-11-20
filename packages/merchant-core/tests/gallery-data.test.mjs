@@ -17,6 +17,7 @@ test('galeria aceita dados do site, uma única foto e imagens enviadas pelo loji
   const upload = 'data:image/jpeg;base64,example';
   assert.deepEqual(getVehicleGallery({ cover_photo: upload, photos: [upload, '/images/segunda.jpg'] }), [upload, '/images/segunda.jpg']);
   assert.deepEqual(getVehicleGallery({ imagemPrincipal: '/images/placeholder-carro.jpg' }), []);
+  assert.deepEqual(getVehicleGallery({ cover_photo: 'https://example.com/Sites-principal/images/placeholder-carro.jpg?x=1', photos: [] }), []);
   assert.deepEqual(getVehicleGallery(null), []);
 });
 

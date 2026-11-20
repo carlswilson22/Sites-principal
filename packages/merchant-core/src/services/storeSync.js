@@ -48,9 +48,8 @@ function readVehicles(storeKey, fallbackData) {
   if (!Array.isArray(parsed) || parsed.some(vehicle => !vehicle || typeof vehicle !== 'object' || Array.isArray(vehicle))) {
     throw new Error('O estoque salvo está inválido. Os dados existentes foram preservados.');
   }
-  const catalogIds = new Map((fallbackData || []).map((vehicle, index) => [String(vehicle.id), index]));
-  return reconcileCatalogMedia(parsed, fallbackData).map(normalizeVehicle).map(vehicle => (
-    !vehicle.days_in_stock && catalogIds.has(String(vehicle.id)) ? { ...vehicle, days_in_stock: demoDaysInStock(catalogIds.get(String(vehicle.id))) } : vehicle
+  return reconcileCatalogMedia(parsed, fallbackData).map((vehicle, index) => normalizeVehicle(
+    raw === null && vehicle.days_in_stock == null ? { ...vehicle, days_in_stock: demoDaysInStock(index) } : vehicle
   ));
 }
 

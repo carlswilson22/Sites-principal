@@ -114,7 +114,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
 
           {/* Galeria principal */}
           <div data-vehicle-gallery className="space-y-1.5">
-            <div className="relative h-[clamp(11rem,34vh,22rem)] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+            <div className="relative w-full aspect-[16/10] max-h-[52dvh] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
               {currentImage && <VehicleImage src={currentImage} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40" />}
               <VehicleImage
                 src={currentImage}

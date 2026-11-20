@@ -72,6 +72,8 @@ for (const [model, scenario] of scenarios) {
   }
   const link = (specifier, referencing) => moduleFor(path.resolve(path.dirname(referencing.identifier), specifier));
   const document = window.document;
+  let initialAdId;
+  let initialAdPhotos;
   const buttons = () => [...document.querySelectorAll('button')];
   const button = text => buttons().find(item => item.textContent.trim() === text);
   const wait = async predicate => {
@@ -169,6 +171,14 @@ for (const [model, scenario] of scenarios) {
     await root.evaluate();
     await wait(() => document.querySelector('[data-store-layout]'));
     assert(document.querySelector('#root h1'), `Página em branco: ${model}`);
+    const mobileMenu = document.querySelector('button[aria-label="Abrir menu"]');
+    assert(mobileMenu && mobileMenu.getAttribute('aria-expanded') === 'false', 'Menu móvel não iniciou fechado');
+    mobileMenu.click();
+    await wait(() => mobileMenu.getAttribute('aria-expanded') === 'true');
+    const mobileNav = document.getElementById(mobileMenu.getAttribute('aria-controls'));
+    assert(mobileNav && mobileNav.querySelector('[aria-current="page"]'), 'Menu móvel não exibe navegação e página ativa');
+    window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await wait(() => mobileMenu.getAttribute('aria-expanded') === 'false');
     assert(button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Primeira visita começou com acesso ao painel');
     assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Visitante recebeu seletor de perfis da equipe');
     if (model === 'popular-dealership') {
@@ -218,6 +228,9 @@ for (const [model, scenario] of scenarios) {
     if (fullFlow) {
       const vehicleAd = document.querySelector('[role="dialog"]');
       const mainGallery = vehicleAd.querySelector('[data-vehicle-gallery]');
+      initialAdId = vehicleAd.dataset.vehicleId;
+      const counter = mainGallery?.querySelector('[role="status"]')?.textContent;
+      initialAdPhotos = Number(counter?.match(/de (\d+)/)?.[1] || 0);
       const tools = vehicleAd.querySelector('[data-vehicle-tools]');
       const services = vehicleAd.querySelector('[data-vehicle-services]');
       assert(mainGallery && tools && services, 'Anúncio sem galeria ou ferramentas');
@@ -688,6 +701,21 @@ for (const [model, scenario] of scenarios) {
       }
       await signOut();
       await signInStaff('atendente');
+      const panelMenuToggle = document.querySelector('button[aria-label="Abrir menu de navegação"]');
+      assert.equal(panelMenuToggle.getAttribute('aria-expanded'), 'false');
+      panelMenuToggle.click();
+      await wait(() => panelMenuToggle.getAttribute('aria-expanded') === 'true');
+      window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await wait(() => panelMenuToggle.getAttribute('aria-expanded') === 'false');
+      button('Estoque de Veículos').click();
+      await wait(() => document.querySelector(`[data-inventory-vehicle-id="${initialAdId}"]`));
+      const inventoryCard = document.querySelector(`[data-inventory-vehicle-id="${initialAdId}"]`);
+      const photoButton = [...inventoryCard.querySelectorAll('button')].find(item => item.textContent.includes('Fotos ('));
+      assert.equal(Number(photoButton.textContent.match(/Fotos \((\d+)\)/)?.[1]), initialAdPhotos, 'Painel e anúncio contam fotos diferentes');
+      photoButton.click();
+      await wait(() => document.querySelector('[data-photo-manager]'));
+      assert(document.querySelector('[data-photo-manager]').textContent.includes(`${initialAdPhotos} / 20`), 'Gerenciador e anúncio contam fotos diferentes');
+      document.querySelector('button[aria-label="Fechar gerenciador de fotos"]').click();
       assert(!button('Financeiro & Margens'), 'Atendente recebeu acesso financeiro');
       assert(!button('Contratos Avançados & Troca'), 'Atendente recebeu acesso a contratos avançados');
       assert(button('Simulador de financiamento'), 'Simulador ausente para o atendente');

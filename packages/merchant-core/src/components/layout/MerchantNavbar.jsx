@@ -7,7 +7,7 @@ import { ShieldCheck, LogOut, ExternalLink, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 
-export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitToSite }) {
+export function MerchantNavbar({ onToggleMobileMenu, mobileMenuOpen, storeName = 'Loja', onExitToSite }) {
   const { user, logout, isDemoMode, switchDemoRole } = useAuth();
   const getRoleLabel = (role) => {
     if (role === 'proprietario') return 'Proprietário';
@@ -21,8 +21,10 @@ export function MerchantNavbar({ onToggleMobileMenu, storeName = 'Loja', onExitT
         <button
           type="button"
           onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="lg:hidden min-w-11 min-h-11 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           aria-label="Abrir menu de navegação"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="merchant-navigation"
         >
           <Menu className="w-5 h-5" />
         </button>

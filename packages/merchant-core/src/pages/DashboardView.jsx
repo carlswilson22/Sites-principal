@@ -13,7 +13,6 @@ import {
   MessageSquare,
   AlertTriangle,
   ArrowRight,
-  TrendingUp,
   Sparkles,
   PhoneCall,
   Wallet,
@@ -22,48 +21,28 @@ import {
 } from 'lucide-react';
 import { MetricCard } from '../components/common/MetricCard';
 import { TierGate } from '../components/common/TierGate';
-import { apiClient } from '../services/apiClient';
 import { storeSync } from '../services/storeSync';
 import { useTier } from '../context/TierContext';
 import { useAuth } from '../context/AuthContext';
 import { isRemote } from '../services/remote';
-import { demoSales } from '../data/demoShowcase';
+import { dashboardMetrics } from '../utils/dashboardMetrics';
 
-const DAY = 24 * 60 * 60 * 1000;
 const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 const agoLabel = days => (days <= 0 ? 'hoje' : days === 1 ? 'ontem' : `há ${days} dias`);
+const EMPTY_VEHICLES = [];
 
-// Vendas dos últimos 30 dias: as reais (veículos vendidos) e, só na demonstração, o histórico de exemplo.
-function collectSales(vehicles, storeKey) {
-  const now = Date.now();
-  const real = vehicles
-    .filter(v => v.status === 'vendido' && Date.parse(v.soldAt || v.sold_at || v.updatedAt) >= now - 30 * DAY)
-    .map(v => ({ model: v.nome || v.title, value: Number(v.sale_price || v.preco || v.price) || 0, soldAt: v.soldAt || v.sold_at || v.updatedAt }));
-  const sample = isRemote ? [] : demoSales(storeKey, now);
-  return [...real, ...sample].sort((a, b) => Date.parse(b.soldAt) - Date.parse(a.soldAt)).map(sale => ({ ...sale, daysAgo: Math.max(0, Math.floor((now - Date.parse(sale.soldAt)) / DAY)) }));
-}
-
-export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
+export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVehicles = EMPTY_VEHICLES }) {
   const { tier } = useTier();
   const { hasRole } = useAuth();
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [syncKey, setSyncKey] = useState(0);
 
   useEffect(() => {
     async function loadSummary() {
       try {
-        const vehicles = storeSync.getVehicles(storeKey);
+        const vehicles = storeSync.getVehicles(storeKey, defaultVehicles);
         const leads = storeSync.getLeads(storeKey);
-
-        const inStock = vehicles.filter(v => v.status !== 'vendido').length;
-        const sales = collectSales(vehicles, storeKey);
-        const monthlySales = sales.length;
-        const revenue = sales.reduce((sum, sale) => sum + sale.value, 0);
-        const stockValue = vehicles.filter(v => v.status !== 'vendido').reduce((sum, v) => sum + (Number(v.preco ?? v.price) || 0), 0);
-        const weeks = [0, 1, 2, 3].map(week => sales.filter(sale => sale.daysAgo >= week * 7 && sale.daysAgo < (week + 1) * 7).length).reverse();
-        const staleVehicles = vehicles.filter(v => v.status !== 'vendido' && (v.days_in_stock || 0) > 60).length;
-        const newLeads = leads.filter(l => l.status === 'novo').length;
+        const summary = dashboardMetrics(vehicles, leads, storeKey, { demo: !isRemote });
 
         const pending = leads
           .filter(l => l.status === 'novo' || l.status === 'em_atendimento')
@@ -79,24 +58,11 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
           }));
 
         setData({
-          tier,
-          indicators: {
-            inStock,
-            monthlySales,
-            staleVehicles,
-            newLeads,
-            revenue,
-            stockValue,
-            averageTicket: monthlySales ? revenue / monthlySales : 0
-          },
-          weeks,
-          recentSales: sales.slice(0, 4),
+          ...summary,
           pendingActions: pending
         });
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
-      } finally {
-        setLoading(false);
       }
     }
     loadSummary();
@@ -105,7 +71,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
       setSyncKey(k => k + 1);
     });
     return unsub;
-  }, [tier, storeKey, syncKey]);
+  }, [tier, storeKey, syncKey, defaultVehicles]);
 
   const indicators = data?.indicators || {
     inStock: 0,
@@ -171,6 +137,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         <MetricCard title="Ticket Médio" value={money(indicators.averageTicket)} icon={Receipt} description="Valor médio por veículo vendido" color="blue" />
         <MetricCard title="Valor em Estoque" value={money(indicators.stockValue)} icon={Wallet} description="Soma dos preços dos veículos à venda" color="amber" />
       </div>
+      <p className="text-sm text-slate-400">Tempo médio em estoque: <strong className="text-slate-200">{indicators.averageStockDays || 0} dias</strong></p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6 backdrop-blur-sm">
@@ -181,7 +148,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
               <div key={index} className="flex-1 flex flex-col items-center justify-end h-full gap-2">
                 <span className="text-xs font-semibold text-slate-200">{count}</span>
                 <div className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600/70 to-emerald-400/80" style={{ height: `${Math.max(6, (count / peak) * 100)}%` }} />
-                <span className="text-[11px] text-slate-500">{index === 3 ? 'Esta semana' : `Há ${3 - index} sem.`}</span>
+                <span className="text-[11px] text-slate-500 text-center">{['22–30 dias', '15–21 dias', '8–14 dias', 'Últimos 7 dias'][index]}</span>
               </div>
             ))}
           </div>
@@ -270,8 +237,8 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         </button>}
       </TierGate>
 
-      {/* 5. A5: Funil de Conversão e Alertas de Preço (Exclusivo Nível 3) */}
       <TierGate requiredTier={3}>
+        {hasRole(['gerente']) && (
         <div className="rounded-2xl bg-slate-900/60 border border-emerald-500/20 p-5 sm:p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -279,45 +246,21 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-white">Funil de Vendas & Análise de Giro</h2>
+                <h2 className="text-sm sm:text-base font-bold text-white">Acompanhamento de contatos</h2>
               </div>
-              <p className="text-xs text-slate-400">Eficiência de conversão etapa por etapa e tempo médio de resposta (14 min)</p>
+              <p className="text-xs text-slate-400">Situação dos contatos registrados nesta loja</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center mt-4">
-            <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40">
-              <span className="text-[11px] text-slate-400">Visitas</span>
-              <div className="text-base font-bold text-white mt-0.5">4.200</div>
-              <span className="text-[10px] text-slate-500">100%</span>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40">
-              <span className="text-[11px] text-slate-400">Showroom</span>
-              <div className="text-base font-bold text-white mt-0.5">2.890</div>
-              <span className="text-[10px] text-emerald-400">68.8%</span>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40">
-              <span className="text-[11px] text-slate-400">Interação</span>
-              <div className="text-base font-bold text-white mt-0.5">480</div>
-              <span className="text-[10px] text-emerald-400">16.6%</span>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40">
-              <span className="text-[11px] text-slate-400">Leads</span>
-              <div className="text-base font-bold text-white mt-0.5">185</div>
-              <span className="text-[10px] text-emerald-400">38.5%</span>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40">
-              <span className="text-[11px] text-slate-400">Atendidos</span>
-              <div className="text-base font-bold text-white mt-0.5">74</div>
-              <span className="text-[10px] text-emerald-400">40.0%</span>
-            </div>
-            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/40">
-              <span className="text-[11px] text-emerald-400 font-semibold">Vendas</span>
-              <div className="text-base font-extrabold text-emerald-300 mt-0.5">18</div>
-              <span className="text-[10px] text-emerald-400">24.3%</span>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center mt-4">
+            {(data?.funnel || []).map(item => <div key={item.label} className="p-3 rounded-xl bg-slate-800/30 border border-slate-700/40">
+              <span className="text-xs text-slate-400">{item.label}</span>
+              <div className="text-base font-bold text-white mt-0.5">{item.count}</div>
+            </div>)}
           </div>
+          {onNavigateTo && <button type="button" onClick={() => onNavigateTo('funnel')} className="mt-4 text-sm font-semibold text-emerald-300 hover:text-white">Abrir funil e giro →</button>}
         </div>
+        )}
       </TierGate>
     </div>
   );

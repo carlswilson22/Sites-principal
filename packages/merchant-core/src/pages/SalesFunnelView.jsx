@@ -5,20 +5,28 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, AlertTriangle, ArrowRight, CheckCircle2, DollarSign } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { storeSync } from '../services/storeSync';
 
-export function SalesFunnelView() {
+export function SalesFunnelView({ storeKey = 'autoelite', defaultVehicles = [] }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     loadFunnel();
-  }, []);
+  }, [storeKey, revision]);
+
+  useEffect(() => storeSync.subscribe(storeKey, () => setRevision(value => value + 1)), [storeKey]);
 
   const loadFunnel = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.getSalesFunnel();
+      const res = await apiClient.getSalesFunnel(storeSync.getVehicles(storeKey, defaultVehicles), storeSync.getLeads(storeKey));
       setData(res);
+      setError('');
+    } catch (failure) {
+      setError(failure.message || 'Não foi possível carregar o funil.');
     } finally {
       setLoading(false);
     }
@@ -29,6 +37,7 @@ export function SalesFunnelView() {
   if (loading) {
     return <div className="p-8 text-center text-slate-400">Carregando funil de conversão...</div>;
   }
+  if (error) return <div role="alert" className="space-y-3 text-rose-200"><p>{error}</p><button type="button" onClick={loadFunnel} className="rounded-lg bg-slate-800 px-4 py-2">Tentar novamente</button></div>;
 
   const { funnelSteps: rawSteps = [], averageResponseTimeMinutes = null, staleVehiclesAlert = {} } = data || {};
   // A taxa de cada etapa é calculada sobre a primeira (o servidor envia só as contagens).

@@ -1,6 +1,7 @@
 import { isDemoMode, createDemoAccount } from './demoConfig';
 import { loginDemoCustomer, registerDemoCustomer } from './demoCustomerAccounts.js';
 import { API_BASE_URL, apiFetch } from './remote.js';
+import { demoSalesFunnel } from '../utils/dashboardMetrics.js';
 /**
  * packages/merchant-core/src/services/apiClient.js
  * Adaptador de dados híbrido:
@@ -184,27 +185,9 @@ export const apiClient = {
   },
 
   // A5: Funil de Vendas & Giro
-  async getSalesFunnel() {
-    const result = await optionalApi(`${API_BASE_URL}/tier3/funnel`, { credentials: 'include' });
-    if (result !== null) return result;
-
-    return {
-      funnelSteps: [
-        { step: 'Visitas ao Site', count: 4850, rate: 100 },
-        { step: 'Veículos Visualizados', count: 1920, rate: 39.5 },
-        { step: 'Simulações & WhatsApp', count: 340, rate: 7.0 },
-        { step: 'Leads Criados', count: 125, rate: 2.6 },
-        { step: 'Em Atendimento', count: 48, rate: 1.0 },
-        { step: 'Vendas Fechadas', count: 18, rate: 0.4 }
-      ],
-      averageResponseTimeMinutes: 18,
-      staleVehiclesAlert: {
-        totalStale: 1,
-        vehicles: [
-          { id: 2, title: 'Aventureiro Cross Pro', price: 89900, days_in_stock: 68, suggestedDiscountPercent: 4, suggestedNewPrice: 86300 }
-        ]
-      }
-    };
+  async getSalesFunnel(vehicles = [], leads = []) {
+    if (isDemoMode) return demoSalesFunnel(vehicles, leads);
+    return apiFetch('/tier3/funnel');
   },
 
   // A6 & A7: Stories e Instagram

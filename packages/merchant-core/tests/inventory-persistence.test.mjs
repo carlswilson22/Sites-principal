@@ -57,3 +57,13 @@ test('edição preserva ID e fotos duráveis após nova leitura, com isolamento 
   storeSync.deleteVehicle('drivenow', 'car-1');
   assert.deepEqual(storeSync.getVehicles('drivenow'), []);
 });
+
+test('dias de exemplo são aplicados apenas ao primeiro catálogo, sem sobrescrever zero salvo', () => {
+  const { values } = storageHarness();
+  const catalog = [{ id: 1, nome: 'Catálogo' }];
+  assert.equal(storeSync.getVehicles('autoelite', catalog)[0].days_in_stock, 12);
+  const saved = JSON.parse(values.get('store_vehicles_autoelite'));
+  saved[0].days_in_stock = 0;
+  values.set('store_vehicles_autoelite', JSON.stringify(saved));
+  assert.equal(storeSync.getVehicles('autoelite', catalog)[0].days_in_stock, 0);
+});
