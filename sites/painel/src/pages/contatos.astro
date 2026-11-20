@@ -1,0 +1,79 @@
+---
+import Panel from '../layouts/Panel.astro';
+import { api } from '../lib/api';
+import { brl, SOURCE_LABEL, STATUS_LABEL, when, whatsappHref } from '../lib/format';
+
+const { token } = Astro.locals;
+const params = Astro.url.searchParams;
+const q = (params.get('q') || '').trim().slice(0, 60);
+const status = params.get('status') || '';
+const temperature = params.get('temperature') || '';
+const query = new URLSearchParams();
+if (q) query.set('q', q);
+if (status) query.set('status', status);
+if (temperature) query.set('temperature', temperature);
+const result = await api(token, 'GET', `/api/leads?${query}`);
+const leads: any[] = result.ok ? result.data : [];
+const back = `/contatos${query.toString() ? `?${query}` : ''}`;
+const TEMPERATURE = { quente: 'Quente', morno: 'Morno', frio: 'Frio' } as Record<string, string>;
+const simulation = (raw: string | null) => { try { return raw ? JSON.parse(raw) : null; } catch { return null; } };
+---
+<Panel title="Contatos" current="contatos">
+  <div class="main__head"><h1>Contatos</h1><span class="muted">{leads.length} {leads.length === 1 ? 'contato' : 'contatos'}{status || q || temperature ? ' com estes filtros' : ''}</span></div>
+
+  <form class="filters" method="get" action="/contatos" role="search">
+    <label class="field">Buscar<input name="q" value={q} maxlength="60" placeholder="Nome, telefone ou e-mail" /></label>
+    <label class="field">Situação
+      <select name="status"><option value="">Todas</option>{Object.entries(STATUS_LABEL).map(([k, l]) => <option value={k} selected={k === status}>{l}</option>)}</select>
+    </label>
+    <label class="field">Interesse
+      <select name="temperature"><option value="">Todos</option>{Object.entries(TEMPERATURE).map(([k, l]) => <option value={k} selected={k === temperature}>{l}</option>)}</select>
+    </label>
+    <button class="btn" type="submit">Filtrar</button>
+  </form>
+
+  {leads.length === 0 ? (
+    <div class="empty"><p><strong>{status || q || temperature ? 'Nenhum contato com esses filtros.' : 'Ainda não há contatos.'}</strong></p><p>Quando alguém preencher um formulário no site, o contato aparece aqui e você recebe um e-mail.</p></div>
+  ) : (
+    <div class="scroll"><table class="list">
+      <thead><tr><th>Contato</th><th>Origem</th><th>Veículo</th><th>Quando</th><th>Situação</th><th>Atender</th></tr></thead>
+      <tbody>
+        {leads.map(lead => {
+          const sim = simulation(lead.simulation_data);
+          const wa = whatsappHref(lead.phone);
+          return (
+            <tr>
+              <td>
+                <strong>{lead.name}</strong><br />
+                {wa ? <a href={wa} target="_blank" rel="noopener">{lead.phone}</a> : lead.phone}
+                {lead.email && <><br /><a href={`mailto:${lead.email}`}>{lead.email}</a></>}
+                {(lead.message || sim) && (
+                  <details class="more"><summary class="small">Mensagem</summary>
+                    {lead.message && <p class="small" style="margin:0.3rem 0 0">{lead.message}</p>}
+                    {sim && <p class="small muted" style="margin:0.3rem 0 0">Simulação: {sim.months}x de {brl(sim.installment)}, entrada {brl(sim.down)}</p>}
+                  </details>
+                )}
+              </td>
+              <td>{SOURCE_LABEL[lead.source] || lead.source}</td>
+              <td>{lead.vehicle_title || '—'}</td>
+              <td>{when(lead.created_at)}</td>
+              <td>
+                <span class:list={['badge', { 'badge--bad': lead.status === 'novo', 'badge--ok': lead.status === 'ganho' }]}>{STATUS_LABEL[lead.status] || lead.status}</span><br />
+                <span class="muted small">{TEMPERATURE[lead.temperature] || ''}</span>
+              </td>
+              <td>
+                <form class="form" method="post" action="/acoes/contato" style="min-width:210px;gap:0.4rem">
+                  <input type="hidden" name="id" value={lead.id} /><input type="hidden" name="voltar" value={back} />
+                  <select name="status" aria-label={`Situação de ${lead.name}`}>{Object.entries(STATUS_LABEL).map(([k, l]) => <option value={k} selected={k === lead.status}>{l}</option>)}</select>
+                  <select name="temperature" aria-label={`Interesse de ${lead.name}`}>{Object.entries(TEMPERATURE).map(([k, l]) => <option value={k} selected={k === lead.temperature}>{l}</option>)}</select>
+                  <input name="note" maxlength="500" placeholder="Anotação (opcional)" aria-label={`Anotação sobre ${lead.name}`} />
+                  <button class="btn btn--small" type="submit">Salvar</button>
+                </form>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table></div>
+  )}
+</Panel>

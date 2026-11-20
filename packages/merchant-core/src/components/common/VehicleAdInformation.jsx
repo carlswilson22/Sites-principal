@@ -26,6 +26,7 @@ export function VehicleInspectionDetails({ vehicle, onOpenDossier }) {
   const report = vehicle.laudoCautelar || {};
   return <div className="space-y-3">
     <p className="text-sm text-slate-300">Status: <strong className="text-white">{report.status || 'Não informado'}</strong></p>
+    <p className="text-xs text-slate-400">Informações fornecidas pela loja. Confirme a documentação com a equipe.</p>
     <VehicleAdFacts items={[
       ['Código do laudo', report.codigoLaudo], ['Responsável', report.perito],
       ['Estrutura e chassi', report.estrutura], ['Pintura', report.pintura],

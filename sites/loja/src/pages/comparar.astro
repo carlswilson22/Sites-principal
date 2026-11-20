@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import Flash from '../components/Flash.astro';
+import { getVehicles } from '../lib/api';
+import { brl, kmText } from '../lib/format';
+import { readCompare } from '../lib/compare';
+import { dossierFacts } from '../lib/dossier';
+
+const settings = Astro.locals.settings;
+const modules: string[] = settings.modules || [];
+if (!modules.includes('compare')) return new Response(null, { status: 404 });
+
+const slugs = readCompare(Astro.request);
+const all = await getVehicles();
+const cars = slugs.map(slug => all.find(v => v.slug === slug)).filter(Boolean) as any[];
+const showDossier = modules.includes('dossier') && cars.some(c => c.dossier);
+
+const lowest = (key: string) => { const values = cars.map(c => Number(c[key])).filter(Number.isFinite); return values.length > 1 ? Math.min(...values) : null; };
+const bestPrice = lowest('price'), bestKm = lowest('km');
+const rows: { label: string; cell: (c: any) => string; best?: (c: any) => boolean }[] = [
+  { label: 'Preço', cell: c => brl(c.price), best: c => bestPrice !== null && c.price === bestPrice },
+  { label: 'Ano', cell: c => String(c.year || '—') },
+  { label: 'Quilometragem', cell: c => (c.km != null ? kmText(c.km) : '—'), best: c => bestKm !== null && c.km === bestKm },
+  { label: 'Câmbio', cell: c => c.transmission || '—' },
+  { label: 'Combustível', cell: c => c.fuel || '—' },
+  { label: 'Cor', cell: c => (c.color && c.color !== 'Não especificada' ? c.color : '—') },
+  { label: 'Portas', cell: c => String(c.doors || '—') },
+  { label: 'Motor', cell: c => c.engine || '—' },
+  { label: 'Potência', cell: c => c.power || '—' },
+  { label: 'Opcionais', cell: c => (Array.isArray(c.features) && c.features.length ? c.features.join(', ') : '—') }
+];
+---
+<Base title="Comparar veículos" path="/comparar" noindex>
+  <div class="section wrap">
+    <div class="section__head">
+      <h1>Comparar veículos</h1>
+      {cars.length > 0 && (
+        <form method="post" action="/comparar-acao" style="margin:0">
+          <input type="hidden" name="acao" value="limpar" /><input type="hidden" name="voltar" value="/comparar" />
+          <button class="btn btn--ghost" type="submit">Limpar comparação</button>
+        </form>
+      )}
+    </div>
+    <Flash />
+    {cars.length < 2 ? (
+      <div class="empty" style="margin-top:1.5rem">
+        <p><strong>{cars.length === 0 ? 'Nenhum carro na comparação.' : 'Falta mais um carro para comparar.'}</strong></p>
+        <p>No estoque, use “Comparar” nos carros que interessam (até 3) e volte aqui.</p>
+        <a class="btn btn--accent" href="/estoque">Ver o estoque</a>
+      </div>
+    ) : (
+      <div class="cmp-wrap" style="margin-top:1.5rem">
+        <table class="cmp">
+          <caption class="vh">Comparação lado a lado</caption>
+          <thead>
+            <tr>
+              <td></td>
+              {cars.map(c => (
+                <th scope="col">
+                  <a href={`/veiculo/${c.slug}`}>
+                    {c.cover_photo && <img src={c.cover_photo} alt="" width="320" height="240" loading="lazy" />}
+                    {c.title}
+                  </a>
+                  <span class="muted">{c.version}</span>
+                  <form method="post" action="/comparar-acao">
+                    <input type="hidden" name="slug" value={c.slug} /><input type="hidden" name="acao" value="remover" /><input type="hidden" name="voltar" value="/comparar" />
+                    <button type="submit" class="linklike">Remover da comparação</button>
+                  </form>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row => (
+              <tr><th scope="row">{row.label}</th>{cars.map(c => <td data-best={row.best?.(c) ? 'true' : undefined}>{row.cell(c)}{row.best?.(c) ? <span class="best"> (menor)</span> : ''}</td>)}</tr>
+            ))}
+            {showDossier && dossierFacts(cars[0].dossier || {}).slice(0, 4).map((fact, i) => (
+              <tr><th scope="row">{fact.label}</th>{cars.map(c => <td>{dossierFacts(c.dossier || {})[i].text}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+        {showDossier && <p class="muted" style="margin-top:1rem">Dossiê informado pela loja. Confira os documentos com a equipe.</p>}
+      </div>
+    )}
+  </div>
+</Base>

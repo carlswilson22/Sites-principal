@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+import PriceTag from '../components/PriceTag.astro';
+import VehicleCard from '../components/VehicleCard.astro';
+import { getVehicles } from '../lib/api';
+import { vehicleLine, whatsappLink } from '../lib/format';
+import { trackView } from '../lib/track';
+
+const settings = Astro.locals.settings;
+const store = settings.store || {};
+const vehicles = await getVehicles();
+trackView(Astro.request, Astro.clientAddress, 'page_view', 'inicio');
+
+const featured = vehicles.find(v => v.highlight && v.cover_photo) || vehicles.find(v => v.cover_photo) || vehicles[0];
+const others = vehicles.filter(v => v !== featured).slice(0, 8);
+const categories = [...new Set(vehicles.map(v => v.category).filter(Boolean))].sort();
+const CATEGORY = { sedan: 'Sedã', hatch: 'Hatch', suv: 'SUV', pickup: 'Picape', picape: 'Picape', esportivo: 'Esportivo', outro: 'Outros' } as Record<string, string>;
+
+const place = store.city || '';
+const heading = place ? `Seminovos em ${place}` : (store.name || 'Seminovos');
+const description = `${store.name || 'Loja'}: ${vehicles.length} veículos seminovos no estoque${place ? ` em ${place}` : ''}. Veja fotos, preços e fale com a loja pelo WhatsApp.`;
+const whatsapp = featured ? whatsappLink(store.whatsapp, `Olá! Tenho interesse no ${featured.title} ${featured.version || ''} que vi no site.`) : '';
+
+const dealer = {
+  '@context': 'https://schema.org', '@type': 'AutoDealer', name: store.name,
+  ...(store.phone ? { telephone: store.phone } : {}), ...(store.email ? { email: store.email } : {}),
+  address: { '@type': 'PostalAddress', streetAddress: store.address, addressLocality: store.city, addressRegion: store.uf, addressCountry: 'BR' }
+};
+---
+<Base title={heading} description={description} path="/" image={featured?.cover_photo} structured={[dealer]} current="inicio">
+  <section class="hero wrap">
+    <h1>{heading}</h1>
+    <p class="lead">{vehicles.length > 0 ? `${vehicles.length} ${vehicles.length === 1 ? 'veículo no estoque' : 'veículos no estoque'} agora.` : 'O estoque está sendo atualizado.'}</p>
+
+    {featured && (
+      <article class="feature">
+        <div class="feature__photo">
+          {featured.cover_photo && <img src={featured.cover_photo} alt={[featured.title, featured.version, featured.year].filter(Boolean).join(' ')} width="1280" height="800" fetchpriority="high" />}
+        </div>
+        <div class="feature__body">
+          <h2><a href={`/veiculo/${featured.slug}`}>{featured.title}</a></h2>
+          {featured.version && <p class="muted">{featured.version}</p>}
+          <ul class="facts">{vehicleLine(featured).map(item => <li>{item}</li>)}</ul>
+          <PriceTag price={featured.price} large />
+          <p class="actions">
+            <a class="btn btn--accent" href={`/veiculo/${featured.slug}`}>Ver este carro</a>
+            {whatsapp && <a class="btn btn--ghost" href={whatsapp} rel="noopener" data-whatsapp>Chamar no WhatsApp</a>}
+          </p>
+        </div>
+      </article>
+    )}
+
+    <form class="finder filters" method="get" action="/estoque" role="search" aria-label="Buscar no estoque">
+      <label class="field">Marca ou modelo
+        <input name="q" type="search" maxlength="60" placeholder="Ex.: Civic" />
+      </label>
+      <label class="field">Tipo
+        <select name="categoria">
+          <option value="">Todos</option>
+          {categories.map(c => <option value={c}>{CATEGORY[c] || c}</option>)}
+        </select>
+      </label>
+      <label class="field">Preço até (R$)
+        <input name="ate" type="number" min="0" step="1000" inputmode="numeric" placeholder="80000" />
+      </label>
+      <button class="btn" type="submit">Buscar</button>
+    </form>
+  </section>
+
+  <section class="section wrap" aria-labelledby="titulo-estoque">
+    <div class="section__head">
+      <h2 id="titulo-estoque">Estoque</h2>
+      {vehicles.length > 0 && <a href="/estoque">Ver os {vehicles.length} veículos</a>}
+    </div>
+    {others.length > 0
+      ? <ul class="grid">{others.map(v => <VehicleCard v={v} />)}</ul>
+      : vehicles.length === 0 && <p class="empty">Nenhum veículo publicado no momento. Fale com a loja pelo WhatsApp para saber das novidades.</p>}
+  </section>
+</Base>

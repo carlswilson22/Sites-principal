@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import Flash from '../components/Flash.astro';
+import VehicleCard from '../components/VehicleCard.astro';
+import { getVehicles } from '../lib/api';
+import { apiAsCustomer } from '../lib/session';
+
+const settings = Astro.locals.settings;
+const modules: string[] = settings.modules || [];
+if (!modules.includes('favorites') || !modules.includes('customers')) return new Response(null, { status: 404 });
+if (!Astro.locals.customer) return Astro.redirect('/conta/entrar?voltar=%2Ffavoritos');
+
+let ids: number[] = [];
+try {
+  const response = await apiAsCustomer('/api/customers/favorites', Astro.request);
+  if (response.ok) ids = (await response.json()).map((row: any) => row.id);
+} catch { /* mostra a lista vazia com aviso abaixo */ }
+const vehicles = (await getVehicles()).filter(v => ids.includes(v.id));
+---
+<Base title="Meus favoritos" path="/favoritos" noindex>
+  <div class="section wrap">
+    <div class="section__head">
+      <h1>Meus favoritos</h1>
+      <p class="muted">{vehicles.length} {vehicles.length === 1 ? 'veículo salvo' : 'veículos salvos'}</p>
+    </div>
+    <Flash />
+    {vehicles.length > 0
+      ? <ul class="grid" style="margin-top:1.5rem">{vehicles.map(v => <VehicleCard v={v} />)}</ul>
+      : <div class="empty" style="margin-top:1.5rem">
+          <p><strong>Você ainda não salvou nenhum carro.</strong></p>
+          <p>Abra um veículo e use “Salvar nos favoritos”. Carros vendidos saem da lista sozinhos.</p>
+          <a class="btn btn--accent" href="/estoque">Ver o estoque</a>
+        </div>}
+  </div>
+</Base>

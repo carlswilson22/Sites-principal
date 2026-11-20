@@ -9,19 +9,19 @@ export function StoreRequestForm({ storeKey, context = '', vehicle = null }) {
   const [saved, setSaved] = useState(false);
   const field = 'mt-1 w-full min-h-11 p-3 rounded-xl bg-slate-950 border border-slate-600 text-white';
   const update = (key, value) => { setForm(current => ({ ...current, [key]: value })); setError(''); };
-  const submit = event => {
+  const submit = async event => {
     event.preventDefault();
     if (saved) return;
     try {
       const contact = validateStoreRequest(form);
-      storeSync.addLead(storeKey, { ...contact, source: 'concierge_site', vehicle_id: vehicle?.id, vehicle_title: vehicle?.nome || vehicle?.title, message: [vehicle && `Veículo: ${vehicle.nome || vehicle.title}`, form.notes.trim(), context].filter(Boolean).join('\n') });
+      await storeSync.addLead(storeKey, { ...contact, consent: true, source: 'concierge_site', vehicle_id: vehicle?.id, vehicle_title: vehicle?.nome || vehicle?.title, message: [vehicle && `Veículo: ${vehicle.nome || vehicle.title}`, form.notes.trim(), context].filter(Boolean).join('\n') });
       setSaved(true);
       setError('');
     } catch (failure) { setError(failure.message || 'Não foi possível registrar. Tente novamente.'); }
   };
-  if (saved) return <div role="status" className="p-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-slate-200 space-y-2"><p className="font-semibold">Preferência registrada.</p><p className="text-sm">O registro está disponível no painel deste navegador. Converse com a equipe pelo WhatsApp da loja para combinar os próximos passos.</p><button type="button" onClick={() => { setSaved(false); setForm({ name: '', phone: '', notes: '' }); }} className="underline text-sm">Registrar outro pedido</button></div>;
+  if (saved) return <div role="status" className="p-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-slate-200 space-y-2"><p className="font-semibold">Preferência registrada.</p><p className="text-sm">{storeSync.isRemote ? 'A equipe da loja já recebeu o seu pedido.' : 'O registro está disponível no painel deste navegador.'} Converse com a equipe pelo WhatsApp da loja para combinar os próximos passos.</p><button type="button" onClick={() => { setSaved(false); setForm({ name: '', phone: '', notes: '' }); }} className="underline text-sm">Registrar outro pedido</button></div>;
   return <form onSubmit={submit} className="space-y-4">
-    <p className="text-sm text-slate-300">Deixe sua preferência registrada no painel de atendimento.</p>
+    <p className="text-sm text-slate-300">Deixe sua preferência registrada no painel de atendimento. Ao enviar, você autoriza a loja a usar seu nome e telefone para responder.</p>
     {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
     <div className="grid sm:grid-cols-2 gap-4">
       <label htmlFor={`${id}-name`} className="text-sm text-slate-300">Nome<input id={`${id}-name`} required minLength={2} maxLength={100} autoComplete="name" value={form.name} onChange={event => update('name', event.target.value)} className={field} /></label>

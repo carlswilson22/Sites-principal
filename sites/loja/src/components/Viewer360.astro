@@ -1,0 +1,35 @@
+---
+interface Props { frames: { url: string }[]; alt: string }
+const { frames, alt } = Astro.props;
+---
+<div class="v360" data-v360 data-frames={JSON.stringify(frames.map(f => f.url))}>
+  <img class="v360__img" src={frames[0].url} alt={`${alt}, vista 360°`} width="1200" height="900" draggable="false" />
+  <label class="vh" for="v360-range">Girar o veículo</label>
+  <input id="v360-range" class="v360__range" type="range" min="0" max={frames.length - 1} step="1" value="0" />
+  <p class="muted" style="margin:0.5rem 0 0;font-size:0.9rem">Arraste a imagem ou use o controle para girar o carro.</p>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-v360]').forEach(root => {
+    const frames: string[] = JSON.parse(root.dataset.frames || '[]');
+    const img = root.querySelector<HTMLImageElement>('.v360__img')!;
+    const range = root.querySelector<HTMLInputElement>('.v360__range')!;
+    let loaded = false;
+    const preload = () => { if (!loaded) { loaded = true; frames.forEach(url => { const i = new Image(); i.src = url; }); } };
+    const show = (index: number) => {
+      const n = ((index % frames.length) + frames.length) % frames.length;
+      img.src = frames[n]; range.value = String(n);
+    };
+    range.addEventListener('input', () => { preload(); show(Number(range.value)); });
+    range.addEventListener('focus', preload);
+    img.addEventListener('pointerenter', preload);
+    let startX = 0, startIndex = 0, dragging = false;
+    img.addEventListener('pointerdown', event => { dragging = true; startX = event.clientX; startIndex = Number(range.value); img.setPointerCapture(event.pointerId); preload(); });
+    img.addEventListener('pointermove', event => {
+      if (!dragging) return;
+      const step = Math.max(8, img.clientWidth / frames.length);
+      show(startIndex - Math.round((event.clientX - startX) / step));
+    });
+    const stop = () => { dragging = false; };
+    img.addEventListener('pointerup', stop); img.addEventListener('pointercancel', stop);
+  });
+</script>

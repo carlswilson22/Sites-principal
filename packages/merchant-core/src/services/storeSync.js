@@ -12,6 +12,9 @@ const EVENT_PREFIX = 'merchant_store_update_';
 import { normalizeVehicle } from '../utils/vehicles.js';
 import { reconcileCatalogMedia } from '../utils/catalogMedia.js';
 import { createRecordId } from '../utils/recordId.js';
+import { isRemote } from './remote.js';
+import { remoteStoreSync } from './storeSyncRemote.js';
+import { demoDaysInStock, demoLeads } from '../data/demoShowcase.js';
 const RECORD_COLLECTIONS = ['clients', 'contracts', 'expenses'];
 
 function readLeadsForMutation(storeKey, fallback) {
@@ -45,7 +48,10 @@ function readVehicles(storeKey, fallbackData) {
   if (!Array.isArray(parsed) || parsed.some(vehicle => !vehicle || typeof vehicle !== 'object' || Array.isArray(vehicle))) {
     throw new Error('O estoque salvo está inválido. Os dados existentes foram preservados.');
   }
-  return reconcileCatalogMedia(parsed, fallbackData).map(normalizeVehicle);
+  const catalogIds = new Map((fallbackData || []).map((vehicle, index) => [String(vehicle.id), index]));
+  return reconcileCatalogMedia(parsed, fallbackData).map(normalizeVehicle).map(vehicle => (
+    !vehicle.days_in_stock && catalogIds.has(String(vehicle.id)) ? { ...vehicle, days_in_stock: demoDaysInStock(catalogIds.get(String(vehicle.id))) } : vehicle
+  ));
 }
 
 function persistVehicles(storeKey, vehicles) {
@@ -60,7 +66,7 @@ function persistVehicles(storeKey, vehicles) {
   return vehicles;
 }
 
-export const storeSync = {
+const localStoreSync = {
   getRecords(storeKey, collection, fallback = []) {
     if (!RECORD_COLLECTIONS.includes(collection)) throw new Error('Coleção inválida.');
     if (typeof window === 'undefined') return fallback;
@@ -155,8 +161,14 @@ export const storeSync = {
       const raw = localStorage.getItem(`store_leads_${storeKey}`);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-        return [];
+        if (!Array.isArray(parsed)) return [];
+        // Quem abriu a demonstração antes recebe os contatos de exemplo novos, sem perder nada.
+        if (parsed.length === 2 && parsed.every(lead => String(lead?.name).includes('(Fictício)'))) {
+          const upgraded = [...parsed, ...demoLeads(storeKey)];
+          localStorage.setItem(`store_leads_${storeKey}`, JSON.stringify(upgraded));
+          return upgraded;
+        }
+        return parsed;
       }
 
       // Seed inicial de demonstração fictício
@@ -191,8 +203,9 @@ export const storeSync = {
         }
       ];
 
-      localStorage.setItem(`store_leads_${storeKey}`, JSON.stringify(initialLeads));
-      return initialLeads;
+      const seeded = [...initialLeads, ...demoLeads(storeKey)];
+      localStorage.setItem(`store_leads_${storeKey}`, JSON.stringify(seeded));
+      return seeded;
     } catch {
       return [];
     }
@@ -260,3 +273,5 @@ export const storeSync = {
   }
 };
 
+// Demonstração: dados no navegador (localStorage). Modo real: dados no servidor da loja.
+export const storeSync = isRemote ? remoteStoreSync : localStoreSync;

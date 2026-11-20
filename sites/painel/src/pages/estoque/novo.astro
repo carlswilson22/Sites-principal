@@ -1,0 +1,10 @@
+---
+import Panel from '../../layouts/Panel.astro';
+import VehicleForm from '../../components/VehicleForm.astro';
+const modules: string[] = Astro.locals.settings?.modules || [];
+---
+<Panel title="Novo veículo" current="estoque">
+  <div class="main__head"><h1>Cadastrar veículo</h1></div>
+  <p class="muted">Preencha o essencial agora. Fotos e demais detalhes você envia na próxima tela.</p>
+  <VehicleForm modules={modules} />
+</Panel>

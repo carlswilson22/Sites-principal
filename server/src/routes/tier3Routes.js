@@ -1,12 +1,15 @@
 /**
  * server/src/routes/tier3Routes.js
- * Endpoints Exclusivos do Nível 3 (A1 a A8 - Tier Enterprise / Modelo 3)
- * Bloqueados com 404 Not Found se a loja estiver configurada no Nível 1 ou 2.
+ * Módulos do Premium: consignação, contratos avançados, financeiro completo, mercado,
+ * funil e giro, Stories/Instagram, auditoria e LGPD, exportação do estoque.
+ * Acesso e cargo são verificados na política central (policy.js); aqui ficam as regras de negócio.
  */
 import { getDb } from '../database/db.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
-import { checkRole } from '../middlewares/rbacMiddleware.js';
 import { assertTier } from '../middlewares/tierGate.js';
+import { config } from '../config.js';
+import { readSetting } from '../modules.js';
+import { clientIp } from '../security/http.js';
 import { encryptSensitive, decryptSensitive, maskCPF, maskBankData } from '../security/crypto.js';
 import { calculateConsignmentSettlement, checkConsignmentStatus } from '../services/consignmentsCalculator.js';
 import { calculateSellerCommission } from '../services/commissionCalculator.js';
@@ -14,408 +17,352 @@ import { generateAdvancedContractHtml, generateContractCode } from '../services/
 import { calculateMarketPricing } from '../services/marketPricingService.js';
 import { getInstagramConfigStatus, dispatchInstagramStory } from '../services/instagramAdapter.js';
 import { getPortalAdaptersManifest, exportVehiclesToCsv, exportVehiclesToJson } from '../services/portalExportAdapter.js';
+import { audit, daysInStockSql, sendJson } from './util.js';
 
-function sendJson(res, statusCode, data) {
-  res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify(data));
-}
+const DAY = 86400000;
+const CONTRACT_TYPES = ['consignacao', 'compra_venda_troca', 'termo_aditivo'];
+const CONSIGNMENT_STATUSES = ['ativo', 'liquidado', 'cancelado'];
 
-function sendHtml(res, statusCode, html) {
-  res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
-  res.end(html);
-}
+const toId = value => (typeof value === 'string' && /^\d{1,9}$/.test(value) ? Number(value) : value);
+const isId = value => Number.isInteger(value) && value > 0;
+const isMoney = (value, max = 100000000) => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max;
+const isoDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+const today = () => new Date().toISOString().slice(0, 10);
 
-function sendText(res, statusCode, text, contentType = 'text/plain; charset=utf-8') {
-  res.writeHead(statusCode, { 'Content-Type': contentType });
-  res.end(text);
-}
-
-function logAudit(db, user, action, entity, entityId, details, req) {
-  try {
-    const ip = req?.socket?.remoteAddress || '127.0.0.1';
-    db.prepare(`
-      INSERT INTO audit_logs (user_id, user_name, user_role, action, entity, entity_id, details, ip_address)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      user?.id || null,
-      user?.name || 'Sistema',
-      user?.role || 'sistema',
-      action,
-      entity,
-      String(entityId || ''),
-      typeof details === 'object' ? JSON.stringify(details) : String(details || ''),
-      ip
-    );
-  } catch (err) {
-    console.error('[Audit Error]', err.message);
+function validCpf(raw) {
+  const digits = String(raw || '').replace(/\D/g, '');
+  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return null;
+  for (const length of [9, 10]) {
+    let sum = 0;
+    for (let i = 0; i < length; i += 1) sum += Number(digits[i]) * (length + 1 - i);
+    if (((sum * 10) % 11) % 10 !== Number(digits[length])) return null;
   }
+  return digits;
+}
+
+/** Dados da loja para documentos: configuração do servidor, sobrescrita pelo cadastro feito no painel. */
+function storeIdentity() {
+  const saved = readSetting('store', {}) || {};
+  const merged = { ...config.store, ...saved };
+  const place = [merged.city, merged.uf].filter(Boolean).join('/');
+  return { name: merged.name, cnpj: merged.cnpj || '', address: merged.address || place || '' };
+}
+
+function elapsedDays(fromIso, toDate = new Date()) {
+  const from = Date.parse(fromIso);
+  return Number.isFinite(from) ? Math.max(0, Math.floor((toDate.getTime() - from) / DAY)) : 0;
 }
 
 export async function handleTier3Routes(req, res, pathname, body) {
-  // Barreira de Nível Rígida: se a loja for Tier 1 ou 2, retorna 404
-  const tierCheck = assertTier(3);
-  if (!tierCheck.allowed) {
-    return false;
-  }
+  // Barreira de nível: lojas de nível menor só chegam aqui se o módulo foi liberado (avulso).
+  if (!assertTier(3).allowed && !req.moduleApproved) return false;
 
   const db = getDb();
+  const ip = () => clientIp(req, req.trustProxy);
 
-  // ==========================================
-  // A1: GESTÃO DE CONSIGNAÇÃO COMPLETA
-  // ==========================================
-
-  // GET /api/tier3/consignments - Listar todas as consignações com cálculos
+  // ---------- Consignação ----------
   if (pathname === '/api/tier3/consignments' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
     const rows = db.prepare(`
-      SELECT c.*, v.title as vehicle_title, v.price as vehicle_price, v.days_in_stock, v.status as vehicle_status
-      FROM consignments c
-      JOIN vehicles v ON v.id = c.vehicle_id
+      SELECT c.id, c.vehicle_id, c.owner_name, c.owner_cpf_encrypted, c.owner_bank_data_encrypted, c.remuneration_type,
+             c.remuneration_value, c.min_remuneration, c.service_fee, c.daily_storage_fee, c.contract_start, c.contract_end,
+             c.payout_deadline_days, c.advanced_expenses, c.status, c.created_at,
+             v.title AS vehicle_title, v.price AS vehicle_price, v.sale_price, v.status AS vehicle_status, v.sold_at
+      FROM consignments c JOIN vehicles v ON v.id = c.vehicle_id
       ORDER BY c.created_at DESC
     `).all();
 
-    const result = rows.map(row => {
-      const decryptedCpf = decryptSensitive(row.owner_cpf_encrypted);
-      const decryptedBank = decryptSensitive(row.owner_bank_data_encrypted);
-
+    return sendJson(res, 200, rows.map(({ owner_cpf_encrypted, owner_bank_data_encrypted, ...row }) => {
+      // Diárias contam desde o início do contrato e até a venda (ou até hoje, se ainda em estoque).
+      const end = row.sold_at ? new Date(row.sold_at) : new Date();
+      const storedDays = elapsedDays(`${row.contract_start}T00:00:00Z`, end);
       const settlement = calculateConsignmentSettlement({
-        vehiclePrice: row.vehicle_price,
+        vehiclePrice: row.sale_price ?? row.vehicle_price,
         remunerationType: row.remuneration_type,
         remunerationValue: row.remuneration_value,
         minRemuneration: row.min_remuneration,
         serviceFee: row.service_fee,
         dailyStorageFee: row.daily_storage_fee,
-        daysInStock: row.days_in_stock,
+        daysInStock: storedDays,
         advancedExpenses: row.advanced_expenses
       });
-
-      const expiry = checkConsignmentStatus(row.contract_end);
-
       return {
         ...row,
-        owner_cpf_masked: maskCPF(decryptedCpf),
-        owner_bank_masked: maskBankData(decryptedBank),
+        owner_cpf_masked: maskCPF(decryptSensitive(owner_cpf_encrypted)),
+        owner_bank_masked: maskBankData(decryptSensitive(owner_bank_data_encrypted)),
         settlement,
-        expiry
+        settlementBasis: row.sale_price ? 'valor_da_venda' : 'preco_anunciado_projecao',
+        expiry: checkConsignmentStatus(row.contract_end)
       };
-    });
-
-    return sendJson(res, 200, result);
+    }));
   }
 
-  // POST /api/tier3/consignments - Cadastrar ou atualizar consignação
   if (pathname === '/api/tier3/consignments' && req.method === 'POST') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
+    const b = { ...(body || {}) };
+    b.vehicle_id = toId(b.vehicle_id);
 
-    const {
-      vehicle_id, owner_name, owner_cpf, owner_bank_data,
-      remuneration_type, remuneration_value, min_remuneration,
-      service_fee, daily_storage_fee, contract_start, contract_end,
-      payout_deadline_days, advanced_expenses
-    } = body || {};
+    const cpf = validCpf(b.owner_cpf);
+    const type = b.remuneration_type;
+    const start = b.contract_start || today();
+    const end = b.contract_end || new Date(Date.now() + 30 * DAY).toISOString().slice(0, 10);
+    const numbers = {
+      remuneration_value: Number(b.remuneration_value), min_remuneration: Number(b.min_remuneration ?? 0), service_fee: Number(b.service_fee ?? 0),
+      daily_storage_fee: Number(b.daily_storage_fee ?? 0), advanced_expenses: Number(b.advanced_expenses ?? 0)
+    };
+    const payoutDays = b.payout_deadline_days === undefined ? 5 : Number(b.payout_deadline_days);
 
-    if (!vehicle_id || !owner_name || !owner_cpf || !remuneration_type || !remuneration_value) {
-      return sendJson(res, 400, { error: 'Campos obrigatórios de consignação não informados.' });
-    }
+    if (!isId(b.vehicle_id)) return sendJson(res, 400, { error: 'Informe o veículo da consignação.' });
+    if (typeof b.owner_name !== 'string' || b.owner_name.trim().length < 3 || b.owner_name.length > 120) return sendJson(res, 400, { error: 'Informe o nome completo do proprietário (3 a 120 caracteres).' });
+    if (!cpf) return sendJson(res, 400, { error: 'CPF do proprietário inválido.' });
+    if (!['percentual', 'valor_liquido'].includes(type)) return sendJson(res, 400, { error: 'Tipo de remuneração inválido (percentual ou valor_liquido).' });
+    if (!(numbers.remuneration_value > 0) || (type === 'percentual' && numbers.remuneration_value > 100)) return sendJson(res, 400, { error: 'Remuneração inválida: percentual de 0 a 100, ou valor líquido maior que zero.' });
+    if (!Object.values(numbers).every(value => isMoney(value))) return sendJson(res, 400, { error: 'Valores monetários devem ser números maiores ou iguais a zero.' });
+    if (!isoDate(start) || !isoDate(end) || end < start) return sendJson(res, 400, { error: 'Datas inválidas: use AAAA-MM-DD e o fim não pode ser anterior ao início.' });
+    if (!Number.isInteger(payoutDays) || payoutDays < 0 || payoutDays > 90) return sendJson(res, 400, { error: 'Prazo de repasse deve ser de 0 a 90 dias.' });
+    if (b.owner_bank_data !== undefined && (typeof b.owner_bank_data !== 'string' || b.owner_bank_data.length > 300)) return sendJson(res, 400, { error: 'Dados bancários inválidos (até 300 caracteres).' });
 
-    const cpfEncrypted = encryptSensitive(owner_cpf);
-    const bankEncrypted = encryptSensitive(owner_bank_data || '');
+    const vehicle = db.prepare('SELECT id FROM vehicles WHERE id = ?').get(b.vehicle_id);
+    if (!vehicle) return sendJson(res, 404, { error: 'Veículo não encontrado.' });
 
-    const stmt = db.prepare(`
-      INSERT INTO consignments (
-        vehicle_id, owner_name, owner_cpf_encrypted, owner_bank_data_encrypted,
-        remuneration_type, remuneration_value, min_remuneration, service_fee,
-        daily_storage_fee, contract_start, contract_end, payout_deadline_days,
-        advanced_expenses, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ativo')
-      ON CONFLICT(vehicle_id) DO UPDATE SET
-        owner_name = excluded.owner_name,
-        owner_cpf_encrypted = excluded.owner_cpf_encrypted,
-        owner_bank_data_encrypted = excluded.owner_bank_data_encrypted,
-        remuneration_type = excluded.remuneration_type,
-        remuneration_value = excluded.remuneration_value,
-        min_remuneration = excluded.min_remuneration,
-        service_fee = excluded.service_fee,
-        daily_storage_fee = excluded.daily_storage_fee,
-        contract_start = excluded.contract_start,
-        contract_end = excluded.contract_end,
-        payout_deadline_days = excluded.payout_deadline_days,
-        advanced_expenses = excluded.advanced_expenses
-    `);
+    db.prepare(`
+      INSERT INTO consignments (vehicle_id, owner_name, owner_cpf_encrypted, owner_bank_data_encrypted, remuneration_type, remuneration_value,
+        min_remuneration, service_fee, daily_storage_fee, contract_start, contract_end, payout_deadline_days, advanced_expenses, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ativo')
+      ON CONFLICT(vehicle_id) DO UPDATE SET owner_name = excluded.owner_name, owner_cpf_encrypted = excluded.owner_cpf_encrypted,
+        owner_bank_data_encrypted = excluded.owner_bank_data_encrypted, remuneration_type = excluded.remuneration_type,
+        remuneration_value = excluded.remuneration_value, min_remuneration = excluded.min_remuneration, service_fee = excluded.service_fee,
+        daily_storage_fee = excluded.daily_storage_fee, contract_start = excluded.contract_start, contract_end = excluded.contract_end,
+        payout_deadline_days = excluded.payout_deadline_days, advanced_expenses = excluded.advanced_expenses, status = 'ativo'
+    `).run(b.vehicle_id, b.owner_name.trim(), encryptSensitive(cpf), encryptSensitive(b.owner_bank_data || ''), type, numbers.remuneration_value,
+      numbers.min_remuneration, numbers.service_fee, numbers.daily_storage_fee, start, end, payoutDays, numbers.advanced_expenses);
 
-    stmt.run(
-      vehicle_id, owner_name, cpfEncrypted, bankEncrypted,
-      remuneration_type, Number(remuneration_value), Number(min_remuneration || 0),
-      Number(service_fee || 0), Number(daily_storage_fee || 0),
-      contract_start || new Date().toISOString().split('T')[0],
-      contract_end || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
-      Number(payout_deadline_days || 5), Number(advanced_expenses || 0)
-    );
-
-    // Atualiza status do veículo para consignado
-    db.prepare("UPDATE vehicles SET ownership_type = 'consignado' WHERE id = ?").run(vehicle_id);
-
-    logAudit(db, auth.user, 'CRIAR_CONSIGNACAO', 'consignments', vehicle_id, { owner_name }, req);
-
+    db.prepare("UPDATE vehicles SET ownership_type = 'consignado', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(b.vehicle_id);
+    audit(auth.user, 'CRIAR_CONSIGNACAO', 'consignments', b.vehicle_id, { owner_name: b.owner_name.trim() }, ip());
     return sendJson(res, 201, { message: 'Contrato de consignação registrado com sucesso.' });
   }
 
-  // GET /api/tier3/consignments/alerts - Alertas de consignados sem contrato ou vencendo
+  // Encerramento: liquidado (repasse feito) ou cancelado (veículo devolvido)
+  if (pathname === '/api/tier3/consignments/status' && req.method === 'POST') {
+    const auth = authenticate(req);
+    if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
+    const { status } = body || {};
+    const vehicleId = toId(body?.vehicle_id);
+    if (!isId(vehicleId) || !CONSIGNMENT_STATUSES.includes(status)) return sendJson(res, 400, { error: 'Informe o veículo e o status (ativo, liquidado ou cancelado).' });
+    const result = db.prepare('UPDATE consignments SET status = ? WHERE vehicle_id = ?').run(status, vehicleId);
+    if (!result.changes) return sendJson(res, 404, { error: 'Consignação não encontrada.' });
+    audit(auth.user, 'STATUS_CONSIGNACAO', 'consignments', vehicleId, { status }, ip());
+    return sendJson(res, 200, { message: 'Status da consignação atualizado.' });
+  }
+
   if (pathname === '/api/tier3/consignments/alerts' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
-    // Carros marcados como consignado sem registro em consignments
     const uncontracted = db.prepare(`
-      SELECT v.id, v.title, v.price, v.days_in_stock
-      FROM vehicles v
-      LEFT JOIN consignments c ON c.vehicle_id = v.id
+      SELECT v.id, v.title, v.price FROM vehicles v LEFT JOIN consignments c ON c.vehicle_id = v.id
       WHERE v.ownership_type = 'consignado' AND c.id IS NULL AND v.status = 'disponivel'
     `).all();
-
-    // Consignações vencidas ou prestes a vencer (< 7 dias)
     const expiring = db.prepare(`
-      SELECT c.*, v.title as vehicle_title, v.price as vehicle_price
-      FROM consignments c
-      JOIN vehicles v ON v.id = c.vehicle_id
+      SELECT c.id, c.vehicle_id, c.owner_name, c.contract_end, v.title AS vehicle_title, v.price AS vehicle_price
+      FROM consignments c JOIN vehicles v ON v.id = c.vehicle_id
       WHERE c.status = 'ativo' AND v.status = 'disponivel'
-    `).all().filter(c => {
-      const exp = checkConsignmentStatus(c.contract_end);
-      return exp.isExpired || exp.daysRemaining <= 7;
+    `).all().filter(row => {
+      const expiry = checkConsignmentStatus(row.contract_end);
+      return expiry.isExpired || expiry.daysRemaining <= 7;
     });
-
-    return sendJson(res, 200, {
-      uncontractedVehicles: uncontracted,
-      expiringConsignments: expiring
-    });
+    return sendJson(res, 200, { uncontractedVehicles: uncontracted, expiringConsignments: expiring });
   }
 
-  // ==========================================
-  // A2: CONTRATOS AVANÇADOS (Consignação, Troca, Aditivos)
-  // ==========================================
-
+  // ---------- Contratos avançados ----------
   if (pathname === '/api/tier3/contracts/advanced' && req.method === 'POST') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
+    const { type, tradeVehicle, terms } = body || {};
+    const vehicleId = toId(body?.vehicle_id), clientId = toId(body?.client_id), parentId = toId(body?.parent_contract_id);
 
-    const { type, vehicle_id, client_id, parent_contract_id, tradeVehicle, terms } = body || {};
+    if (!CONTRACT_TYPES.includes(type)) return sendJson(res, 400, { error: `Tipo inválido. Use: ${CONTRACT_TYPES.join(', ')}.` });
+    if (!isId(vehicleId) || !isId(clientId)) return sendJson(res, 400, { error: 'Informe o veículo e o cliente.' });
+    if (terms !== undefined && (typeof terms !== 'object' || terms === null || Array.isArray(terms) || JSON.stringify(terms).length > 20000)) return sendJson(res, 400, { error: 'Termos inválidos.' });
+    if (tradeVehicle !== undefined && (typeof tradeVehicle !== 'object' || tradeVehicle === null || JSON.stringify(tradeVehicle).length > 4000)) return sendJson(res, 400, { error: 'Veículo da troca inválido.' });
 
-    if (!type || !vehicle_id || !client_id) {
-      return sendJson(res, 400, { error: 'Campos tipo, vehicle_id e client_id são obrigatórios.' });
+    const vehicle = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(vehicleId);
+    const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(clientId);
+    if (!vehicle || !client) return sendJson(res, 404, { error: 'Veículo ou cliente não localizado.' });
+
+    let parent = null;
+    if (type === 'termo_aditivo') {
+      if (typeof terms?.amendmentReason !== 'string' || terms.amendmentReason.trim().length < 5) return sendJson(res, 400, { error: 'Descreva a alteração acordada no termo aditivo (terms.amendmentReason).' });
+      if (!isId(parentId)) return sendJson(res, 400, { error: 'O termo aditivo precisa do contrato original (parent_contract_id).' });
+      parent = db.prepare('SELECT id, code, client_id FROM contracts WHERE id = ?').get(parentId);
+      if (!parent || parent.client_id !== clientId) return sendJson(res, 400, { error: 'Contrato original não encontrado para este cliente.' });
     }
 
-    const vehicle = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(vehicle_id);
-    const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(client_id);
+    const store = storeIdentity();
+    if (!store.cnpj) return sendJson(res, 409, { error: 'Cadastre o CNPJ e o endereço da loja em Configurações antes de emitir contratos.' });
 
-    if (!vehicle || !client) {
-      return sendJson(res, 404, { error: 'Veículo ou cliente não localizado.' });
+    let saved = null;
+    for (let attempt = 0; attempt < 3 && !saved; attempt += 1) {
+      const next = (db.prepare('SELECT COALESCE(MAX(id), 0) AS last FROM contracts').get().last || 0) + 1 + attempt;
+      const code = generateContractCode('CTR-EXP', next);
+      const html = generateAdvancedContractHtml({
+        type, code, parentCode: parent?.code || null, vehicle, tradeVehicle, terms: terms || {}, store,
+        client: { ...client, cpf_masked: maskCPF(decryptSensitive(client.cpf_encrypted)), address: decryptSensitive(client.address_encrypted) }
+      });
+      try {
+        const result = db.prepare(`INSERT INTO contracts (code, type, vehicle_id, client_id, parent_contract_id, terms_data, status, created_by)
+          VALUES (?, ?, ?, ?, ?, ?, 'emitido', ?)`).run(code, type, vehicleId, clientId, parent?.id || null, JSON.stringify(terms || {}), auth.user.id);
+        saved = { id: Number(result.lastInsertRowid), code, html };
+      } catch (error) {
+        if (!/UNIQUE/i.test(error.message)) throw error;
+      }
     }
-
-    let parentCode = null;
-    if (parent_contract_id) {
-      const parent = db.prepare('SELECT code FROM contracts WHERE id = ?').get(parent_contract_id);
-      if (parent) parentCode = parent.code;
-    }
-
-    const decryptedCpf = decryptSensitive(client.cpf_encrypted);
-    const decryptedAddress = decryptSensitive(client.address_encrypted);
-
-    const countRow = db.prepare('SELECT COUNT(*) as count FROM contracts').get();
-    const code = generateContractCode('CTR-EXP', (countRow?.count || 0) + 1);
-
-    const contractHtml = generateAdvancedContractHtml({
-      type,
-      code,
-      parentCode,
-      client: {
-        ...client,
-        cpf_masked: maskCPF(decryptedCpf),
-        address: decryptedAddress
-      },
-      vehicle,
-      tradeVehicle,
-      terms: terms || {}
-    });
-
-    const stmt = db.prepare(`
-      INSERT INTO contracts (code, type, vehicle_id, client_id, parent_contract_id, terms_data, status, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, 'emitido', ?)
-    `);
-
-    const result = stmt.run(
-      code, type, vehicle_id, client_id, parent_contract_id || null,
-      JSON.stringify(terms || {}), auth.user.id
-    );
-
-    logAudit(db, auth.user, 'EMISSAO_CONTRATO_AVANCADO', 'contracts', result.lastInsertRowid, { code, type }, req);
-
-    return sendJson(res, 201, {
-      id: result.lastInsertRowid,
-      code,
-      html: contractHtml
-    });
+    if (!saved) return sendJson(res, 409, { error: 'Não foi possível gerar um número único. Tente novamente.' });
+    audit(auth.user, 'EMISSAO_CONTRATO_AVANCADO', 'contracts', saved.id, { code: saved.code, type }, ip());
+    return sendJson(res, 201, saved);
   }
 
-  // ==========================================
-  // A3: FINANCEIRO COMPLETO & COMISSÕES
-  // ==========================================
-
+  // ---------- Financeiro completo ----------
   if (pathname === '/api/tier3/financial/full' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
-    const roleCheck = checkRole(auth.user, ['proprietario', 'gerente']);
-    if (!roleCheck.allowed) return sendJson(res, roleCheck.status, { error: roleCheck.error });
-
-    // 1. Capital investido em estoque próprio
     const ownStock = db.prepare(`
-      SELECT 
-        COUNT(*) as count,
-        COALESCE(SUM(v.price), 0) as total_retail_value,
-        COALESCE((SELECT SUM(e.amount) FROM vehicle_expenses e JOIN vehicles v2 ON v2.id = e.vehicle_id WHERE v2.ownership_type = 'proprio' AND v2.status = 'disponivel'), 0) as total_invested
-      FROM vehicles v
-      WHERE v.ownership_type = 'proprio' AND v.status = 'disponivel'
+      SELECT COUNT(*) AS count, COALESCE(SUM(v.price), 0) AS total_retail_value,
+        COALESCE((SELECT SUM(e.amount) FROM vehicle_expenses e JOIN vehicles v2 ON v2.id = e.vehicle_id
+                  WHERE v2.ownership_type != 'consignado' AND v2.status = 'disponivel'), 0) AS total_invested
+      FROM vehicles v WHERE v.ownership_type != 'consignado' AND v.status = 'disponivel'
     `).get();
-
-    // 2. Estoque consignado
     const consignedStock = db.prepare(`
-      SELECT 
-        COUNT(*) as count,
-        COALESCE(SUM(v.price), 0) as total_retail_value
-      FROM vehicles v
-      WHERE v.ownership_type = 'consignado' AND v.status = 'disponivel'
+      SELECT COUNT(*) AS count, COALESCE(SUM(v.price), 0) AS total_retail_value
+      FROM vehicles v WHERE v.ownership_type = 'consignado' AND v.status = 'disponivel'
     `).get();
 
-    // 3. Vendas realizadas no período com lucro
-    const sales = db.prepare(`
-      SELECT 
-        v.id, v.title, v.price, v.ownership_type,
-        COALESCE((SELECT SUM(e.amount) FROM vehicle_expenses e WHERE e.vehicle_id = v.id), 0) as total_cost
+    // Vendas dos últimos 12 meses, pelo preço efetivamente vendido
+    const sold = db.prepare(`
+      SELECT v.id, v.title, v.ownership_type, v.sold_at, COALESCE(v.sale_price, v.price) AS sale_price,
+        COALESCE((SELECT SUM(e.amount) FROM vehicle_expenses e WHERE e.vehicle_id = v.id), 0) AS total_cost,
+        (SELECT COUNT(*) FROM vehicle_expenses e WHERE e.vehicle_id = v.id AND e.category = 'compra') AS has_purchase_cost
       FROM vehicles v
-      WHERE v.status = 'vendido'
+      WHERE v.status = 'vendido' AND COALESCE(v.sold_at, v.updated_at) >= date('now', '-12 months')
     `).all();
 
-    let totalSalesRevenue = 0;
-    let totalRealizedProfit = 0;
-    sales.forEach(s => {
-      totalSalesRevenue += s.price;
-      const profit = s.ownership_type === 'proprio' ? (s.price - s.total_cost) : (s.price * 0.06); // 6% margem de consignado padrão
-      totalRealizedProfit += Math.max(0, profit);
-    });
+    let grossSales = 0, storeRevenue = 0, result = 0, missingCost = 0, consignedWithoutContract = 0;
+    for (const sale of sold) {
+      grossSales += sale.sale_price;
+      if (sale.ownership_type === 'consignado') {
+        const contract = db.prepare('SELECT * FROM consignments WHERE vehicle_id = ?').get(sale.id);
+        if (!contract) { consignedWithoutContract += 1; continue; }
+        const settlement = calculateConsignmentSettlement({
+          vehiclePrice: sale.sale_price, remunerationType: contract.remuneration_type, remunerationValue: contract.remuneration_value,
+          minRemuneration: contract.min_remuneration, serviceFee: contract.service_fee, dailyStorageFee: contract.daily_storage_fee,
+          daysInStock: elapsedDays(`${contract.contract_start}T00:00:00Z`, new Date(sale.sold_at || Date.now())), advancedExpenses: contract.advanced_expenses
+        });
+        // Para a loja, a receita da consignação é a sua remuneração e as taxas, não o valor do carro
+        storeRevenue += settlement.storeTotalRevenue;
+        result += settlement.storeTotalRevenue - sale.total_cost;
+      } else {
+        storeRevenue += sale.sale_price;
+        result += sale.sale_price - sale.total_cost;
+        if (!sale.has_purchase_cost) missingCost += 1;
+      }
+    }
 
-    // 4. Comissões dos Atendentes / Vendedores
-    const sellers = db.prepare("SELECT id, name, email FROM users WHERE role = 'atendente'").all();
-    const sellersCommissions = sellers.map(seller => {
-      const sellerLeadsWon = db.prepare(`
-        SELECT COUNT(*) as sales_count, COALESCE(SUM(v.price), 0) as total_sold
-        FROM leads l
-        JOIN vehicles v ON v.id = l.vehicle_id
-        WHERE l.assigned_to = ? AND l.status = 'ganho'
-      `).get(seller.id);
+    // Comissões: percentual definido pela loja em Configurações; sem ele, não se calcula nada
+    const commissionSetting = readSetting('commission', null);
+    const rate = commissionSetting && Number.isFinite(commissionSetting.ratePercent) ? commissionSetting.ratePercent : null;
+    const sellerRows = db.prepare(`
+      SELECT u.id AS seller_id, u.name, u.email, COUNT(*) AS sales_count, COALESCE(SUM(COALESCE(v.sale_price, v.price)), 0) AS total_sold
+      FROM leads l
+      JOIN vehicles v ON v.id = l.vehicle_id
+      JOIN users u ON u.id = l.assigned_to
+      WHERE l.status = 'ganho' AND v.status = 'vendido' AND COALESCE(v.sold_at, v.updated_at) >= date('now', '-12 months')
+        AND l.id = (SELECT MAX(l2.id) FROM leads l2 WHERE l2.vehicle_id = v.id AND l2.status = 'ganho')
+      GROUP BY u.id ORDER BY total_sold DESC
+    `).all();
+    const sellersCommissions = sellerRows.map(row => ({
+      sellerId: row.seller_id, name: row.name, email: row.email, salesCount: row.sales_count, totalSold: row.total_sold,
+      commissionAmount: rate === null ? null : calculateSellerCommission({ salePrice: row.total_sold, commissionModel: 'percentual_venda', commissionRate: rate }).commissionAmount
+    }));
 
-      const comm = calculateSellerCommission({
-        salePrice: sellerLeadsWon.total_sold,
-        commissionModel: 'percentual_venda',
-        commissionRate: 1.5 // 1.5% padrão por venda
-      });
-
-      return {
-        sellerId: seller.id,
-        name: seller.name,
-        email: seller.email,
-        salesCount: sellerLeadsWon.sales_count,
-        totalSold: sellerLeadsWon.total_sold,
-        commissionAmount: comm.commissionAmount
-      };
-    });
-
-    // 5. Relatório consolidado para Banco (Últimos 12 meses simplificado)
-    const bankReport = {
-      storeName: 'Auto-Dealership Enterprise Veículos',
-      generatedAt: new Date().toISOString(),
-      activeInventoryCount: (ownStock.count || 0) + (consignedStock.count || 0),
-      activeInventoryValue: (ownStock.total_retail_value || 0) + (consignedStock.total_retail_value || 0),
-      ownStockInvestedCapital: ownStock.total_invested,
-      last12MonthsGrossRevenue: totalSalesRevenue || 580000.00,
-      last12MonthsNetProfit: totalRealizedProfit || 87000.00,
-      financialHealthIndex: 'A+'
-    };
-
+    const round = value => Number(value.toFixed(2));
     return sendJson(res, 200, {
-      ownStock,
-      consignedStock,
-      salesMetrics: {
-        totalSoldCars: sales.length,
-        totalSalesRevenue,
-        totalRealizedProfit
-      },
+      period: 'ultimos_12_meses',
+      ownStock, consignedStock,
+      salesMetrics: { totalSoldCars: sold.length, totalSalesRevenue: round(grossSales), totalRealizedProfit: round(result) },
+      commissionRatePercent: rate,
+      commissionConfigured: rate !== null,
       sellersCommissions,
-      bankReport
+      warnings: [
+        ...(missingCost ? [`${missingCost} venda(s) de estoque próprio sem custo de compra lançado: o resultado dessas vendas está superestimado.`] : []),
+        ...(consignedWithoutContract ? [`${consignedWithoutContract} venda(s) de veículo consignado sem contrato de consignação cadastrado: ficaram fora do resultado.`] : []),
+        ...(rate === null ? ['Percentual de comissão não configurado: comissões não calculadas.'] : [])
+      ],
+      bankReport: {
+        storeName: storeIdentity().name,
+        generatedAt: new Date().toISOString(),
+        period: 'ultimos_12_meses',
+        activeInventoryCount: (ownStock.count || 0) + (consignedStock.count || 0),
+        activeInventoryValue: (ownStock.total_retail_value || 0) + (consignedStock.total_retail_value || 0),
+        ownStockInvestedCapital: ownStock.total_invested,
+        last12MonthsGrossRevenue: round(storeRevenue),
+        last12MonthsNetProfit: round(result),
+        note: 'Calculado apenas com as vendas, preços de venda e despesas registrados no sistema. Não é balanço, parecer contábil nem auditoria.'
+      }
     });
   }
 
-  // ==========================================
-  // A4: PRECIFICADOR COMPLETO COM MERCADO MANUAL
-  // ==========================================
-
+  // ---------- Mercado e leilão (entradas manuais) ----------
   if (pathname === '/api/tier3/market-pricing' && req.method === 'POST') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
-
-    const result = calculateMarketPricing(body || {});
-    return sendJson(res, 200, result);
+    try {
+      return sendJson(res, 200, calculateMarketPricing(body || {}));
+    } catch (error) {
+      return sendJson(res, 400, { error: error.message });
+    }
   }
 
-  // ==========================================
-  // A5: FUNIL DE VENDAS & GIRO DE ESTOQUE
-  // ==========================================
-
+  // ---------- Funil e giro ----------
   if (pathname === '/api/tier3/funnel' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
-    // Estatísticas do Funil de Conversão
-    const totalLeads = db.prepare('SELECT COUNT(*) as count FROM leads').get().count || 0;
-    const attendedLeads = db.prepare("SELECT COUNT(*) as count FROM leads WHERE status IN ('em_atendimento', 'ganho')").get().count || 0;
-    const wonLeads = db.prepare("SELECT COUNT(*) as count FROM leads WHERE status = 'ganho'").get().count || 0;
-    const simLeads = db.prepare("SELECT COUNT(*) as count FROM leads WHERE source = 'simulador_financiamento'").get().count || 0;
+    const count = (sql) => db.prepare(sql).get().count || 0;
+    const totalLeads = count('SELECT COUNT(*) AS count FROM leads');
+    const attendedLeads = count("SELECT COUNT(*) AS count FROM leads WHERE status IN ('em_atendimento', 'ganho')");
+    const wonLeads = count("SELECT COUNT(*) AS count FROM leads WHERE status = 'ganho'");
+    const simLeads = count("SELECT COUNT(*) AS count FROM leads WHERE source = 'simulador_financiamento'");
 
-    // Carros parados há mais de 60 dias com recomendação de desconto
     const staleVehicles = db.prepare(`
-      SELECT id, title, version, price, days_in_stock, fipe_reference_price
-      FROM vehicles
-      WHERE days_in_stock > 60 AND status = 'disponivel'
-      ORDER BY days_in_stock DESC
-    `).all().map(v => ({
-      ...v,
-      suggestedDiscountPercent: v.days_in_stock > 90 ? 7 : 4,
-      suggestedNewPrice: Math.round(v.price * (v.days_in_stock > 90 ? 0.93 : 0.96))
-    }));
+      SELECT v.id, v.title, v.version, v.price, ${daysInStockSql('v')} AS days_in_stock, v.fipe_reference_price
+      FROM vehicles v WHERE v.status = 'disponivel' AND ${daysInStockSql('v')} > 60 ORDER BY days_in_stock DESC
+    `).all().map(vehicle => {
+      const percent = vehicle.days_in_stock > 90 ? 7 : 4;
+      return { ...vehicle, suggestedDiscountPercent: percent, suggestedNewPrice: Math.round(vehicle.price * (1 - percent / 100)) };
+    });
 
     return sendJson(res, 200, {
+      hasData: totalLeads > 0,
       funnelSteps: [
-        { step: 'Visitas ao Site', count: 4850, rate: 100 },
-        { step: 'Veículos Visualizados', count: 1920, rate: 39.5 },
-        { step: 'Simulações & WhatsApp', count: 340 + simLeads, rate: 7.0 },
-        { step: 'Leads Criados', count: totalLeads + 120, rate: 2.8 },
-        { step: 'Em Atendimento', count: attendedLeads + 45, rate: 1.2 },
-        { step: 'Vendas Fechadas', count: wonLeads + 18, rate: 0.4 }
+        { step: 'Contatos recebidos', count: totalLeads },
+        { step: 'Simulações de financiamento', count: simLeads },
+        { step: 'Em atendimento ou ganhos', count: attendedLeads },
+        { step: 'Vendas fechadas', count: wonLeads }
       ],
-      averageResponseTimeMinutes: 18,
+      averageResponseTimeMinutes: null,
       staleVehiclesAlert: {
         totalStale: staleVehicles.length,
+        rule: 'Sugestão por regra fixa: mais de 60 dias em estoque, desconto de 4%; mais de 90 dias, 7%. É um ponto de partida, não uma avaliação de mercado.',
         vehicles: staleVehicles
       }
     });
   }
 
-  // ==========================================
-  // A6 & A7: GERADOR DE STORIES & INSTAGRAM
-  // ==========================================
-
+  // ---------- Stories e Instagram ----------
   if (pathname === '/api/tier3/stories/templates' && req.method === 'GET') {
     return sendJson(res, 200, {
       format: '1080x1920 (Vertical 9:16)',
@@ -429,157 +376,139 @@ export async function handleTier3Routes(req, res, pathname, body) {
   }
 
   if (pathname === '/api/tier3/instagram/status' && req.method === 'GET') {
-    const config = getInstagramConfigStatus();
-    return sendJson(res, 200, config);
+    const auth = authenticate(req);
+    if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
+    return sendJson(res, 200, getInstagramConfigStatus());
   }
 
   if (pathname === '/api/tier3/instagram/queue' && req.method === 'POST') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
+    const { imageUrl, caption } = body || {};
+    const vehicleId = toId(body?.vehicle_id);
+    if (!isId(vehicleId) || !db.prepare('SELECT id FROM vehicles WHERE id = ?').get(vehicleId)) return sendJson(res, 400, { error: 'Informe um veículo válido.' });
+    if (typeof imageUrl !== 'string' || !/^https:\/\/[^\s]{4,500}$/.test(imageUrl)) return sendJson(res, 400, { error: 'A imagem precisa de um endereço público https.' });
+    if (caption !== undefined && (typeof caption !== 'string' || caption.length > 2200)) return sendJson(res, 400, { error: 'Legenda inválida (até 2200 caracteres).' });
 
-    const { vehicle_id, imageUrl, caption } = body || {};
-    const result = await dispatchInstagramStory({ imageUrl, vehicleId: vehicle_id, caption });
-
-    db.prepare(`
-      INSERT INTO social_publications (vehicle_id, platform, status, external_media_id, response_log)
-      VALUES (?, 'instagram_story', ?, ?, ?)
-    `).run(
-      vehicle_id || 1,
-      result.status,
-      result.externalMediaId || null,
-      result.message || result.error || 'Ação registrada'
-    );
-
-    logAudit(db, auth.user, 'PUBLICACAO_INSTAGRAM', 'social_publications', vehicle_id, { status: result.status }, req);
-
+    const result = await dispatchInstagramStory({ imageUrl, vehicleId, caption });
+    db.prepare(`INSERT INTO social_publications (vehicle_id, platform, status, external_media_id, response_log, published_at)
+      VALUES (?, 'instagram_story', ?, ?, ?, ?)`).run(vehicleId, result.status, result.externalMediaId || null, result.message || result.error || 'Ação registrada', result.publishedAt || null);
+    audit(auth.user, 'PUBLICACAO_INSTAGRAM', 'social_publications', vehicleId, { status: result.status }, ip());
     return sendJson(res, 200, result);
   }
 
   if (pathname === '/api/tier3/instagram/history' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
-
-    const rows = db.prepare(`
-      SELECT sp.*, v.title as vehicle_title
-      FROM social_publications sp
-      JOIN vehicles v ON v.id = sp.vehicle_id
-      ORDER BY sp.created_at DESC
-    `).all();
-
-    return sendJson(res, 200, rows);
+    return sendJson(res, 200, db.prepare(`
+      SELECT sp.*, v.title AS vehicle_title FROM social_publications sp JOIN vehicles v ON v.id = sp.vehicle_id
+      ORDER BY sp.created_at DESC LIMIT 200
+    `).all());
   }
 
-  // ==========================================
-  // A8: AUDITORIA REFORÇADA & LGPD
-  // ==========================================
-
+  // ---------- Auditoria e LGPD ----------
   if (pathname === '/api/tier3/audit' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
-
-    const roleCheck = checkRole(auth.user, ['proprietario']);
-    if (!roleCheck.allowed) return sendJson(res, roleCheck.status, { error: roleCheck.error });
-
-    const logs = db.prepare('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100').all();
-    return sendJson(res, 200, logs);
+    const url = new URL(req.url, 'http://localhost');
+    const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '100', 10) || 100));
+    const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
+    const action = url.searchParams.get('action');
+    const rows = action
+      ? db.prepare('SELECT * FROM audit_logs WHERE action = ? ORDER BY id DESC LIMIT ? OFFSET ?').all(action, limit, offset)
+      : db.prepare('SELECT * FROM audit_logs ORDER BY id DESC LIMIT ? OFFSET ?').all(limit, offset);
+    return sendJson(res, 200, rows);
   }
 
-  // LGPD: Exportar dados de um titular
   const lgpdExportMatch = pathname.match(/^\/api\/tier3\/lgpd\/export\/(\d+)$/);
   if (lgpdExportMatch && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
-
     const clientId = parseInt(lgpdExportMatch[1], 10);
     const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(clientId);
     if (!client) return sendJson(res, 404, { error: 'Cliente não encontrado.' });
 
+    // Tudo que o sistema guarda sobre a pessoa, localizado pelo telefone ou e-mail cadastrados
+    const contacts = db.prepare('SELECT id, name, phone, email, source, status, message, created_at FROM leads WHERE phone = ? OR (email IS NOT NULL AND email != \'\' AND email = ?)').all(client.phone, client.email || '');
+    const account = client.email ? db.prepare('SELECT id, name, email, phone, created_at FROM customers WHERE email = ?').get(client.email) : null;
     const contracts = db.prepare('SELECT id, code, type, status, created_at FROM contracts WHERE client_id = ?').all(clientId);
-
-    logAudit(db, auth.user, 'LGPD_EXPORTACAO_TITULAR', 'clients', clientId, { clientName: client.name }, req);
-
+    audit(auth.user, 'LGPD_EXPORTACAO_TITULAR', 'clients', clientId, { clientName: client.name }, ip());
     return sendJson(res, 200, {
       titular: {
-        id: client.id,
-        nome: client.name,
-        cpf_completo: decryptSensitive(client.cpf_encrypted),
-        telefone: client.phone,
-        email: client.email,
-        endereco: decryptSensitive(client.address_encrypted),
-        cadastrado_em: client.created_at
+        id: client.id, nome: client.name, cpf_completo: decryptSensitive(client.cpf_encrypted), telefone: client.phone,
+        email: client.email, endereco: decryptSensitive(client.address_encrypted), observacoes: client.notes, cadastrado_em: client.created_at
       },
+      contatos_comerciais: contacts,
+      conta_no_site: account,
       contratos_vinculados: contracts,
-      termo_consentimento: 'Registrado com base legal no art. 7º, V da Lei 13.709/2018 (LGPD) para execução de contrato.'
+      observacao: 'Exportação para atendimento de solicitação do titular (art. 18 da LGPD). A base legal de cada tratamento é definida pela loja, como controladora. Esta exportação não inclui dados de consignação, onde o titular figura como proprietário do veículo; consulte a loja.'
     });
   }
 
-  // LGPD: Anonimização de dados do titular (Direito ao Esquecimento)
   const lgpdAnonMatch = pathname.match(/^\/api\/tier3\/lgpd\/anonymize\/(\d+)$/);
   if (lgpdAnonMatch && req.method === 'POST') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
-
-    const roleCheck = checkRole(auth.user, ['proprietario']);
-    if (!roleCheck.allowed) return sendJson(res, roleCheck.status, { error: roleCheck.error });
-
     const clientId = parseInt(lgpdAnonMatch[1], 10);
     const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(clientId);
     if (!client) return sendJson(res, 404, { error: 'Cliente não encontrado.' });
 
-    const dummyCpf = encryptSensitive('000.000.000-00');
-    const dummyAddr = encryptSensitive('Anonimizado a pedido do titular');
-
-    db.prepare(`
-      UPDATE clients 
-      SET name = 'Titular Anonimizado (LGPD)',
-          cpf_encrypted = ?,
-          phone = '(00) 00000-0000',
-          email = 'anonimizado@lgpd.local',
-          address_encrypted = ?,
-          notes = 'Dados anonimizados conforme Artigo 18 da LGPD a pedido do titular.'
-      WHERE id = ?
-    `).run(dummyCpf, dummyAddr, clientId);
-
-    logAudit(db, auth.user, 'LGPD_ANONIMIZACAO_TITULAR', 'clients', clientId, { originalId: clientId }, req);
-
-    return sendJson(res, 200, { message: 'Dados do titular anonimizados com sucesso.' });
+    const scrubbed = { contatos: 0, conta_no_site: 0, solicitacoes_de_troca: 0 };
+    db.exec('BEGIN');
+    try {
+      const leadRows = db.prepare('SELECT id FROM leads WHERE phone = ? OR (email IS NOT NULL AND email != \'\' AND email = ?)').all(client.phone, client.email || '');
+      for (const lead of leadRows) {
+        db.prepare("UPDATE leads SET name = 'Titular anonimizado', phone = '00000000000', email = NULL, message = NULL, simulation_data = NULL WHERE id = ?").run(lead.id);
+        db.prepare('DELETE FROM lead_history WHERE lead_id = ?').run(lead.id);
+        scrubbed.solicitacoes_de_troca += db.prepare("UPDATE trade_in_requests SET notes = NULL, vehicle_data = '{}' WHERE lead_id = ?").run(lead.id).changes;
+        scrubbed.contatos += 1;
+      }
+      if (client.email) {
+        const account = db.prepare('SELECT id FROM customers WHERE email = ?').get(client.email);
+        if (account) {
+          db.prepare('DELETE FROM customer_sessions WHERE customer_id = ?').run(account.id);
+          db.prepare('DELETE FROM customer_favorites WHERE customer_id = ?').run(account.id);
+          db.prepare('DELETE FROM price_alerts WHERE customer_id = ?').run(account.id);
+          db.prepare("UPDATE customers SET name = 'Titular anonimizado', email = ?, phone = NULL, password_hash = 'x', active = 0 WHERE id = ?").run(`anonimizado-${account.id}@invalido.local`, account.id);
+          scrubbed.conta_no_site = 1;
+        }
+      }
+      db.prepare(`UPDATE clients SET name = 'Titular anonimizado', cpf_encrypted = ?, phone = '00000000000', email = NULL,
+        address_encrypted = ?, notes = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(encryptSensitive('00000000000'), encryptSensitive(''), clientId);
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+    audit(auth.user, 'LGPD_ANONIMIZACAO_TITULAR', 'clients', clientId, scrubbed, ip());
+    return sendJson(res, 200, {
+      message: 'Dados do titular anonimizados.',
+      anonimizados: { cadastro_de_cliente: 1, ...scrubbed },
+      mantidos: 'Contratos já emitidos e registros de auditoria são mantidos pelo prazo de guarda legal (art. 16 da LGPD); os documentos emitidos podem conter o nome do titular e devem ser tratados pela loja conforme sua política de retenção.'
+    });
   }
 
-  // ==========================================
-  // EXPORTAÇÃO PARA PORTAIS AUTOMOTIVOS (FORA DA ENTREGA: ARQUIVO / ADAPTADOR)
-  // ==========================================
-
+  // ---------- Exportação do estoque (arquivo genérico) ----------
   if (pathname === '/api/tier3/portals/export' && req.method === 'GET') {
     const auth = authenticate(req);
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
-
     const url = new URL(req.url, 'http://localhost');
     const format = url.searchParams.get('format') || 'json';
 
     const vehicles = db.prepare(`
-      SELECT v.*, (SELECT COUNT(*) FROM vehicle_photos p WHERE p.vehicle_id = v.id) as photos_count
-      FROM vehicles v
-      WHERE v.status = 'disponivel' AND v.is_published = 1
+      SELECT v.*, ${daysInStockSql('v')} AS days_in_stock, (SELECT COUNT(*) FROM vehicle_photos p WHERE p.vehicle_id = v.id AND p.kind = 'photo') AS photos_count
+      FROM vehicles v WHERE v.status = 'disponivel' AND v.is_published = 1
     `).all();
 
     if (format === 'csv') {
-      const csv = exportVehiclesToCsv(vehicles);
-      res.writeHead(200, {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="catalogo_estoque_portais.csv"'
-      });
-      return res.end(csv);
+      res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="estoque.csv"' });
+      return res.end('﻿' + exportVehiclesToCsv(vehicles));
     }
-
-    const jsonExport = exportVehiclesToJson(vehicles, {
-      name: 'Auto-Dealership Enterprise',
-      cnpj: '00.123.456/0001-99'
-    });
-
-    return sendJson(res, 200, {
-      manifest: getPortalAdaptersManifest(),
-      data: jsonExport
-    });
+    for (const vehicle of vehicles) {
+      vehicle.photos = db.prepare("SELECT url FROM vehicle_photos WHERE vehicle_id = ? AND kind = 'photo' ORDER BY is_cover DESC, order_index, id").all(vehicle.id).map(photo => photo.url);
+    }
+    const store = storeIdentity();
+    return sendJson(res, 200, { manifest: getPortalAdaptersManifest(), data: exportVehiclesToJson(vehicles, { name: store.name, cnpj: store.cnpj }) });
   }
 
   return false;

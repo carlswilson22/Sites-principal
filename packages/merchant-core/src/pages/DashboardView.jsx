@@ -15,7 +15,10 @@ import {
   ArrowRight,
   TrendingUp,
   Sparkles,
-  PhoneCall
+  PhoneCall,
+  Wallet,
+  Receipt,
+  Banknote
 } from 'lucide-react';
 import { MetricCard } from '../components/common/MetricCard';
 import { TierGate } from '../components/common/TierGate';
@@ -23,6 +26,22 @@ import { apiClient } from '../services/apiClient';
 import { storeSync } from '../services/storeSync';
 import { useTier } from '../context/TierContext';
 import { useAuth } from '../context/AuthContext';
+import { isRemote } from '../services/remote';
+import { demoSales } from '../data/demoShowcase';
+
+const DAY = 24 * 60 * 60 * 1000;
+const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const agoLabel = days => (days <= 0 ? 'hoje' : days === 1 ? 'ontem' : `há ${days} dias`);
+
+// Vendas dos últimos 30 dias: as reais (veículos vendidos) e, só na demonstração, o histórico de exemplo.
+function collectSales(vehicles, storeKey) {
+  const now = Date.now();
+  const real = vehicles
+    .filter(v => v.status === 'vendido' && Date.parse(v.soldAt || v.sold_at || v.updatedAt) >= now - 30 * DAY)
+    .map(v => ({ model: v.nome || v.title, value: Number(v.sale_price || v.preco || v.price) || 0, soldAt: v.soldAt || v.sold_at || v.updatedAt }));
+  const sample = isRemote ? [] : demoSales(storeKey, now);
+  return [...real, ...sample].sort((a, b) => Date.parse(b.soldAt) - Date.parse(a.soldAt)).map(sale => ({ ...sale, daysAgo: Math.max(0, Math.floor((now - Date.parse(sale.soldAt)) / DAY)) }));
+}
 
 export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
   const { tier } = useTier();
@@ -38,8 +57,11 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         const leads = storeSync.getLeads(storeKey);
 
         const inStock = vehicles.filter(v => v.status !== 'vendido').length;
-        const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        const monthlySales = vehicles.filter(v => v.status === 'vendido' && Date.parse(v.soldAt || v.sold_at || v.updatedAt) >= monthAgo).length;
+        const sales = collectSales(vehicles, storeKey);
+        const monthlySales = sales.length;
+        const revenue = sales.reduce((sum, sale) => sum + sale.value, 0);
+        const stockValue = vehicles.filter(v => v.status !== 'vendido').reduce((sum, v) => sum + (Number(v.preco ?? v.price) || 0), 0);
+        const weeks = [0, 1, 2, 3].map(week => sales.filter(sale => sale.daysAgo >= week * 7 && sale.daysAgo < (week + 1) * 7).length).reverse();
         const staleVehicles = vehicles.filter(v => v.status !== 'vendido' && (v.days_in_stock || 0) > 60).length;
         const newLeads = leads.filter(l => l.status === 'novo').length;
 
@@ -51,6 +73,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
             name: l.name,
             phone: l.phone,
             source: l.source,
+            status: l.status,
             temperature: l.temperature || 'quente',
             created_at: l.created_at
           }));
@@ -61,8 +84,13 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
             inStock,
             monthlySales,
             staleVehicles,
-            newLeads
+            newLeads,
+            revenue,
+            stockValue,
+            averageTicket: monthlySales ? revenue / monthlySales : 0
           },
+          weeks,
+          recentSales: sales.slice(0, 4),
           pendingActions: pending
         });
       } catch (err) {
@@ -87,6 +115,9 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
   };
 
   const pendingActions = data?.pendingActions || [];
+  const weeks = data?.weeks || [0, 0, 0, 0];
+  const recentSales = data?.recentSales || [];
+  const peak = Math.max(1, ...weeks);
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -134,6 +165,47 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
         />
       </div>
 
+      {/* Resultado do mês: faturamento, ticket médio e valor parado em estoque */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <MetricCard title="Faturamento do Mês" value={money(indicators.revenue)} icon={Banknote} description="Soma das vendas dos últimos 30 dias" color="emerald" />
+        <MetricCard title="Ticket Médio" value={money(indicators.averageTicket)} icon={Receipt} description="Valor médio por veículo vendido" color="blue" />
+        <MetricCard title="Valor em Estoque" value={money(indicators.stockValue)} icon={Wallet} description="Soma dos preços dos veículos à venda" color="amber" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6 backdrop-blur-sm">
+          <h2 className="text-sm sm:text-base font-bold text-white">Vendas por semana</h2>
+          <p className="text-xs text-slate-400 mb-5">Veículos vendidos nas últimas quatro semanas</p>
+          <div className="flex items-end gap-4 h-36" role="img" aria-label={`Vendas por semana: ${weeks.join(', ')}`}>
+            {weeks.map((count, index) => (
+              <div key={index} className="flex-1 flex flex-col items-center justify-end h-full gap-2">
+                <span className="text-xs font-semibold text-slate-200">{count}</span>
+                <div className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600/70 to-emerald-400/80" style={{ height: `${Math.max(6, (count / peak) * 100)}%` }} />
+                <span className="text-[11px] text-slate-500">{index === 3 ? 'Esta semana' : `Há ${3 - index} sem.`}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6 backdrop-blur-sm">
+          <h2 className="text-sm sm:text-base font-bold text-white">Últimas vendas</h2>
+          <p className="text-xs text-slate-400 mb-3">Veículos que já saíram do estoque</p>
+          {recentSales.length === 0
+            ? <p className="text-sm text-slate-400 py-6">Nenhuma venda nos últimos 30 dias. Quando você marcar um veículo como vendido, ele aparece aqui.</p>
+            : <ul className="divide-y divide-slate-800/60">
+              {recentSales.map((sale, index) => (
+                <li key={`${sale.model}-${index}`} className="py-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="block text-sm font-semibold text-slate-200 truncate">{sale.model}</span>
+                    <span className="text-xs text-slate-500">{agoLabel(sale.daysAgo)}</span>
+                  </div>
+                  <span className="text-sm font-bold text-emerald-300 whitespace-nowrap">{money(sale.value)}</span>
+                </li>
+              ))}
+            </ul>}
+        </div>
+      </div>
+
       {/* 3. E2: Lista Curta de Pendências (Contatos sem resposta) */}
       <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
@@ -168,7 +240,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite' }) {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-slate-200">{lead.name}</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold uppercase">
-                      Novo
+                      {lead.status === 'novo' ? 'Novo' : 'Em atendimento'}
                     </span>
                   </div>
                   <span className="text-xs text-slate-400">{lead.phone} • Origem: {String(lead.source || 'site').replaceAll('_', ' ')}</span>

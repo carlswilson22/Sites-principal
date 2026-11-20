@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import LeadForm from '../components/LeadForm.astro';
+import { hoursRows, whatsappLink } from '../lib/format';
+import { trackView } from '../lib/track';
+
+const store = Astro.locals.settings.store || {};
+trackView(Astro.request, Astro.clientAddress, 'page_view', 'contato');
+const rows = hoursRows(store.hours);
+const about = String(store.about || '').split(/\n{1,}/).map((p: string) => p.trim()).filter(Boolean);
+const place = [store.city, store.uf].filter(Boolean).join('/');
+const fullAddress = [store.address, place].filter(Boolean).join(', ');
+const map = fullAddress ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}` : '';
+const whatsapp = whatsappLink(store.whatsapp, `Olá! Vim pelo site da ${store.name || 'loja'}.`);
+---
+<Base title="Sobre e contato" description={`Endereço, horários e contato de ${store.name || 'nossa loja'}${place ? ` em ${place}` : ''}.`} path="/contato" current="contato">
+  <div class="section wrap">
+    <h1>Sobre e contato</h1>
+    <div class="two" style="margin-top: 2rem">
+      <div class="stack prose">
+        {about.length > 0 && <section><h2>{store.name}</h2>{about.map((p: string) => <p>{p}</p>)}</section>}
+        <section>
+          <h2>Onde estamos</h2>
+          {fullAddress ? <p>{fullAddress}</p> : <p class="muted">Endereço em atualização.</p>}
+          {map && <p><a href={map} rel="noopener" target="_blank">Abrir no Google Maps</a></p>}
+          {store.phone && <p>Telefone: {store.phone}</p>}
+          {whatsapp && <p><a class="btn btn--accent" href={whatsapp} rel="noopener" data-whatsapp>Chamar no WhatsApp</a></p>}
+        </section>
+        {rows.length > 0 && (
+          <section>
+            <h2>Horário de atendimento</h2>
+            <table class="hours">
+              <caption class="vh">Horário de atendimento</caption>
+              <tbody>{rows.map(r => <tr data-today={r.today}><th scope="row">{r.label}{r.today ? ' (hoje)' : ''}</th><td>{r.text}</td></tr>)}</tbody>
+            </table>
+          </section>
+        )}
+      </div>
+      <div>
+        <h2 style="margin-bottom:1rem">Mande uma mensagem</h2>
+        <LeadForm source="site_formulario" back="/contato" storeName={store.name || 'a loja'} />
+      </div>
+    </div>
+  </div>
+</Base>

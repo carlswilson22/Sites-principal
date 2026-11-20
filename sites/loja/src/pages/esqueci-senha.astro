@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import Flash from '../components/Flash.astro';
+---
+<Base title="Recuperar senha" path="/esqueci-senha" noindex>
+  <div class="section wrap">
+    <h1>Esqueci minha senha</h1>
+    <p class="muted" style="margin-top:1rem">Informe o e-mail da sua conta. Se ele estiver cadastrado, enviamos um link para criar uma nova senha, válido por 1 hora.</p>
+    <div style="margin-top:1.5rem;max-width:30rem">
+      <Flash />
+      <form class="form" method="post" action="/conta/recuperar" style="margin-top:1rem">
+        <label class="field">E-mail<input name="email" type="email" autocomplete="email" required maxlength="160" /></label>
+        <button class="btn btn--accent" type="submit">Enviar link</button>
+      </form>
+      <p style="margin-top:1rem"><a href="/conta/entrar">Voltar para entrar</a></p>
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,33 @@
+---
+interface Props { vehicleId: number; items: any[]; kind: 'photo' | 'frame360'; max: number; title: string; help: string }
+const { vehicleId, items, kind, max, title, help } = Astro.props;
+---
+<section class="panel" aria-label={title}>
+  <h2>{title} <span class="muted small">({items.length} de {max})</span></h2>
+  <p class="muted small" style="margin-top:0.4rem">{help}</p>
+
+  {items.length > 0 && (
+    <ul class="photos" style="margin:1rem 0">
+      {items.map((item, index) => (
+        <li>
+          <img src={item.url} alt={`${title}, número ${index + 1}`} loading="lazy" width="300" height="225" />
+          <div class="row">
+            {kind === 'photo' && (item.is_cover ? <span class="badge badge--ok">Capa</span> : (
+              <form method="post" action="/acoes/foto-acao"><input type="hidden" name="vehicle_id" value={vehicleId} /><input type="hidden" name="media_id" value={item.id} /><input type="hidden" name="op" value="capa" /><button class="btn btn--ghost btn--small" type="submit">Capa</button></form>
+            ))}
+            {index > 0 && <form method="post" action="/acoes/foto-acao"><input type="hidden" name="vehicle_id" value={vehicleId} /><input type="hidden" name="media_id" value={item.id} /><input type="hidden" name="kind" value={kind} /><input type="hidden" name="op" value="subir" /><button class="btn btn--ghost btn--small" type="submit" aria-label="Mover para antes">←</button></form>}
+            {index < items.length - 1 && <form method="post" action="/acoes/foto-acao"><input type="hidden" name="vehicle_id" value={vehicleId} /><input type="hidden" name="media_id" value={item.id} /><input type="hidden" name="kind" value={kind} /><input type="hidden" name="op" value="descer" /><button class="btn btn--ghost btn--small" type="submit" aria-label="Mover para depois">→</button></form>}
+            <form method="post" action="/acoes/foto-acao"><input type="hidden" name="vehicle_id" value={vehicleId} /><input type="hidden" name="media_id" value={item.id} /><input type="hidden" name="op" value="excluir" /><button class="btn btn--danger btn--small" type="submit">Excluir</button></form>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+
+  {items.length < max ? (
+    <form data-upload data-vehicle={vehicleId} data-kind={kind} class="form" style="margin-top:1rem" method="post" action="/acoes/foto">
+      <label class="field">Escolher imagens<input type="file" accept="image/jpeg,image/png,image/webp" multiple /></label>
+      <div class="actions"><button class="btn btn--accent" type="submit">Enviar</button><span class="progress" data-progress role="status"></span></div>
+    </form>
+  ) : <p class="muted">Limite de {max} atingido. Exclua alguma para enviar outras.</p>}
+</section>

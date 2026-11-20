@@ -1,0 +1,53 @@
+---
+interface Props {
+  rates: { name: string; monthlyRatePercent: number }[];
+  slug?: string;
+  defaultDown?: number;
+  defaultPrice?: number;
+  askPrice?: boolean;
+}
+const { rates, slug, defaultDown = 0, defaultPrice, askPrice = false } = Astro.props;
+---
+<div class="sim" data-sim data-slug={slug}>
+  <div class="sim__grid">
+    {askPrice && <label class="field">Valor do veículo (R$)<input name="price" type="number" min="1000" step="500" inputmode="numeric" value={defaultPrice} /></label>}
+    <label class="field">Entrada (R$)<input name="down" type="number" min="0" step="100" inputmode="numeric" value={defaultDown} /></label>
+    <label class="field">Parcelas
+      <select name="months">{[12, 24, 36, 48, 60].map(m => <option value={m} selected={m === 48}>{m}x</option>)}</select>
+    </label>
+    {rates.length > 1 && (
+      <label class="field">Condição
+        <select name="rate">{rates.map((r, i) => <option value={i}>{r.name}</option>)}</select>
+      </label>
+    )}
+  </div>
+  <button class="btn btn--ghost" type="button" data-sim-run>Calcular parcela</button>
+  <p class="sim__out" role="status" data-sim-out></p>
+  <p class="muted" style="margin:0;font-size:0.9rem">Estimativa com as condições da loja. Não consulta nem aprova crédito; valores e taxas finais dependem da análise da instituição financeira.</p>
+</div>
+<script>
+  // Calcula no servidor da loja. Se houver formulário de contato na página, anexa a simulação a ele.
+  document.querySelectorAll<HTMLElement>('[data-sim]').forEach(sim => {
+    const out = sim.querySelector<HTMLElement>('[data-sim-out]')!;
+    const money = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const get = (name: string) => (sim.querySelector(`[name=${name}]`) as HTMLInputElement | null)?.value;
+    sim.querySelector('[data-sim-run]')!.addEventListener('click', async () => {
+      out.textContent = 'Calculando…';
+      try {
+        const response = await fetch('/simular', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: sim.dataset.slug || undefined, price: get('price') ? Number(get('price')) : undefined, down: Number(get('down') || 0), months: Number(get('months')), rate: Number(get('rate') || 0) })
+        });
+        const data = await response.json();
+        if (!response.ok) { out.textContent = data.error || 'Não foi possível calcular.'; return; }
+        out.textContent = `${data.months}x de ${money(data.installment)} (taxa de ${String(data.ratePercent).replace('.', ',')}% ao mês)`;
+        const form = document.querySelector<HTMLFormElement>('form[data-lead-form]');
+        if (form && sim.dataset.slug) {
+          (form.querySelector('[name=source]') as HTMLInputElement).value = 'simulador_financiamento';
+          (form.querySelector('[data-simulation]') as HTMLInputElement).value = JSON.stringify({ down: data.down, months: data.months, installment: data.installment, ratePercent: data.ratePercent });
+          (form.querySelector('[data-message]') as HTMLTextAreaElement).value = `Simulei ${data.months}x de ${money(data.installment)} com entrada de ${money(data.down)}. Quero falar sobre esta condição.`;
+        }
+      } catch { out.textContent = 'Sem conexão. Tente de novo.'; }
+    });
+  });
+</script>

@@ -79,7 +79,7 @@ export function VehicleDetailModal({
         <div className="flex items-center justify-between gap-3 px-3 py-2 sm:px-4 border-b border-slate-800 bg-slate-950/80 sticky top-0 z-20 ">
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-semibold border border-cyan-500/30">
-              Estoque Certificado
+              Estoque selecionado
             </span>
             {fipe && fipe.isBelow && (
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
@@ -148,12 +148,13 @@ export function VehicleDetailModal({
 
           {/* Galeria principal */}
           <div data-vehicle-gallery className="space-y-1.5">
-            <div className="relative h-[clamp(9rem,24vh,16rem)] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+            <div className="relative h-[clamp(11rem,34vh,22rem)] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
+              {currentImage && <VehicleImage src={currentImage} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40" />}
               <VehicleImage
                 src={currentImage}
               fetchPriority="high"
                 alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
-                className="w-full h-full object-contain"
+                className="relative w-full h-full object-contain"
               />
 
               {images.length > 1 && (
@@ -195,7 +196,7 @@ export function VehicleDetailModal({
             <VehicleAdTools key={`tools-${vehicle.id}`} theme="cyan" tools={[
               { id: 'ficha', label: 'Ficha Técnica Completa', icon: ClipboardList, content: <VehicleTechnicalSheet vehicle={vehicle} /> },
               { id: 'opcionais', label: 'Itens de Série & Opcionais', icon: CheckCircle2, content: <VehicleEquipmentList vehicle={vehicle} /> },
-              { id: 'laudo', label: 'Laudo Cautelar Digital', icon: ShieldCheck, content: <VehicleInspectionDetails vehicle={vehicle} onOpenDossier={onOpenDossier} /> },
+              { id: 'laudo', label: 'Laudo informado pela loja', icon: ShieldCheck, content: <VehicleInspectionDetails vehicle={vehicle} onOpenDossier={onOpenDossier} /> },
               { id: 'tco', label: 'Calculadora TCO', icon: Calculator, keepMounted: true, content: <TcoCalculatorCard vehicle={vehicle} /> },
               { id: 'galeria', label: `Galeria Expandida (${images.length})`, icon: Camera, content: <VehicleExpandedGallery images={images} vehicleName={vehicle.nome} /> },
               ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-3 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),

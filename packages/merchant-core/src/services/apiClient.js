@@ -1,15 +1,12 @@
 import { isDemoMode, createDemoAccount } from './demoConfig';
 import { loginDemoCustomer, registerDemoCustomer } from './demoCustomerAccounts.js';
+import { API_BASE_URL, apiFetch } from './remote.js';
 /**
  * packages/merchant-core/src/services/apiClient.js
  * Adaptador de dados híbrido:
  * - Em desenvolvimento/produção com servidor: Consome a API HTTP nativa.
  * - Em demonstração estática (GitHub Pages): Opera com repositório seguro em memória/LocalStorage.
  */
-
-const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-  ? 'http://localhost:3001/api'
-  : '/api';
 
 async function optionalApi(...args) {
   if (isDemoMode) return null;
@@ -54,27 +51,47 @@ export const apiClient = {
       try { return { user: createDemoAccount(email, password) }; }
       catch { return { user: await loginDemoCustomer(storeKey, email, password) }; }
     }
-    const res = await fetch(API_BASE_URL + '/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }), credentials: 'include'
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Falha ao autenticar.');
-    return data;
+    // Modo real: tenta a equipe da loja e, se o servidor disser que as credenciais não são de equipe, o cliente do site.
+    try {
+      return await apiFetch('/auth/login', { method: 'POST', body: { email, password } });
+    } catch (error) {
+      if (error.status !== 401) throw error;
+      try {
+        const result = await apiFetch('/customers/login', { method: 'POST', body: { email, password } });
+        return { user: { ...result.customer, role: 'cliente' } };
+      } catch (second) {
+        throw second.status === 401 ? new Error('E-mail ou senha inválidos.') : second;
+      }
+    }
   },
   async registerCustomer(details, storeKey) {
-    if (!isDemoMode) throw new Error('O cadastro precisa ser conectado ao servidor da loja.');
-    return { user: await registerDemoCustomer(storeKey, details) };
+    if (isDemoMode) return { user: await registerDemoCustomer(storeKey, details) };
+    if (details.password !== details.confirmPassword) throw new Error('A confirmação não é igual à senha.');
+    const result = await apiFetch('/customers/register', { method: 'POST', body: { name: details.name, email: String(details.email).trim().toLowerCase(), password: details.password, phone: details.phone || undefined, consent: details.consent === true } });
+    return { user: { ...result.customer, role: 'cliente' } };
   },
   async getSession() {
-    const res = await fetch(API_BASE_URL + '/auth/me', { credentials: 'include' });
-    if (!res.ok) return null;
-    return (await res.json()).user;
+    if (isDemoMode) return null;
+    try { return (await apiFetch('/auth/me')).user; }
+    catch (error) {
+      if (error.status !== 401) throw error;
+      try {
+        const result = await apiFetch('/customers/me');
+        return result.customer ? { ...result.customer, role: 'cliente' } : null;
+      } catch { return null; }
+    }
   },
   async logout() {
     if (isDemoMode) return;
-    const res = await fetch(API_BASE_URL + '/auth/logout', { method: 'POST', credentials: 'include' });
-    if (!res.ok) throw new Error('Nao foi possivel encerrar a sessao. Tente novamente.');
+    await Promise.allSettled([apiFetch('/auth/logout', { method: 'POST' }), apiFetch('/customers/logout', { method: 'POST' })]);
+  },
+  async changePassword(currentPassword, newPassword) {
+    if (isDemoMode) throw new Error('A troca de senha não existe na demonstração.');
+    return apiFetch('/auth/change-password', { method: 'POST', body: { current_password: currentPassword, new_password: newPassword } });
+  },
+  async recoverPassword(email) {
+    if (isDemoMode) return { message: 'Na demonstração não há envio de e-mail.' };
+    return apiFetch('/auth/recover', { method: 'POST', body: { email } });
   },
 
   // E6: Registro de Contato (Leads do site)
@@ -141,18 +158,22 @@ export const apiClient = {
       ownStock: { count: 8, total_retail_value: 820000, total_invested: 645000 },
       consignedStock: { count: 4, total_retail_value: 390000 },
       salesMetrics: { totalSoldCars: 6, totalSalesRevenue: 580000, totalRealizedProfit: 78500 },
+      demo: true,
+      period: 'ultimos_12_meses',
+      commissionRatePercent: 1.5,
+      commissionConfigured: true,
+      warnings: [],
       sellersCommissions: [
         { sellerId: 3, name: 'Lucas Lima (Atendente)', email: 'atendente@lojaexemplo.com.br', salesCount: 4, totalSold: 390000, commissionAmount: 5850 }
       ],
       bankReport: {
-        storeName: 'Auto-Dealership Enterprise Veículos',
+        storeName: 'Loja de exemplo',
         generatedAt: new Date().toISOString(),
         activeInventoryCount: 12,
         activeInventoryValue: 1210000,
         ownStockInvestedCapital: 645000,
         last12MonthsGrossRevenue: 580000,
-        last12MonthsNetProfit: 78500,
-        financialHealthIndex: 'A+'
+        last12MonthsNetProfit: 78500
       }
     };
   },

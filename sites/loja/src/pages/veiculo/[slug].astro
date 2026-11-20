@@ -1,0 +1,228 @@
+---
+import Base from '../../layouts/Base.astro';
+import PriceTag from '../../components/PriceTag.astro';
+import LeadForm from '../../components/LeadForm.astro';
+import Simulator from '../../components/Simulator.astro';
+import Flash from '../../components/Flash.astro';
+import Viewer360 from '../../components/Viewer360.astro';
+import Tco from '../../components/Tco.astro';
+import { dossierFacts } from '../../lib/dossier';
+import { readCompare } from '../../lib/compare';
+import { getVehicle } from '../../lib/api';
+import { brl, hoursRows, kmText, vehicleLine, whatsappLink } from '../../lib/format';
+import { apiAsCustomer } from '../../lib/session';
+import { trackView } from '../../lib/track';
+
+const { slug } = Astro.params;
+const v = await getVehicle(String(slug));
+const settings = Astro.locals.settings;
+const store = settings.store || {};
+const storeName = store.name || 'a loja';
+
+if (!v) Astro.response.status = 404;
+else trackView(Astro.request, Astro.clientAddress, 'vehicle_view', 'veiculo', v.id);
+
+const photos: { url: string }[] = v?.photos || [];
+const title = v ? [v.title, v.version].filter(Boolean).join(' ') : 'Veículo não encontrado';
+const origin = Astro.url.origin;
+const features: string[] = Array.isArray(v?.features) ? v.features : [];
+const report = v?.report_data && v.report_data.status ? v.report_data : null;
+const rates: { name: string; monthlyRatePercent: number }[] = settings.simulator?.rates || [];
+const simulatorOn = Array.isArray(settings.modules) && settings.modules.includes('financing') && rates.length > 0;
+const message = v ? `Olá! Tenho interesse no ${title}, ${v.year}, que vi no site. Ainda está disponível?` : '';
+const whatsapp = v ? whatsappLink(store.whatsapp, message) : '';
+const modules: string[] = settings.modules || [];
+const favoritesOn = modules.includes('favorites') && modules.includes('customers');
+let isFavorite = false;
+if (v && favoritesOn && Astro.locals.customer) {
+  try {
+    const response = await apiAsCustomer('/api/customers/favorites', Astro.request);
+    if (response.ok) isFavorite = (await response.json()).some((row: any) => row.id === v.id);
+  } catch { /* sem a lista, o botão aparece como "salvar" */ }
+}
+const hours = hoursRows(store.hours);
+const frames: { url: string }[] = modules.includes('viewer360') && Array.isArray(v?.frames360) && v.frames360.length >= 8 ? v.frames360 : [];
+const costs = modules.includes('tco') ? v?.costs : null;
+const tcoOn = Boolean(costs && (costs.city_consumption || costs.road_consumption || costs.avg_maintenance || costs.annual_insurance));
+const dossier = modules.includes('dossier') && v?.dossier ? dossierFacts(v.dossier) : [];
+const compareOn = modules.includes('compare');
+const inCompare = compareOn ? readCompare(Astro.request).includes(String(slug)) : false;
+const alertOn = modules.includes('price_alert') && modules.includes('customers');
+const faq: { q: string; a: string; link?: { href: string; text: string } }[] = [];
+if (v) {
+  faq.push({ q: 'Este carro está disponível?', a: v.status === 'reservado' ? 'Ele está reservado no momento. Fale com a loja para saber se a reserva cai.' : 'Ele está no estoque agora. Confirme com a loja antes de ir até lá.' });
+  if (simulatorOn) faq.push({ q: 'Dá para financiar?', a: 'A loja trabalha com financiamento. Use o simulador desta página para ver uma estimativa de parcela. A aprovação depende da análise de crédito da instituição financeira.' });
+  if (modules.includes('trade_in')) faq.push({ q: 'A loja aceita meu carro na troca?', a: 'A loja avalia usados na troca. Envie os dados do seu carro e ela entra em contato.', link: { href: `/servicos?veiculo=${slug}#troca`, text: 'Avaliar meu usado' } });
+  if (hours.length) faq.push({ q: 'Qual o horário de atendimento?', a: hours.map(r => `${r.label}: ${r.text}`).join('. ') + '.' });
+  if (store.address) faq.push({ q: 'Onde fica a loja?', a: [store.address, [store.city, store.uf].filter(Boolean).join('/')].filter(Boolean).join(', ') + '.' });
+}
+const defaultDown = v ? Math.round((v.price * 0.2) / 100) * 100 : 0;
+
+const specs = v ? ([
+  ['Ano', v.year], ['Quilometragem', v.km != null ? kmText(v.km) : ''], ['Câmbio', v.transmission], ['Combustível', v.fuel],
+  ['Cor', v.color && v.color !== 'Não especificada' ? v.color : ''], ['Portas', v.doors], ['Motor', v.engine], ['Potência', v.power]
+] as [string, any][]).filter(([, value]) => value) : [];
+
+const structured = v ? [
+  {
+    '@context': 'https://schema.org', '@type': 'Car', name: title, ...(v.brand ? { brand: { '@type': 'Brand', name: v.brand } } : {}),
+    vehicleModelDate: String(v.year).slice(0, 4), ...(v.km != null ? { mileageFromOdometer: { '@type': 'QuantitativeValue', value: v.km, unitCode: 'KMT' } } : {}),
+    ...(v.fuel ? { fuelType: v.fuel } : {}), ...(v.transmission ? { vehicleTransmission: v.transmission } : {}), ...(v.color ? { color: v.color } : {}),
+    ...(photos.length ? { image: photos.map(p => origin + p.url) } : {}),
+    offers: { '@type': 'Offer', price: v.price, priceCurrency: 'BRL', availability: v.status === 'reservado' ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/InStock', url: origin + Astro.url.pathname, seller: { '@type': 'AutoDealer', name: store.name } }
+  },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Estoque', item: origin + '/estoque' }, { '@type': 'ListItem', position: 2, name: title }
+  ] }
+] : [];
+---
+<Base
+  title={v ? `${title} ${v.year}` : 'Veículo não encontrado'}
+  description={v ? `${title}, ${v.year}, ${v.km != null ? kmText(v.km) : ''} por ${brl(v.price)}. Veja fotos e fale com ${storeName}.` : ''}
+  path={`/veiculo/${slug}`}
+  image={photos[0]?.url}
+  noindex={!v}
+  structured={structured}
+  current="estoque"
+>
+  {!v ? (
+    <div class="section wrap">
+      <h1>Este veículo não está mais no estoque</h1>
+      <p style="margin-top:1rem">Ele pode ter sido vendido. Veja os que estão disponíveis agora.</p>
+      <p><a class="btn btn--accent" href="/estoque">Ver o estoque</a></p>
+    </div>
+  ) : (
+    <div class="wrap" data-vehicle-id={v.id}>
+      <nav class="crumbs" aria-label="Você está em"><a href="/estoque">Estoque</a> / {v.title}</nav>
+      <div class="vehicle">
+        <div class="gallery">
+            <div class="gallery__main">
+              {photos.length > 0
+                ? <img src={photos[0].url} alt={title} width="1200" height="900" fetchpriority="high" data-main />
+                : <div class="vcard__empty" style="height:100%">Fotos em breve</div>}
+            </div>
+            {photos.length > 1 && (
+              <div class="gallery__thumbs" aria-label="Mais fotos">
+                {photos.map((p, i) => <a href={p.url} data-thumb aria-current={i === 0 ? 'true' : 'false'}><img src={p.url} alt={`${title}, foto ${i + 1}`} width="192" height="144" loading="lazy" /></a>)}
+              </div>
+            )}
+          {frames.length > 0 && (
+            <details class="v360-box" open>
+              <summary>Veja o carro em 360°</summary>
+              <Viewer360 frames={frames} alt={title} />
+            </details>
+          )}
+          </div>
+
+        <aside class="buy" aria-label="Preço e contato">
+          <h1>{v.title}</h1>
+          {v.version && <p class="muted" style="margin:0">{v.version}</p>}
+          <ul class="facts">{vehicleLine(v).map(item => <li>{item}</li>)}</ul>
+          <div>
+            <PriceTag price={v.price} large />
+            {v.original_price > v.price && <span class="was">{brl(v.original_price)}</span>}
+          </div>
+          {v.status === 'reservado' && <p class="note" style="margin:0">Este veículo está reservado. Fale com a loja para saber se a reserva cai.</p>}
+          {whatsapp && <a class="btn btn--accent btn--block" href={whatsapp} rel="noopener" data-whatsapp>Chamar no WhatsApp</a>}
+          <Flash />
+          {favoritesOn && (
+            <form class="fav" method="post" action="/favoritar">
+              <input type="hidden" name="vehicle_id" value={v.id} />
+              <input type="hidden" name="voltar" value={`/veiculo/${slug}`} />
+              <input type="hidden" name="acao" value={isFavorite ? 'remover' : 'salvar'} />
+              <button class="btn btn--ghost btn--block" type="submit" aria-pressed={isFavorite}>{isFavorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'}</button>
+            </form>
+          )}
+          {compareOn && (
+            <form class="fav" method="post" action="/comparar-acao">
+              <input type="hidden" name="slug" value={String(slug)} />
+              <input type="hidden" name="acao" value={inCompare ? 'remover' : 'adicionar'} />
+              <input type="hidden" name="voltar" value={`/veiculo/${slug}`} />
+              <button class="btn btn--ghost btn--block" type="submit" aria-pressed={inCompare}>{inCompare ? 'Remover da comparação' : 'Comparar com outros carros'}</button>
+            </form>
+          )}
+          {alertOn && (
+            <details class="alert">
+              <summary>Quero uma condição melhor</summary>
+              <form class="form" method="post" action="/alerta-preco">
+                <input type="hidden" name="vehicle_id" value={v.id} />
+                <input type="hidden" name="voltar" value={`/veiculo/${slug}`} />
+                <label class="field">Valor que você pagaria (R$)<input name="desired_price" type="number" min="1" step="100" inputmode="numeric" required /></label>
+                <label class="check"><input type="checkbox" name="consent" required /><span>Li o <a href="/privacidade">aviso de privacidade</a> e autorizo {store.name || 'a loja'} a entrar em contato sobre este valor.</span></label>
+                <p class="muted" style="margin:0;font-size:0.9rem">A loja entra em contato para negociar. Não monitoramos preços nem avisamos automaticamente.</p>
+                <button class="btn btn--accent btn--block" type="submit">Enviar pedido</button>
+              </form>
+            </details>
+          )}
+          <h2 style="font-size:1.4rem">Prefere que a loja ligue?</h2>
+          <LeadForm source="site_formulario" back={`/veiculo/${slug}`} vehicleId={v.id} message={`Tenho interesse no ${title}.`} button="Quero ser chamado" storeName={store.name || 'a loja'} />
+        </aside>
+
+        <div class="stack details">
+          <section aria-labelledby="dados">
+            <h2 id="dados">Dados do veículo</h2>
+            <dl class="specs">{specs.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+          </section>
+
+          {features.length > 0 && (
+            <section aria-labelledby="opcionais">
+              <h2 id="opcionais">Opcionais</h2>
+              <ul class="opts">{features.map(f => <li>{f}</li>)}</ul>
+            </section>
+          )}
+
+          {dossier.length > 0 && (
+            <section aria-labelledby="dossie">
+              <h2 id="dossie">Dossiê do veículo</h2>
+              <dl class="specs">{dossier.map(f => <div><dt>{f.label}</dt><dd>{f.text}</dd></div>)}</dl>
+              <p class="note" style="margin-top:1rem">Informações cadastradas pela loja, sem consulta automática a bases externas. Confira o laudo e os documentos com a equipe.</p>
+            </section>
+          )}
+
+          {tcoOn && (
+            <section aria-labelledby="tco">
+              <h2 id="tco">Quanto custa manter este carro</h2>
+              <Tco costs={costs} />
+            </section>
+          )}
+
+          {faq.length >= 2 && (
+            <section aria-labelledby="perguntas" class="faq">
+              <h2 id="perguntas">Perguntas rápidas</h2>
+              {faq.map(item => <details><summary>{item.q}</summary><p>{item.a} {item.link && <a href={item.link.href}>{item.link.text}</a>}</p></details>)}
+            </section>
+          )}
+
+          {report && (
+            <section aria-labelledby="laudo">
+              <h2 id="laudo">Laudo</h2>
+              <p class="note"><strong>{report.status}</strong>. Informação fornecida pela loja. Confirme a documentação com a equipe antes de fechar negócio.</p>
+            </section>
+          )}
+
+          {simulatorOn && (
+            <section aria-labelledby="simulador">
+              <h2 id="simulador">Simule o financiamento</h2>
+              <Simulator rates={rates} slug={String(slug)} defaultDown={defaultDown} />
+            </section>
+          )}
+        </div>
+
+        
+      </div>
+    </div>
+  )}
+</Base>
+<script>
+  // Galeria: a miniatura troca a foto grande. Sem JavaScript, a miniatura abre a imagem.
+  const main = document.querySelector<HTMLImageElement>('[data-main]');
+  document.querySelectorAll<HTMLAnchorElement>('[data-thumb]').forEach(thumb => {
+    thumb.addEventListener('click', event => {
+      if (!main) return;
+      event.preventDefault();
+      main.src = thumb.href;
+      document.querySelectorAll('[data-thumb]').forEach(other => other.setAttribute('aria-current', other === thumb ? 'true' : 'false'));
+    });
+  });
+
+</script>

@@ -1,0 +1,18 @@
+---
+import Panel from '../layouts/Panel.astro';
+import Flash from '../components/Flash.astro';
+---
+<Panel title="Recuperar senha" bare>
+  <div class="login">
+    <h1>Esqueci minha senha</h1>
+    <p class="muted" style="margin-top:0.5rem">Informe seu e-mail. Se ele estiver cadastrado, enviamos um link para criar uma nova senha, válido por 1 hora.</p>
+    <div class="panel">
+      <Flash />
+      <form class="form" method="post" action="/acoes/recuperar">
+        <label class="field">E-mail<input name="email" type="email" autocomplete="username" required maxlength="160" /></label>
+        <button class="btn btn--accent" type="submit">Enviar link</button>
+      </form>
+      <p style="margin:1rem 0 0"><a href="/entrar">Voltar para entrar</a></p>
+    </div>
+  </div>
+</Panel>

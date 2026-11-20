@@ -1,0 +1,110 @@
+---
+import Panel from '../layouts/Panel.astro';
+import { api } from '../lib/api';
+
+const { token, user } = Astro.locals;
+if (user?.role !== 'proprietario') { Astro.response.status = 403; }
+const result = user?.role === 'proprietario' ? await api(token, 'GET', '/api/settings') : null;
+const s = result?.ok ? result.data : null;
+const store = s?.store || {};
+const hours = store.hours || {};
+const services: { title: string; text: string }[] = Array.isArray(store.services) ? store.services : [];
+const rates: { name: string; monthlyRatePercent: number }[] = s?.simulator?.rates || [];
+const modules: string[] = s?.modules || [];
+const DAYS: [string, string][] = [['seg', 'Segunda'], ['ter', 'Terça'], ['qua', 'Quarta'], ['qui', 'Quinta'], ['sex', 'Sexta'], ['sab', 'Sábado'], ['dom', 'Domingo']];
+const primary = /^#[0-9a-f]{6}$/i.test(s?.theme?.primary || '') ? s.theme.primary : '#0f6cbd';
+---
+<Panel title="Configurações" current="config">
+  {!s ? (
+    <div class="empty"><p><strong>Só o proprietário da loja acessa as configurações.</strong></p><a class="btn btn--accent" href="/">Voltar ao início</a></div>
+  ) : (
+    <>
+      <div class="main__head"><h1>Configurações</h1></div>
+      <p class="muted">O que você salva aqui aparece no site da loja em até 30 segundos.</p>
+
+      <section class="panel" id="loja">
+        <form class="form" method="post" action="/acoes/config">
+          <input type="hidden" name="secao" value="loja" />
+          <h2>Dados da loja</h2>
+          <div class="grid2">
+            <label class="field">Nome da loja<input name="name" required maxlength="120" value={store.name || ''} /></label>
+            <label class="field">CNPJ <small>aparece no rodapé do site</small><input name="cnpj" maxlength="30" value={store.cnpj || ''} /></label>
+            <label class="field">WhatsApp de vendas <small>com DDD. O sistema acrescenta o 55</small><input name="whatsapp" inputmode="tel" value={store.whatsapp || ''} /></label>
+            <label class="field">Telefone<input name="phone" maxlength="30" value={store.phone || ''} /></label>
+            <label class="field">E-mail que recebe os avisos de contato<input name="email" type="email" maxlength="160" value={store.email || ''} /></label>
+            <label class="field">Endereço<input name="address" maxlength="200" value={store.address || ''} /></label>
+            <label class="field">Cidade<input name="city" maxlength="80" value={store.city || ''} /></label>
+            <label class="field">UF<input name="uf" maxlength="2" value={store.uf || ''} /></label>
+          </div>
+          <label class="field">Sobre a loja <small>Conte a história e os diferenciais. Escreva só o que pode comprovar.</small><textarea name="about" rows="5" maxlength="2000">{store.about || ''}</textarea></label>
+          <div><button class="btn btn--accent" type="submit">Salvar dados da loja</button></div>
+        </form>
+      </section>
+
+      <section class="panel" id="horarios">
+        <form class="form" method="post" action="/acoes/config">
+          <input type="hidden" name="secao" value="horarios" />
+          <h2>Horário de atendimento</h2>
+          <p class="muted small" style="margin:0">Escreva como quiser: “09:00 às 18:00”, “Fechado”, “Com hora marcada”. Dia em branco não aparece no site.</p>
+          <div class="grid2">{DAYS.map(([key, label]) => <label class="field">{label}<input name={key} maxlength="60" value={hours[key] || ''} /></label>)}</div>
+          <div><button class="btn btn--accent" type="submit">Salvar horários</button></div>
+        </form>
+      </section>
+
+      {modules.includes('services') && (
+        <section class="panel" id="servicos">
+          <form class="form" method="post" action="/acoes/config">
+            <input type="hidden" name="secao" value="servicos" />
+            <h2>Serviços da loja</h2>
+            <p class="muted small" style="margin:0">Aparecem na página “Serviços” do site. Até 8. Descreva só o que a loja realmente oferece.</p>
+            {Array.from({ length: 8 }, (_, i) => (
+              <div class="grid2">
+                <label class="field">Título {i + 1}<input name={`titulo_${i}`} maxlength="60" value={services[i]?.title || ''} /></label>
+                <label class="field">Texto<input name={`texto_${i}`} maxlength="400" value={services[i]?.text || ''} /></label>
+              </div>
+            ))}
+            <div><button class="btn btn--accent" type="submit">Salvar serviços</button></div>
+          </form>
+        </section>
+      )}
+
+      <section class="panel" id="tema">
+        <form class="form" method="post" action="/acoes/config">
+          <input type="hidden" name="secao" value="tema" />
+          <h2>Identidade visual</h2>
+          <div class="grid2">
+            <label class="field">Cor principal <small>botões e etiqueta de preço do site</small><input name="primary" type="color" value={primary} style="padding:0.15rem;min-height:46px" /></label>
+            <label class="field">Endereço do logotipo <small>começa com https:// (opcional)</small><input name="logoUrl" type="url" maxlength="300" value={s.theme?.logoUrl || ''} /></label>
+          </div>
+          <div><button class="btn btn--accent" type="submit">Salvar identidade</button></div>
+        </form>
+      </section>
+
+      <section class="panel" id="simulador">
+        <form class="form" method="post" action="/acoes/config">
+          <input type="hidden" name="secao" value="simulador" />
+          <h2>Condições do simulador de financiamento</h2>
+          <p class="muted small" style="margin:0">Use nomes neutros, como “Condição A”, a menos que a loja tenha contrato com a instituição. A taxa é mensal, de 0 a 10%. O simulador só estima: não consulta nem aprova crédito.</p>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div class="grid2">
+              <label class="field">Condição {i + 1}<input name={`nome_${i}`} maxlength="60" value={rates[i]?.name || ''} /></label>
+              <label class="field">Taxa ao mês (%)<input name={`taxa_${i}`} inputmode="decimal" value={rates[i] ? String(rates[i].monthlyRatePercent).replace('.', ',') : ''} /></label>
+            </div>
+          ))}
+          <div><button class="btn btn--accent" type="submit">Salvar condições</button></div>
+        </form>
+      </section>
+
+      {modules.includes('financial_full') && (
+        <section class="panel" id="comissao">
+          <form class="form" method="post" action="/acoes/config">
+            <input type="hidden" name="secao" value="comissao" />
+            <h2>Comissão da equipe (Premium)</h2>
+            <label class="field" style="max-width:20rem">Percentual sobre o valor vendido (%) <small>em branco: comissões não são calculadas</small><input name="percentual" inputmode="decimal" value={s.commission?.ratePercent != null ? String(s.commission.ratePercent).replace('.', ',') : ''} /></label>
+            <div><button class="btn btn--accent" type="submit">Salvar comissão</button></div>
+          </form>
+        </section>
+      )}
+    </>
+  )}
+</Panel>

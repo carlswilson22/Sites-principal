@@ -14,7 +14,7 @@ export function TierProvider({ tier = 1, children }) {
 
   const value = useMemo(() => ({
     tier: normalizedTier,
-    tierName: normalizedTier === 1 ? 'Tier 1 • Essential' : normalizedTier === 2 ? 'Tier 2 • Pro' : 'Tier 3 • Enterprise',
+    tierName: normalizedTier === 1 ? 'Basic' : normalizedTier === 2 ? 'Expert' : 'Premium',
     isAllowed: (requiredTier) => normalizedTier >= requiredTier
   }), [normalizedTier]);
 

@@ -67,7 +67,7 @@ export function OfficialDossierModal({ vehicle, onClose }) {
               <span className="font-bold text-white">{Number.isInteger(d.proprietarios) && d.proprietarios > 0 ? d.proprietarios : 'Não informado'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Última Revisão Oficial Realizada:</span>
+              <span className="text-slate-400">Última revisão informada:</span>
               <span className="font-bold text-white">{d.dataUltimaRevisao || 'Não informada'}</span>
             </div>
             <div className="flex justify-between">

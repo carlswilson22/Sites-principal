@@ -33,7 +33,7 @@ export function VehicleCard({ vehicle, onSelect, show360Badge = true }) {
 
         {/* Badge de Perícia Cautelar */}
         <div className="absolute top-3 left-3 z-10">
-          <InspectionBadge text="Perícia Cautelar" compact={true} />
+          <InspectionBadge text="Laudo informado" compact={true} />
         </div>
 
         {/* Badge de Categoria ou Destaque */}

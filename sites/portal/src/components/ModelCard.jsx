@@ -5,9 +5,9 @@ import { ModelPreview } from './ModelPreview';
 export const ModelCard = ({ model }) => {
   const isAvailable = model.status === 'available';
   const tierBadges = {
-    'Básico': 'bg-blue-50 text-blue-800 border-blue-200',
-    'Intermediário': 'bg-indigo-50 text-indigo-800 border-indigo-200',
-    'Completo': 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    'Basic': 'bg-blue-50 text-blue-800 border-blue-200',
+    'Expert': 'bg-indigo-50 text-indigo-800 border-indigo-200',
+    'Premium': 'bg-emerald-50 text-emerald-800 border-emerald-200',
   };
   const badgeColor = tierBadges[model.tier] || 'bg-slate-100 text-slate-800 border-slate-200';
 

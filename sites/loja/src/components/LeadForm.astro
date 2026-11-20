@@ -1,0 +1,62 @@
+---
+interface Props {
+  source: 'site_formulario' | 'simulador_financiamento';
+  back: string;
+  vehicleId?: number;
+  message?: string;
+  button?: string;
+  id?: string;
+  storeName: string;
+}
+const { source, back, vehicleId, message = '', button = 'Enviar mensagem', id = 'contato-form', storeName } = Astro.props;
+const sent = Astro.url.searchParams.get('enviado') === '1';
+const ERRORS: Record<string, string> = {
+  '400': 'Confira os campos: nome, telefone com DDD e o aceite do aviso de privacidade.',
+  '429': 'Você enviou muitas mensagens. Tente de novo mais tarde ou chame no WhatsApp.',
+  '503': 'Não foi possível enviar agora. Chame no WhatsApp.'
+};
+const error = ERRORS[Astro.url.searchParams.get('erro') || ''] || null;
+---
+<form class="form" method="post" action="/enviar-contato" data-lead-form id={id}>
+  <input type="hidden" name="source" value={source} />
+  <input type="hidden" name="voltar" value={back} />
+  {vehicleId && <input type="hidden" name="vehicle_id" value={vehicleId} />}
+  <input type="hidden" name="simulation" value="" data-simulation />
+  <div class="status status--ok" role="status" hidden={!sent} data-ok>Mensagem enviada. A loja entra em contato em breve.</div>
+  <div class="status status--err" role="alert" hidden={!error} data-err>{error}</div>
+  <label class="field">Seu nome
+    <input name="name" autocomplete="name" required minlength="2" maxlength="120" />
+  </label>
+  <label class="field">WhatsApp ou telefone com DDD
+    <input name="phone" type="tel" autocomplete="tel" inputmode="tel" required minlength="10" maxlength="20" placeholder="(61) 99999-0000" />
+  </label>
+  <label class="field">Mensagem (opcional)
+    <textarea name="message" maxlength="1000" data-message>{message}</textarea>
+  </label>
+  <div class="vh" aria-hidden="true"><label>Não preencha este campo <input name="site" tabindex="-1" autocomplete="off" /></label></div>
+  <label class="check">
+    <input type="checkbox" name="consent" required />
+    <span>Li o <a href="/privacidade">aviso de privacidade</a> e autorizo {storeName} a entrar em contato comigo por telefone, WhatsApp ou e-mail.</span>
+  </label>
+  <button class="btn btn--accent btn--block" type="submit">{button}</button>
+</form>
+<script>
+  // Envio sem recarregar a página. Sem JavaScript, o formulário funciona do mesmo jeito (envio normal).
+  document.querySelectorAll<HTMLFormElement>('form[data-lead-form]').forEach(form => {
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const ok = form.querySelector<HTMLElement>('[data-ok]')!;
+      const err = form.querySelector<HTMLElement>('[data-err]')!;
+      const submit = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+      ok.hidden = true; err.hidden = true; submit.disabled = true;
+      try {
+        const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.ok) { ok.hidden = false; form.querySelectorAll('input[name=name], input[name=phone], textarea').forEach(el => ((el as HTMLInputElement).value = '')); ok.focus?.(); }
+        else { err.textContent = data.error || 'Não foi possível enviar agora. Tente de novo ou chame no WhatsApp.'; err.hidden = false; }
+      } catch {
+        err.textContent = 'Sem conexão. Tente de novo ou chame no WhatsApp.'; err.hidden = false;
+      } finally { submit.disabled = false; }
+    });
+  });
+</script>

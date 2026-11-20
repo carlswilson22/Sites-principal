@@ -1,0 +1,69 @@
+---
+import Base from '../layouts/Base.astro';
+import VehicleCard from '../components/VehicleCard.astro';
+import { getVehicles } from '../lib/api';
+import { advise, NEEDS, type Need } from '../lib/advisor';
+import { whatsappLink } from '../lib/format';
+import { trackView } from '../lib/track';
+
+const settings = Astro.locals.settings;
+if (!(settings.modules || []).includes('virtual_consultant')) return new Response(null, { status: 404 });
+trackView(Astro.request, Astro.clientAddress, 'page_view', 'consultor');
+
+const params = Astro.url.searchParams;
+const asked = params.has('orcamento') || params.has('uso');
+const budget = Math.max(0, Number(params.get('orcamento')) || 0);
+const needParam = params.get('uso') || '';
+const need = (Object.keys(NEEDS).includes(needParam) ? needParam : '') as Need | '';
+const gearbox = ['automatico', 'manual'].includes(params.get('cambio') || '') ? (params.get('cambio') as 'automatico' | 'manual') : '';
+const picks = asked ? advise(await getVehicles(), { budget, need: need || undefined, gearbox }) : [];
+const store = settings.store || {};
+const whatsapp = whatsappLink(store.whatsapp, `Olá! Usei o consultor virtual do site da ${store.name || 'loja'} e quero conversar sobre as sugestões.`);
+---
+<Base title="Consultor virtual" description="Diga quanto quer investir e como vai usar o carro: sugerimos opções do estoque de hoje." path="/consultor">
+  <div class="section wrap">
+    <h1>Consultor virtual</h1>
+    <p class="muted" style="margin-top:1rem">Responda três perguntas e veja opções do estoque que combinam. As sugestões seguem regras simples, com base nos carros que temos hoje.</p>
+
+    <form class="filters" method="get" action="/consultor" style="margin-top:1.5rem">
+      <label class="field">Quanto quer investir (R$)
+        <input name="orcamento" type="number" min="0" step="1000" inputmode="numeric" value={budget || ''} placeholder="80000" required />
+      </label>
+      <label class="field">Como vai usar
+        <select name="uso">
+          <option value="">Sem preferência</option>
+          {Object.entries(NEEDS).map(([key, label]) => <option value={key} selected={key === need}>{label}</option>)}
+        </select>
+      </label>
+      <label class="field">Câmbio
+        <select name="cambio">
+          <option value="">Tanto faz</option>
+          <option value="automatico" selected={gearbox === 'automatico'}>Automático</option>
+          <option value="manual" selected={gearbox === 'manual'}>Manual</option>
+        </select>
+      </label>
+      <button class="btn btn--accent" type="submit">Ver sugestões</button>
+    </form>
+
+    {asked && (picks.length > 0 ? (
+      <section style="margin-top:3rem" aria-labelledby="sugestoes">
+        <h2 id="sugestoes">{picks.length === 1 ? 'Uma opção para você' : `${picks.length} opções para você`}</h2>
+        <div class="grid" style="margin-top:1.5rem">
+          {picks.map(pick => (
+            <div>
+              <ul class="plain"><VehicleCard v={pick.v} /></ul>
+              {pick.reasons.length > 0 && <ul class="why">{pick.reasons.map(r => <li>{r}</li>)}</ul>}
+            </div>
+          ))}
+        </div>
+        {whatsapp && <p style="margin-top:2rem"><a class="btn btn--ghost" href={whatsapp} rel="noopener" data-whatsapp>Conversar com a loja sobre as sugestões</a></p>}
+      </section>
+    ) : (
+      <div class="empty" style="margin-top:2rem">
+        <p><strong>Nenhum carro do estoque cabe nesses critérios agora.</strong></p>
+        <p>Aumente o valor ou deixe o câmbio em “Tanto faz”. Ou fale com a loja: ela pode ter carros que ainda não entraram no site.</p>
+        <a class="btn btn--accent" href="/estoque">Ver todo o estoque</a>
+      </div>
+    ))}
+  </div>
+</Base>

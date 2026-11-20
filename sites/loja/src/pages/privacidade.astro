@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+
+const settings = Astro.locals.settings;
+const store = settings.store || {};
+const name = store.name || 'a loja';
+const contact = store.email || store.phone || 'os canais de contato desta página';
+---
+<Base title="Aviso de privacidade" description={`Como ${name} trata os dados de quem entra em contato pelo site.`} path="/privacidade">
+  <div class="section wrap prose">
+    <h1>Aviso de privacidade</h1>
+    <p class="muted" style="margin-top:1rem">Versão {settings.consent?.version || '1'}</p>
+
+    <h2>Quem cuida dos seus dados</h2>
+    <p>{name}{store.cnpj ? `, CNPJ ${store.cnpj}` : ''}{store.address ? `, com sede em ${store.address}` : ''}, é a responsável pelos dados pessoais coletados neste site. Dúvidas e pedidos sobre seus dados: {contact}.</p>
+
+    <h2>Quais dados coletamos</h2>
+    <ul>
+      <li>Nome, telefone e, se você informar, e-mail e mensagem, quando você preenche um formulário.</li>
+      <li>Dados de uma simulação de financiamento, quando você a anexa ao contato.</li>
+      <li>Estatísticas de acesso, como páginas e veículos mais vistos. Elas não identificam você e não usam cookies.</li>
+    </ul>
+
+    <h2>Para que usamos</h2>
+    <p>Para responder ao seu contato e conversar sobre o veículo ou a condição de pagamento de seu interesse. Não vendemos seus dados.</p>
+
+    <h2>Com quem compartilhamos</h2>
+    <p>Com os prestadores que mantêm o site no ar (hospedagem, armazenamento e envio de e-mails), que tratam os dados apenas para esse fim. Alguns deles podem ficar fora do Brasil.</p>
+
+    <h2>Por quanto tempo guardamos</h2>
+    <p>Pelo tempo necessário para atender o seu contato e as obrigações legais da loja. Depois disso, os dados são eliminados ou anonimizados.</p>
+
+    <h2>Seus direitos</h2>
+    <p>Você pode pedir acesso, correção, anonimização, eliminação ou a revogação do seu consentimento, a qualquer momento, pelo contato acima.</p>
+
+    <h2>Cookies</h2>
+    <p>Este site não usa cookies de publicidade nem de rastreamento de terceiros. Usamos apenas cookies de funcionamento: a sessão da sua conta, a lista de carros que você escolheu comparar e mensagens de aviso de poucos segundos.</p>
+  </div>
+</Base>

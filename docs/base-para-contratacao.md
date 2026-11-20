@@ -61,15 +61,15 @@ informar credenciais de APIs não conclui uma implantação operacional.
 
 ## 4. Limites a preservar na apresentação ao cliente
 
-- Itaú Auto, Santander Auto e BV aparecem como exemplos de cálculo. Não existe
-  parceria comprovada pelo projeto, consulta bancária, aprovação de crédito ou
-  oferta vinculante. Os cálculos não representam CET ou proposta de banco.
+- Condição A, B e C aparecem como exemplos de cálculo, sem nome de instituição.
+  A loja define os nomes e as taxas reais. Não existe parceria bancária,
+  consulta bancária, aprovação de crédito ou oferta vinculante. Os cálculos não representam CET ou proposta de banco.
 - Fotos, preços, laudos, histórico e indicadores são dados de demonstração.
   Exibir um laudo cadastrado não significa consultar órgão oficial ou certificar o veículo.
 - O giro 360° padrão pertence ao Enterprise e exige uma sequência própria do
   veículo. Não é produzido automaticamente a partir de uma única foto.
-- Favoritos e comparação pertencem ao Enterprise; comparação é pública,
-  favoritos exigem conta. O simulador no anúncio exige login nos três modelos.
+- Favoritos vêm no DriveNow (Expert) e no Enterprise (Premium); a comparação
+  pertence ao Enterprise e é pública. Favoritos exigem conta. O simulador no anúncio exige login nos três modelos.
 - WhatsApp abre o canal externo por escolha do visitante. Não há agendamento
   de visitas, aprovação financeira, pagamento ou assinatura eletrônica integrada.
 - CSV de catálogo é exportação de arquivo; publicação direta em portais e

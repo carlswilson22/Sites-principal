@@ -31,11 +31,11 @@ Motorização: ${engine} (${power})
 Destaques e Opcionais: ${featuresText}
 Etiquetas: ${tagsText}
 
-Apresente um texto direto em 2 parágrafos enfatizando procedência, revisões e conforto. Finalize com chamada para agendar test drive.`;
+Regras: use SOMENTE as informações acima. Não afirme perícia, laudo, revisões, procedência, garantia nem aprovação de crédito. Texto direto em 2 parágrafos, convidando o cliente a falar com a loja.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }]
         })
@@ -51,12 +51,21 @@ Apresente um texto direto em 2 parágrafos enfatizando procedência, revisões e
     }
   }
 
-  // 2. Modelo de Texto Estruturado (Sem chave externa)
-  return `Oportunidade única: ${title} ${version || ''} (${year}), com apenas ${km?.toLocaleString('pt-BR') || 'baixa'} km rodados. Veículo periciado com laudo cautelar 100% aprovado, estrutura íntegra e documentação rigorosamente em dia na elegante cor ${color || 'original'}.
-
-Equipado com transmissão ${transmission || 'automática'} e motorização ${engine || 'econômica'} (${power || 'excelente desempenho'}), oferece dirigibilidade suave e alta eficiência. Conta com ${featuresText}. 
-
-Aceitamos seu veículo seminovo na troca com a melhor avaliação de mercado e oferecemos simulação de financiamento com pré-aprovação rápida. Agende agora seu atendimento exclusivo via WhatsApp!`;
+  // 2. Texto de reserva: usa SOMENTE os dados informados. Não afirma perícia, laudo,
+  // revisões, procedência nem pré-aprovação de crédito.
+  const parts = [];
+  parts.push(`${[title, version].filter(Boolean).join(' ')}${year ? `, ano ${year}` : ''}.`);
+  const facts = [
+    km != null && km !== '' ? `${Number(km).toLocaleString('pt-BR')} km` : null,
+    transmission ? `câmbio ${transmission}` : null,
+    fuel ? `combustível ${fuel}` : null,
+    color ? `cor ${color}` : null,
+    engine ? `motor ${engine}${power ? ` (${power})` : ''}` : null
+  ].filter(Boolean);
+  if (facts.length) parts.push(`Dados: ${facts.join(', ')}.`);
+  if (Array.isArray(features) && features.length) parts.push(`Itens informados: ${features.slice(0, 5).join(', ')}.`);
+  parts.push('Fale com a loja para conferir as condições e a documentação do veículo.');
+  return parts.join(' ');
 }
 
 /**

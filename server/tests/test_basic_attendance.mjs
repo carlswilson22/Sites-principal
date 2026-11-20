@@ -2,6 +2,7 @@ import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { getDb, closeDb } from '../src/database/db.js';
 import { runSeed } from '../src/database/seed.js';
+import { hashToken } from '../src/security/http.js';
 import { handleTier2Routes } from '../src/routes/tier2Routes.js';
 import { calculatePriceFinancing } from '../src/services/financeCalculator.js';
 
@@ -9,7 +10,7 @@ before(async () => {
   await runSeed(1);
   const db = getDb();
   const user = db.prepare("SELECT id FROM users WHERE role = 'atendente'").get();
-  db.prepare("INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ('attendance-test', ?, 'test', datetime('now', '+1 day'))").run(user.id);
+  db.prepare("INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ('attendance-test', ?, ?, ?)").run(user.id, hashToken('attendance-test'), new Date(Date.now() + 86400000).toISOString());
 });
 after(() => closeDb());
 

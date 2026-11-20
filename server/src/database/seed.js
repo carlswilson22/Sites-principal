@@ -3,6 +3,7 @@
  * Carga de dados de demonstração 100% FICTÍCIOS para testes e modo de exibição.
  * Nunca utiliza nomes, documentos ou contatos reais.
  */
+import { backfillSlugs } from '../services/slug.js';
 import { getDb } from './db.js';
 import { hashPassword, encryptSensitive } from '../security/crypto.js';
 
@@ -60,17 +61,8 @@ export async function runSeed(tier = 1) {
     'vendido', 'proprio', 0, 42, 'Venda fechada com financiamento aprovado.', 144500, '004567-8'
   );
 
-  // 3. Fotos dos Veículos
-  const insertPhoto = db.prepare(`
-    INSERT INTO vehicle_photos (vehicle_id, url, is_cover, order_index)
-    VALUES (?, ?, ?, ?)
-  `);
-
-  insertPhoto.run(c1.lastInsertRowid, '/images/FotoPoloTSI.jpg', 1, 0);
-  insertPhoto.run(c1.lastInsertRowid, '/images/carro_lataria_amassada.jpg', 0, 1);
-  insertPhoto.run(c2.lastInsertRowid, '/images/FotoChevroletTracker.jpg', 1, 0);
-  insertPhoto.run(c3.lastInsertRowid, '/images/FotoFiatPulse.jpg', 1, 0);
-  insertPhoto.run(c4.lastInsertRowid, '/images/FotoCorollaCross.jpg', 1, 0);
+  // 3. Fotos: a demonstração não carrega fotos fictícias (as imagens dos protótipos antigos não existem no servidor).
+  //    Envie fotos pelo painel ou pela API de mídia.
 
   // 4. Custos e Gastos Fictícios (Nível 2 e 3)
   const insertCosts = db.prepare(`
@@ -143,6 +135,6 @@ export async function runSeed(tier = 1) {
     'percentual', 6.0, 350.00, 15.00, '2026-11-01', '2026-12-01', 5, 'ativo'
   );
 
+  backfillSlugs(db);
   return { message: 'Seed de demonstração fictícia inserido com sucesso!' };
 }
-

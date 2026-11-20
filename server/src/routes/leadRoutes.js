@@ -2,8 +2,14 @@
  * server/src/routes/leadRoutes.js
  * Endpoints do Módulo de Contatos e Leads (E6 - Nível 1)
  */
+import { notifyNewLead } from '../services/notifications.js';
 import { getDb } from '../database/db.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
+import { checkRateLimit } from '../security/rateLimiter.js';
+import { clientIp } from '../security/http.js';
+
+const LEAD_SOURCES = ['site_formulario', 'site_whatsapp', 'simulador_financiamento', 'avaliacao_troca'];
+const LEAD_TEMPERATURES = ['quente', 'morno', 'frio'];
 
 export async function handleLeadRoutes(req, res, pathname, body) {
   const db = getDb();
@@ -45,27 +51,53 @@ export async function handleLeadRoutes(req, res, pathname, body) {
     return sendJson(res, 200, leads);
   }
 
-  // 2. POST /api/leads - Captura de contato público (Formulário ou clique WhatsApp do site)
+  // 2. POST /api/leads - Captura de contato público (formulário ou clique WhatsApp do site)
   if (pathname === '/api/leads' && req.method === 'POST') {
-    const { vehicle_id, name, phone, email, source, simulation_data } = body || {};
-
-    if (!name || !phone) {
-      return sendJson(res, 400, { error: 'Nome e telefone são obrigatórios para registrar o contato.' });
+    const ip = clientIp(req, req.trustProxy);
+    const limit = checkRateLimit(`lead_${ip}`, 10, 10 * 60 * 1000);
+    if (!limit.allowed) {
+      return sendJson(res, 429, { error: 'Muitos envios. Tente novamente em alguns minutos.', retryAfterSeconds: limit.retryAfterSeconds });
     }
 
-    const insert = db.prepare(`
-      INSERT INTO leads (vehicle_id, name, phone, email, source, temperature, status, simulation_data, consent_lgpd)
-      VALUES (?, ?, ?, ?, ?, 'morno', 'novo', ?, 1)
-    `);
+    const { vehicle_id, name, phone, email, source, simulation_data, consent, message } = body || {};
+    const cleanName = String(name || '').trim();
+    const digits = String(phone || '').replace(/\D/g, '');
 
-    const result = insert.run(
-      vehicle_id || null,
-      name,
-      phone,
-      email || null,
-      source || 'site_formulario',
-      simulation_data ? JSON.stringify(simulation_data) : null
-    );
+    if (cleanName.length < 2 || cleanName.length > 120) {
+      return sendJson(res, 400, { error: 'Informe seu nome.' });
+    }
+    if (digits.length < 10 || digits.length > 15) {
+      return sendJson(res, 400, { error: 'Informe um telefone com DDD.' });
+    }
+    if (email && (String(email).length > 160 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email)))) {
+      return sendJson(res, 400, { error: 'E-mail inválido.' });
+    }
+    if (source && !LEAD_SOURCES.includes(source)) {
+      return sendJson(res, 400, { error: `Origem inválida. Permitidas: ${LEAD_SOURCES.join(', ')}` });
+    }
+    // O consentimento precisa ser dado pelo visitante; o servidor não presume.
+    if (consent !== true) {
+      return sendJson(res, 400, { error: 'É necessário aceitar o aviso de privacidade para enviar o contato.' });
+    }
+    if (vehicle_id != null && !db.prepare('SELECT id FROM vehicles WHERE id = ?').get(vehicle_id)) {
+      return sendJson(res, 400, { error: 'Veículo não encontrado.' });
+    }
+    const simulation = simulation_data ? JSON.stringify(simulation_data) : null;
+    if (simulation && simulation.length > 5000) {
+      return sendJson(res, 400, { error: 'Dados da simulação grandes demais.' });
+    }
+
+    const result = db.prepare(`
+      INSERT INTO leads (vehicle_id, name, phone, email, source, temperature, status, simulation_data, message, consent_lgpd, consent_version, consent_at)
+      VALUES (?, ?, ?, ?, ?, 'morno', 'novo', ?, ?, 1, '1', ?)
+    `).run(vehicle_id ?? null, cleanName, String(phone).trim(), email ? String(email).trim() : null, source || 'site_formulario', simulation,
+      message ? String(message).slice(0, 1000) : null, new Date().toISOString());
+
+    // Aviso por e-mail à loja. Não atrasa nem derruba o registro do contato; o resultado fica na trilha.
+    notifyNewLead({
+      id: Number(result.lastInsertRowid), name: cleanName, phone: String(phone).trim(), email: email ? String(email).trim() : null,
+      source: source || 'site_formulario', message: message ? String(message).slice(0, 1000) : null, vehicleId: vehicle_id ?? null
+    }).catch(() => {});
 
     return sendJson(res, 201, {
       id: result.lastInsertRowid,
@@ -83,6 +115,9 @@ export async function handleLeadRoutes(req, res, pathname, body) {
     const { status, temperature, note } = body || {};
 
     const validStatuses = ['novo', 'em_atendimento', 'ganho', 'perdido'];
+    if (temperature && !LEAD_TEMPERATURES.includes(temperature)) {
+      return sendJson(res, 400, { error: `Temperatura inválida. Permitidas: ${LEAD_TEMPERATURES.join(', ')}` });
+    }
     if (status && !validStatuses.includes(status)) {
       return sendJson(res, 400, { error: `Situação inválida. Permitidos: ${validStatuses.join(', ')}` });
     }

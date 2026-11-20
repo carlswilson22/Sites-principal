@@ -7,7 +7,7 @@ export function AIChatBox({ vehicles = [], onSelectVehicle }) {
     {
       id: 1,
       sender: 'ai',
-      text: 'Olá! Sou o Consultor Virtual com Inteligência Artificial da Enterprise Veículos. Posso te ajudar a encontrar o veículo ideal pelo seu orçamento, tipo de uso ou comparar custos de manutenção. O que você procura hoje?'
+      text: 'Olá! Sou o consultor virtual da Enterprise Veículos. Respondo com base no estoque e nas informações cadastradas. Posso sugerir veículos pelo seu orçamento ou tipo de uso. O que você procura hoje?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -52,7 +52,7 @@ export function AIChatBox({ vehicles = [], onSelectVehicle }) {
         responseText = `Todos os veículos da DriveNow possuem **Laudo Cautelar 100% Aprovado**, sem sinistro ou leilão, e contam com **1 ano de garantia total** de câmbio e motor válida em todo o Brasil.`;
       } else {
         recommendedCars = vehicles.slice(0, 2);
-        responseText = `Compreendi! Encontrei estas recomendações que combinam com alto índice de satisfação dos nossos clientes e laudo 100% aprovado:`;
+        responseText = `Encontrei estas opções do estoque que podem combinar com o que você busca:`;
       }
 
       setMessages(prev => [
@@ -78,12 +78,12 @@ export function AIChatBox({ vehicles = [], onSelectVehicle }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-heading text-sm sm:text-base font-bold text-white">DriveNow AI Consultant</h3>
+              <h3 className="font-heading text-sm sm:text-base font-bold text-white">Consultor virtual</h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-semibold border border-cyan-500/30">
                 Online
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">Inteligência Artificial conectada ao estoque em tempo real</p>
+            <p className="text-[11px] text-slate-400">Respostas programadas com base no estoque cadastrado</p>
           </div>
         </div>
 

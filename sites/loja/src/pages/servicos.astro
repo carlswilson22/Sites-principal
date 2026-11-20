@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+import Flash from '../components/Flash.astro';
+import Simulator from '../components/Simulator.astro';
+import { getVehicle } from '../lib/api';
+import { whatsappLink } from '../lib/format';
+import { trackView } from '../lib/track';
+
+const settings = Astro.locals.settings;
+const modules: string[] = settings.modules || [];
+if (!modules.includes('services')) return new Response(null, { status: 404 });
+trackView(Astro.request, Astro.clientAddress, 'page_view', 'servicos');
+
+const store = settings.store || {};
+const services: { title: string; text: string }[] = Array.isArray(store.services) ? store.services : [];
+const rates = settings.simulator?.rates || [];
+const tradeOn = modules.includes('trade_in');
+const sent = Astro.url.searchParams.get('enviado') === 'troca';
+const interest = Astro.url.searchParams.get('veiculo') ? await getVehicle(String(Astro.url.searchParams.get('veiculo'))) : null;
+const whatsapp = whatsappLink(store.whatsapp, `Olá! Vim pelo site da ${store.name || 'loja'} e quero saber mais sobre os serviços.`);
+const name = store.name || 'a loja';
+---
+<Base title="Serviços" description={`Financiamento, troca do seu usado e outros serviços de ${name}.`} path="/servicos" current="servicos">
+  <div class="section wrap prose">
+    <h1>Serviços</h1>
+
+    {services.length > 0 && (
+      <ul class="svc" style="margin-top:2rem">
+        {services.map(s => <li><h2>{s.title}</h2><p>{s.text}</p></li>)}
+      </ul>
+    )}
+
+    {rates.length > 0 && (
+      <section aria-labelledby="financiar" style="margin-top:3rem">
+        <h2 id="financiar">Simule um financiamento</h2>
+        <p class="muted">Informe o valor do carro que você tem em mente. Para simular um veículo do nosso estoque, abra o anúncio dele.</p>
+        <Simulator rates={rates} askPrice defaultPrice={60000} defaultDown={12000} />
+        {whatsapp && <p style="margin-top:1rem"><a class="btn btn--accent" href={whatsapp} rel="noopener" data-whatsapp>Falar com a loja sobre financiamento</a></p>}
+      </section>
+    )}
+
+    {tradeOn && (
+      <section id="troca" aria-labelledby="troca-titulo" style="margin-top:3rem">
+        <h2 id="troca-titulo">Troca Fácil: avalie o seu usado</h2>
+        <p class="muted">Conte sobre o seu carro. A loja analisa e entra em contato com uma proposta. Este formulário não calcula valor e não é uma oferta.</p>
+        <Flash />
+        {sent && <div class="status status--ok" role="status">Recebemos os dados do seu carro. A loja entra em contato em breve.</div>}
+        <form class="form" method="post" action="/enviar-troca" style="max-width:34rem;margin-top:1rem">
+          {interest && <input type="hidden" name="interest_vehicle_id" value={interest.id} />}
+          {interest && <p class="note" style="margin:0">Interesse em: <strong>{interest.title} {interest.version}</strong></p>}
+          <label class="field">Seu nome<input name="name" autocomplete="name" required minlength="2" maxlength="120" /></label>
+          <label class="field">WhatsApp ou telefone com DDD<input name="phone" type="tel" autocomplete="tel" required minlength="10" maxlength="20" /></label>
+          <label class="field">E-mail (opcional)<input name="email" type="email" autocomplete="email" maxlength="160" /></label>
+          <div class="sim__grid">
+            <label class="field">Marca<input name="brand" maxlength="60" /></label>
+            <label class="field">Modelo<input name="model" required maxlength="80" /></label>
+            <label class="field">Ano<input name="year" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="2019" /></label>
+            <label class="field">Quilometragem<input name="km" inputmode="numeric" maxlength="9" /></label>
+          </div>
+          <label class="field">Observações (opcional)<textarea name="notes" maxlength="1000" placeholder="Revisões, detalhes, se há financiamento em aberto"></textarea></label>
+          <div class="vh" aria-hidden="true"><label>Não preencha <input name="site" tabindex="-1" autocomplete="off" /></label></div>
+          <label class="check"><input type="checkbox" name="consent" required /><span>Li o <a href="/privacidade">aviso de privacidade</a> e autorizo {name} a entrar em contato comigo sobre a avaliação do meu carro.</span></label>
+          <button class="btn btn--accent btn--block" type="submit">Enviar para avaliação</button>
+        </form>
+      </section>
+    )}
+  </div>
+</Base>

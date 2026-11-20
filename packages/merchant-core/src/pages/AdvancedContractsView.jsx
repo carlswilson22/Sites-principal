@@ -14,17 +14,29 @@ import { demoTools } from '../services/demoTools.js';
 export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], dealership = {} }) {
   const [contractType, setContractType] = useState('consignacao');
   const [vehicleId, setVehicleId] = useState(String(vehicles[0]?.id || ''));
-  const [clientId, setClientId] = useState('1');
+  const [clientId, setClientId] = useState(isDemoMode ? '1' : '');
   const [parentContractId, setParentContractId] = useState('');
-  const [tradeVehicleTitle, setTradeVehicleTitle] = useState('Sedan Antigo 2018');
-  const [tradeValue, setTradeValue] = useState(38000);
+  const [tradeVehicleTitle, setTradeVehicleTitle] = useState(isDemoMode ? 'Sedan Antigo 2018' : '');
+  const [tradeYear, setTradeYear] = useState(isDemoMode ? '2018' : '');
+  const [tradePlate, setTradePlate] = useState('');
+  const [tradeValue, setTradeValue] = useState(isDemoMode ? 38000 : '');
+  const [cashDownPayment, setCashDownPayment] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [warrantyDays, setWarrantyDays] = useState('');
+  const [remunerationType, setRemunerationType] = useState('percentual');
+  const [remunerationValue, setRemunerationValue] = useState(isDemoMode ? 6 : '');
+  const [minRemuneration, setMinRemuneration] = useState('');
+  const [serviceFee, setServiceFee] = useState('');
+  const [dailyStorageFee, setDailyStorageFee] = useState('');
+  const [contractEnd, setContractEnd] = useState('');
+  const [minSalePrice, setMinSalePrice] = useState('');
   const [tradeHasDebt, setTradeHasDebt] = useState(false);
   const [tradeDebtAmount, setTradeDebtAmount] = useState(0);
-  const [amendmentReason, setAmendmentReason] = useState('Prorrogação de vigência da consignação por mais 30 dias corridos e repactuação de taxa de guarda.');
-  const [witness1Name, setWitness1Name] = useState('Mariana Testemunha Fictícia');
-  const [witness1Cpf, setWitness1Cpf] = useState('111.222.333-44');
-  const [witness2Name, setWitness2Name] = useState('Lucas Testemunha Fictícia');
-  const [witness2Cpf, setWitness2Cpf] = useState('555.666.777-88');
+  const [amendmentReason, setAmendmentReason] = useState(isDemoMode ? 'Prorrogação de vigência da consignação por mais 30 dias corridos e repactuação de taxa de guarda.' : '');
+  const [witness1Name, setWitness1Name] = useState('');
+  const [witness1Cpf, setWitness1Cpf] = useState('');
+  const [witness2Name, setWitness2Name] = useState('');
+  const [witness2Cpf, setWitness2Cpf] = useState('');
 
   const [previewHtml, setPreviewHtml] = useState(null);
   const [contractCode, setContractCode] = useState(null);
@@ -40,15 +52,21 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
     try {
       const res = await apiClient.createAdvancedContract({
         type: contractType,
-        vehicle_id: vehicleId,
-        client_id: clientId,
-        parent_contract_id: parentContractId || null,
-        tradeVehicle: contractType === 'compra_venda_troca' ? { title: tradeVehicleTitle, year: '2018' } : null,
+        vehicle_id: isDemoMode ? vehicleId : Number(vehicleId),
+        client_id: isDemoMode ? clientId : Number(clientId),
+        parent_contract_id: parentContractId ? (isDemoMode ? parentContractId : Number(parentContractId)) : undefined,
+        tradeVehicle: contractType === 'compra_venda_troca' ? { title: tradeVehicleTitle, year: tradeYear, plate: tradePlate } : undefined,
         terms: {
-          tradeValue: Number(tradeValue),
-          tradeHasDebt,
-          tradeDebtAmount: Number(tradeDebtAmount),
-          amendmentReason,
+          ...(contractType === 'consignacao' ? {
+            remunerationType, remunerationValue: Number(remunerationValue), minRemuneration: Number(minRemuneration || 0),
+            serviceFee: Number(serviceFee || 0), dailyStorageFee: Number(dailyStorageFee || 0),
+            contractEnd, ...(minSalePrice ? { minSalePrice: Number(minSalePrice) } : {})
+          } : {}),
+          ...(contractType === 'compra_venda_troca' ? {
+            tradeValue: Number(tradeValue || 0), tradeHasDebt, tradeDebtAmount: Number(tradeDebtAmount || 0),
+            cashDownPayment: Number(cashDownPayment || 0), paymentMethod, ...(warrantyDays ? { warrantyDays: Number(warrantyDays) } : {})
+          } : {}),
+          ...(contractType === 'termo_aditivo' ? { amendmentReason } : {}),
           witness1_name: witness1Name,
           witness1_cpf: witness1Cpf,
           witness2_name: witness2Name,
@@ -97,7 +115,7 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
       <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-start gap-3">
         <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
         <div className="text-xs text-red-200/90 leading-relaxed">
-          <strong className="text-red-300 font-semibold uppercase">Aviso Legal Obrigatório:</strong> As minutas geradas pela plataforma são modelos operacionais genéricos. Em cumprimento às normas de conformidade jurídica, devem ser obrigatoriamente submetidas à análise e validação de um advogado habilitado antes da coleta de assinaturas e utilização comercial.
+          <strong className="text-red-300 font-semibold uppercase">Aviso:</strong> as minutas são modelos de apoio e não constituem assessoria jurídica. Revise cada uma com um advogado habilitado antes de coletar assinaturas.
         </div>
       </div>
 
@@ -141,6 +159,39 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
             </div>
           </div>
 
+          {/* Campos específicos para Consignação */}
+          {contractType === 'consignacao' && (
+            <div className="p-4 bg-slate-800/40 border border-slate-800 rounded-xl space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Condições da consignação</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label className="block text-xs text-slate-300">Remuneração da loja
+                  <select value={remunerationType} onChange={e => setRemunerationType(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                    <option value="percentual">Percentual sobre a venda</option>
+                    <option value="valor_liquido">Valor líquido ao proprietário</option>
+                  </select>
+                </label>
+                <label className="block text-xs text-slate-300">{remunerationType === 'percentual' ? 'Percentual (%)' : 'Valor líquido (R$)'}
+                  <input type="number" min="0" step="0.01" required value={remunerationValue} onChange={e => setRemunerationValue(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                </label>
+                <label className="block text-xs text-slate-300">Remuneração mínima (R$)
+                  <input type="number" min="0" step="0.01" value={minRemuneration} onChange={e => setMinRemuneration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                </label>
+                <label className="block text-xs text-slate-300">Taxa de entrada (R$)
+                  <input type="number" min="0" step="0.01" value={serviceFee} onChange={e => setServiceFee(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                </label>
+                <label className="block text-xs text-slate-300">Diária de guarda (R$)
+                  <input type="number" min="0" step="0.01" value={dailyStorageFee} onChange={e => setDailyStorageFee(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                </label>
+                <label className="block text-xs text-slate-300">Preço mínimo autorizado (R$)
+                  <input type="number" min="0" step="0.01" value={minSalePrice} onChange={e => setMinSalePrice(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                </label>
+                <label className="block text-xs text-slate-300">Vigência até
+                  <input type="date" value={contractEnd} onChange={e => setContractEnd(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Campos específicos para Troca */}
           {contractType === 'compra_venda_troca' && (
             <div className="p-4 bg-slate-800/40 border border-slate-800 rounded-xl space-y-4">
@@ -154,6 +205,13 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
                     onChange={e => setTradeVehicleTitle(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Ano / placa</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" aria-label="Ano do veículo da troca" value={tradeYear} onChange={e => setTradeYear(e.target.value)} placeholder="Ano" className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                    <input type="text" aria-label="Placa do veículo da troca" value={tradePlate} onChange={e => setTradePlate(e.target.value)} placeholder="Placa" className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Valor de Avaliação (R$)</label>
@@ -178,6 +236,9 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
                       Sim, com saldo devedor
                     </label>
                   </div>
+                  <label className="block mt-3 text-xs text-slate-300">Entrada em dinheiro (R$)<input type="number" min="0" value={cashDownPayment} onChange={e => setCashDownPayment(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" /></label>
+                  <label className="block mt-3 text-xs text-slate-300">Forma de pagamento do saldo<input type="text" maxLength="120" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} placeholder="Ex.: financiamento, à vista" className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" /></label>
+                  <label className="block mt-3 text-xs text-slate-300">Garantia contratual (dias, opcional)<input type="number" min="0" value={warrantyDays} onChange={e => setWarrantyDays(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" /></label>
                   {tradeHasDebt && <label className="block mt-3 text-xs text-slate-300">Saldo devedor (R$)<input type="number" min="0" value={tradeDebtAmount} onChange={event => setTradeDebtAmount(event.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white" /></label>}
                 </div>
               </div>
@@ -204,6 +265,7 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
                   <input
                     type="text"
                     value={amendmentReason}
+                    required
                     onChange={e => setAmendmentReason(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100"
                   />
@@ -214,7 +276,7 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
 
           {/* Seção de Testemunhas */}
           <div className="p-4 bg-slate-800/40 border border-slate-800 rounded-xl space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Testemunhas Qualificadas</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Testemunhas (opcional; podem ser preenchidas à mão na impressão)</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">1ª Testemunha (Nome e CPF)</label>
@@ -230,7 +292,7 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
                     type="text"
                     value={witness1Cpf}
                     onChange={e => setWitness1Cpf(e.target.value)}
-                    placeholder="CPF mascarado"
+                    placeholder="CPF"
                     className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100"
                   />
                 </div>
@@ -250,7 +312,7 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
                     type="text"
                     value={witness2Cpf}
                     onChange={e => setWitness2Cpf(e.target.value)}
-                    placeholder="CPF mascarado"
+                    placeholder="CPF"
                     className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100"
                   />
                 </div>

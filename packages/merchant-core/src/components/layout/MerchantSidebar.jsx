@@ -126,6 +126,9 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
     }
   ];
 
+  const visibleSections = menuSections.filter(section => (!section.minTier || tier >= section.minTier) && section.items.some(item => canAccessMerchantRoute(item.id, tier, role)));
+  const showTitles = visibleSections.length > 1;
+
   return (
     <>
       {/* Overlay mobile */}
@@ -155,7 +158,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           </button>
         </div>
 
-        <nav aria-label="Navegação do painel" className="flex-1 overflow-y-auto p-4 space-y-6">
+        <nav aria-label="Navegação do painel" className="flex-1 overflow-y-auto p-4 pb-8 space-y-5">
           {menuSections.map((section, idx) => {
             // Oculta a seção inteira se o tier da loja for menor que o mínimo exigido
             if (section.minTier && tier < section.minTier) return null;
@@ -169,6 +172,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
 
             return (
               <div key={idx} className="space-y-1">
+                {showTitles && <p className="px-3 pb-1 text-xs font-semibold text-slate-500">{section.title}</p>}
                 {visibleItems.map(item => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;

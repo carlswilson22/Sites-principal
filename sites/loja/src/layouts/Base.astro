@@ -1,0 +1,109 @@
+---
+import '@fontsource-variable/archivo/wdth.css';
+import '../styles/global.css';
+import { SITE_URL } from '../lib/config';
+import { jsonLd, textOn, whatsappLink } from '../lib/format';
+import { readCompare } from '../lib/compare';
+
+interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+  image?: string;
+  noindex?: boolean;
+  structured?: unknown[];
+  current?: 'inicio' | 'estoque' | 'servicos' | 'contato' | 'favoritos';
+}
+const { title, description = '', path = Astro.url.pathname, image, noindex = false, structured = [], current } = Astro.props;
+
+const settings = Astro.locals.settings;
+const store = settings.store || {};
+const theme = settings.theme || {};
+const accent = /^#[0-9a-f]{6}$/i.test(theme.primary || '') ? theme.primary : '#0f6cbd';
+const origin = SITE_URL || Astro.url.origin;
+const canonical = origin + path;
+const storeName = store.name || 'Loja de veículos';
+const fullTitle = title.includes(storeName) ? title : `${title} | ${storeName}`;
+const ogImage = image ? (image.startsWith('http') ? image : origin + image) : '';
+const whatsapp = whatsappLink(store.whatsapp, `Olá! Vim pelo site da ${storeName}.`);
+const place = [store.city, store.uf].filter(Boolean).join('/');
+const modules: string[] = settings.modules || [];
+const customer = Astro.locals.customer;
+const back = encodeURIComponent(Astro.url.pathname);
+const compareCount = modules.includes('compare') ? readCompare(Astro.request).length : 0;
+---
+<!doctype html>
+<html lang="pt-BR" style={`--accent:${accent};--on-accent:${textOn(accent)}`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content={accent} />
+    <meta property="og:site_name" content={storeName} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    {structured.map(item => <script type="application/ld+json" set:html={jsonLd(item)} />)}
+  </head>
+  <body>
+    <a class="skip" href="#conteudo">Ir para o conteúdo</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">
+          {theme.logoUrl ? <img src={theme.logoUrl} alt={storeName} height="44" /> : storeName}
+        </a>
+        <nav class="nav" aria-label="Principal">
+          <a href="/estoque" aria-current={current === 'estoque' ? 'page' : undefined}>Estoque</a>
+          {modules.includes('virtual_consultant') && <a href="/consultor" aria-current={Astro.url.pathname === '/consultor' ? 'page' : undefined}>Consultor</a>}
+          {compareCount > 0 && <a href="/comparar" aria-current={Astro.url.pathname === '/comparar' ? 'page' : undefined}>Comparar ({compareCount})</a>}
+          {modules.includes('services') && <a href="/servicos" aria-current={current === 'servicos' ? 'page' : undefined}>Serviços</a>}
+          <a href="/contato" aria-current={current === 'contato' ? 'page' : undefined}>Sobre e contato</a>
+          {customer && modules.includes('favorites') && <a href="/favoritos" aria-current={current === 'favoritos' ? 'page' : undefined}>Favoritos</a>}
+          {customer
+            ? <form class="nav__out" method="post" action="/conta/sair"><input type="hidden" name="voltar" value="/" /><button type="submit" title={customer.name}>Sair</button></form>
+            : modules.includes('customers') && <a href={`/conta/entrar?voltar=${back}`}>Entrar</a>}
+        </nav>
+        {whatsapp && <a class="btn btn--accent" href={whatsapp} rel="noopener" data-whatsapp>WhatsApp</a>}
+      </div>
+    </header>
+    <main id="conteudo"><slot /></main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div>
+          <h2>{storeName}</h2>
+          {store.cnpj && <p>CNPJ {store.cnpj}</p>}
+          {store.address && <p>{store.address}</p>}
+          {place && <p>{place}</p>}
+        </div>
+        <div>
+          <h2>Fale com a loja</h2>
+          {store.phone && <p>Telefone: {store.phone}</p>}
+          {store.email && <p><a href={`mailto:${store.email}`}>{store.email}</a></p>}
+          {whatsapp && <p><a href={whatsapp} rel="noopener" data-whatsapp>Chamar no WhatsApp</a></p>}
+        </div>
+        <div>
+          <h2>Site</h2>
+          <p><a href="/estoque">Estoque</a></p>
+          <p><a href="/contato">Sobre e contato</a></p>
+          <p><a href="/privacidade">Aviso de privacidade</a></p>
+        </div>
+      </div>
+    </footer>
+    <script>
+      // Contagem de cliques no WhatsApp, sem cookie e sem dado pessoal.
+      document.querySelectorAll('[data-whatsapp]').forEach(link => {
+        link.addEventListener('click', () => {
+          const vehicle = (document.querySelector('[data-vehicle-id]') as HTMLElement | null)?.dataset.vehicleId;
+          navigator.sendBeacon('/t', new Blob([JSON.stringify({ type: 'whatsapp_click', ...(vehicle ? { vehicle_id: Number(vehicle) } : {}) })], { type: 'application/json' }));
+        });
+      });
+    </script>
+  </body>
+</html>

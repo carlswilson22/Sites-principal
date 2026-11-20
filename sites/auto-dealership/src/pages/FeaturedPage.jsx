@@ -22,7 +22,7 @@ export function FeaturedPage({ vehicles, onSelectVehicle, onNavigate }) {
             Veículos em Destaque
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
-            Modelos de alta procura, com histórico de único dono, menor quilometragem e laudo cautelar 100% aprovado sem qualquer apontamento.
+            Modelos de alta procura, com histórico de único dono, menor quilometragem e laudo cautelar informado pela loja.
           </p>
         </div>
       </div>

@@ -42,8 +42,8 @@ Cancelar preserva a navegação; entrar retoma a ação solicitada.
 - No modelo 3: favoritos e interesse em condição de preço.
 
 A comparação é pública e não pede login. No anúncio dos três modelos, o
-simulador oferece Itaú Auto, Santander Auto e BV Financeira com taxas
-ilustrativas; não há consulta ou aprovação bancária. No simulador independente
+simulador oferece Condição A, B e C com taxas
+ilustrativas, configuráveis pela loja; não há consulta ou aprovação bancária. No simulador independente
 e no painel, a taxa permanece manual. Detalhes de custos começam recolhidos.
 
 O botão **Entrar** abre um único formulário para clientes e funcionários. O

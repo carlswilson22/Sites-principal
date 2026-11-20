@@ -204,6 +204,9 @@ for (const [model, scenario] of scenarios) {
         button('Início').click();
         await wait(() => document.querySelector('[data-store-layout]'));
       }
+    } else if (model === 'luxury-dealership') {
+      assert(favoriteShortcut() && favoriteShortcut().dataset.favoritesCount === '0', 'Expert (DriveNow) sem o atalho de favoritos para o visitante');
+      assert(favoriteShortcut().compareDocumentPosition(button('Entrar')) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Atalho de favoritos deve ficar à esquerda do login');
     } else assert(!favoriteShortcut(), 'Atalho de favoritos apareceu em modelo sem essa função');
     if (scenario === 'legacy-favorites') {
       assert.equal(window.localStorage.getItem('drivenow_favorites_v1'), '[1,"1",999,2]', 'Preferências antigas foram alteradas sem login');
@@ -345,10 +348,10 @@ for (const [model, scenario] of scenarios) {
       assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente autenticado recebeu o painel');
       const financing = ad.querySelector('[data-financing-vehicle]');
       const bankOptions = [...financing.querySelectorAll('input[type="radio"]')];
-      assert.deepEqual(bankOptions.map(input => input.value), ['itau', 'santander', 'bv'], 'Anúncio sem as três instituições');
-      assert(bankOptions.every(input => input.labels.length === 1) && new Set(bankOptions.map(input => input.name)).size === 1, 'Bancos sem grupo de seleção acessível');
-      for (const label of ['Itaú Auto', 'Santander Auto', 'BV Financeira', '1,42% a.m.', '1,45% a.m.', '1,49% a.m.', 'taxas ilustrativas']) assert(financing.textContent.includes(label), `Simulador sem ${label}`);
-      assert.equal(financing.dataset.financingBank, 'itau');
+      assert.deepEqual(bankOptions.map(input => input.value), ['condicao-a', 'condicao-b', 'condicao-c'], 'Anúncio sem as três condições');
+      assert(bankOptions.every(input => input.labels.length === 1) && new Set(bankOptions.map(input => input.name)).size === 1, 'Condições sem grupo de seleção acessível');
+      for (const label of ['Condição A', 'Condição B', 'Condição C', '1,42% a.m.', '1,45% a.m.', '1,49% a.m.', 'taxas ilustrativas']) assert(financing.textContent.includes(label), `Simulador sem ${label}`);
+      assert.equal(financing.dataset.financingBank, 'condicao-a');
       const payment = () => Number(financing.querySelector('[data-monthly-payment]').dataset.monthlyPayment);
       const entry = financing.querySelector('input[id$="-entry"]');
       const slider = financing.querySelector('input[id$="-entry-range"]');
@@ -358,8 +361,8 @@ for (const [model, scenario] of scenarios) {
       for (const bank of bankOptions.slice(1)) {
         bank.click();
         await wait(() => financing.dataset.financingBank === bank.value);
-        assert(payment() > initialPayment, 'Trocar o banco não recalculou a parcela');
-        assert.equal(Number(entry.value), initialEntry, 'Trocar banco alterou a entrada');
+        assert(payment() > initialPayment, 'Trocar a condição não recalculou a parcela');
+        assert.equal(Number(entry.value), initialEntry, 'Trocar a condição alterou a entrada');
       }
       financing.querySelector('[data-entry-ratio="0.5"]').click();
       await wait(() => Number(entry.value) === Math.round(price * 0.5 * 100) / 100);
@@ -377,7 +380,7 @@ for (const [model, scenario] of scenarios) {
       await wait(() => button('Simular financiamento deste veículo').getAttribute('aria-expanded') === 'false');
       button('Simular financiamento deste veículo').click();
       await wait(() => button('Simular financiamento deste veículo').getAttribute('aria-expanded') === 'true');
-      assert.equal(financing.dataset.financingBank, 'bv', 'Reabrir apagou o banco selecionado');
+      assert.equal(financing.dataset.financingBank, 'condicao-c', 'Reabrir apagou a condição selecionada');
       assert.equal(payment(), shortTermPayment, 'Reabrir apagou os valores da simulação');
       const openAdSections = () => ad.querySelectorAll('[data-ad-tool][aria-expanded="true"], [data-ad-service][aria-expanded="true"]').length;
       assert.equal(openAdSections(), 1, 'Financiamento ficou aberto junto com outra seção');
@@ -426,7 +429,7 @@ for (const [model, scenario] of scenarios) {
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
         await wait(() => document.querySelectorAll('[role="dialog"]').length === 1);
         openedWindows.length = 0;
-        button('Laudo Cautelar Digital').click();
+        button('Laudo informado pela loja').click();
         await wait(() => button('Abrir dossiê do veículo'));
         button('Abrir dossiê do veículo').click();
         await wait(() => document.querySelector('button[aria-label="Fechar dossiê do veículo"]'));
@@ -492,6 +495,28 @@ for (const [model, scenario] of scenarios) {
       await wait(() => !document.querySelector('[data-store-layout]'));
       const results = [...document.querySelectorAll('[data-vehicle-id]')];
       assert(results.length && results.every(item => item.textContent.includes('HB20')), 'Busca inicial não acompanha o estoque');
+    }
+    if (fullFlow && model === 'luxury-dealership') {
+      button('Estoque').click();
+      await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')));
+      assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Expert começou com favoritos');
+      for (let index = 0; index < 2; index += 1) {
+        document.querySelector('button[title="Salvar nos favoritos"]').click();
+        await wait(() => favoriteShortcut().dataset.favoritesCount === String(index + 1));
+      }
+      buttons().find(item => item.textContent.includes('Meus favoritos')).click();
+      await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
+      const savedExpert = document.querySelectorAll('[data-vehicle-id]').length;
+      assert.equal(savedExpert, 2, 'Favoritos do Expert não abriram os dois veículos salvos');
+      document.querySelector('button[title="Remover dos favoritos"]').click();
+      await wait(() => document.querySelectorAll('[data-vehicle-id]').length === savedExpert - 1);
+      button('Estoque').click();
+      await wait(() => buttons().find(item => item.textContent.includes('Meus favoritos')));
+      assert.equal(favoriteShortcut().dataset.favoritesCount, '1', 'Atalho do cabeçalho não acompanha os favoritos do Expert');
+      assert(buttons().find(item => item.textContent.includes('Meus favoritos')).textContent.endsWith('1'), 'Atalho do estoque não acompanha os favoritos do Expert');
+      document.querySelector('button[title="Remover dos favoritos"]').click();
+      await wait(() => favoriteShortcut().dataset.favoritesCount === '0');
+      console.log('OK: DriveNow (favoritos: salvar, abrir, remover e contagem)');
     }
     if (fullFlow && model === 'popular-dealership') {
       button('Serviços').click();
@@ -734,13 +759,13 @@ for (const [model, scenario] of scenarios) {
         const interest = [...financing.querySelectorAll('dl > div')].find(row => row.querySelector('dt').textContent === 'Juros estimados no período');
         assert(/0,00$/.test(interest.querySelector('dd').textContent), 'Simulador com taxa zero adiciona juros');
         button('Estúdio de Stories 1080p').click();
-        await wait(() => button('Publicar Story') && !button('Publicar Story').disabled);
+        await wait(() => button('Simular publicação') && !button('Simular publicação').disabled);
         assert(document.querySelector('main').textContent.includes('Conta de exemplo'));
         assert(!document.querySelector('main').textContent.includes('INSTAGRAM_ACCESS_TOKEN'));
         button('Editorial · 3 fotos').click();
         await wait(() => document.querySelector('[data-story-template="showcase_trio"]'));
         assert.equal(document.querySelector('[data-story-template]').querySelectorAll('img').length, 3, 'Layout editorial não mostra três fotos');
-        button('Publicar Story').click(); button('Publicar Story')?.click();
+        button('Simular publicação').click(); button('Simular publicação')?.click();
         const samplesKey = 'store_tool_samples_' + storeKey;
         await wait(() => button('Ver publicação') && JSON.parse(window.localStorage.getItem(samplesKey))?.stories.length);
         assert(!document.querySelector('[data-publication-id]'), 'Publicar abriu uma janela sem solicitação');
@@ -795,7 +820,7 @@ for (const [model, scenario] of scenarios) {
         await wait(() => button('Baixar arquivo JSON'));
         assert(document.querySelector('main pre').textContent.includes('Marina Oliveira'));
         window.confirm = () => true;
-        button('Anonimizar Titular (Art. 18, VI)').click();
+        button('Anonimizar Titular (Art. 18, IV e VI)').click();
         await wait(() => document.querySelector('main').textContent.includes('Cliente de exemplo anonimizado'));
         button('Exportar Dados (Art. 18, II)').form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
         await wait(() => document.querySelector('main pre')?.textContent.includes('Titular anonimizado'));
@@ -809,13 +834,13 @@ for (const [model, scenario] of scenarios) {
         button('Voltar ao histórico').click();
         await wait(() => !document.querySelector('[data-publication-id]'));
         button('DRE & Comissões Vendedores').click();
-        await wait(() => button('Catálogo Portais (CSV)'));
+        await wait(() => button('Estoque (CSV)'));
         const downloads = [];
         const blobs = [];
         window.URL.createObjectURL = blob => { blobs.push(blob); return 'blob:sample-' + blobs.length; };
         window.URL.revokeObjectURL = () => {};
         window.HTMLAnchorElement.prototype.click = function () { downloads.push(this.download); };
-        button('Catálogo Portais (CSV)').click();
+        button('Estoque (CSV)').click();
         assert.equal(downloads.at(-1), 'catalogo-veiculos.csv');
         assert.equal(blobs.at(-1).type, 'text/csv;charset=utf-8');
         assert(!openedWindows.some(([url]) => String(url).includes('/api/tier3/portals/export')), 'Exportação abriu uma rota inexistente');

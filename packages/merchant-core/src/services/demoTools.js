@@ -49,7 +49,7 @@ export const demoTools = {
     data.stories = [publication, ...data.stories].slice(0, 20);
     audit(data, 'STORY_PUBLICADO_NA_PREVIA', 'stories', publication.id);
     write(storeKey, data, storage);
-    return { success: true, demo: true, publication, message: 'Story publicado na prévia da conta de exemplo.' };
+    return { success: true, demo: true, publication, message: 'Simulação concluída: o Story foi salvo na prévia. Nada foi enviado ao Instagram.' };
   },
   consignments(storeKey, vehicles = [], storage) {
     const data = read(storeKey, storage);
@@ -88,12 +88,13 @@ export const demoTools = {
     if (payload.type === 'termo_aditivo' && !parent) throw new Error('Escolha um contrato emitido para vincular o aditivo.');
     const car = normalizeVehicle(vehicle);
     const consignment = this.consignments(storeKey, vehicles, storage).find(item => String(item.vehicle_id) === String(car.id));
-    const terms = { ...payload.terms, remunerationType: consignment?.remuneration_type || 'percentual', remunerationValue: consignment?.remuneration_value ?? 6, minRemuneration: consignment?.min_remuneration ?? 0, serviceFee: consignment?.service_fee ?? 350, dailyStorageFee: consignment?.daily_storage_fee ?? 15, payoutDeadlineDays: consignment?.payout_deadline_days ?? 5, contractEnd: consignment?.contract_end || '30 dias' };
+    const terms = { remunerationType: consignment?.remuneration_type || 'percentual', remunerationValue: consignment?.remuneration_value ?? 6, minRemuneration: consignment?.min_remuneration ?? 0, serviceFee: consignment?.service_fee ?? 350, dailyStorageFee: consignment?.daily_storage_fee ?? 15, payoutDeadlineDays: consignment?.payout_deadline_days ?? 5, contractEnd: consignment?.contract_end || '', ...payload.terms };
     terms.tradeValue = money(terms.tradeValue || 0);
     terms.tradeDebtAmount = terms.tradeHasDebt ? money(terms.tradeDebtAmount || 0) : 0;
-    terms.financedBalance = Math.max(0, car.price - terms.tradeValue + terms.tradeDebtAmount);
+    terms.cashDownPayment = money(terms.cashDownPayment || 0);
+    terms.financedBalance = Math.max(0, car.price - terms.tradeValue - terms.cashDownPayment);
     const code = generateContractCode('CTR', data.contracts.length + 1);
-    const html = generateAdvancedContractHtml({ ...payload, code, parentCode: parent?.code, terms, client: sampleClient(payload.client_id), vehicle: car, store: { name: dealership.nome || 'Enterprise Veículos', cnpj: dealership.cnpj || '00.000.000/0001-00', address: 'Endereço da loja de exemplo' } });
+    const html = generateAdvancedContractHtml({ ...payload, code, parentCode: parent?.code, terms, client: sampleClient(payload.client_id), vehicle: car, store: { name: dealership.nome || 'Enterprise Veículos', cnpj: dealership.cnpj || '00.000.000/0001-00 (exemplo)', address: dealership.cidade ? `${dealership.cidade}/${dealership.uf || ''}` : 'Endereço da loja de exemplo' } });
     const record = { id: createRecordId(), code, type: payload.type, vehicle_id: car.id, vehicleTitle: car.title, client_id: String(payload.client_id), parent_contract_id: parent?.id, html, created_at: new Date().toISOString() };
     data.contracts.unshift(record);
     audit(data, 'CONTRATO_EMITIDO', 'contracts', record.id);

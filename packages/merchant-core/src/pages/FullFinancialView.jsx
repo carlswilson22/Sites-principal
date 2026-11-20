@@ -40,7 +40,7 @@ export function FullFinancialView({ dealership = {}, vehicles = [] }) {
     if (!report) return;
     const content = `
 =====================================================
-RELATÓRIO CONSOLIDADO PARA INSTITUIÇÃO FINANCEIRA
+RESUMO FINANCEIRO DOS ÚLTIMOS 12 MESES
 EMISSOR: ${dealership.nome || report.storeName}
 DATA DE EMISSÃO: ${new Date(report.generatedAt).toLocaleDateString('pt-BR')}
 =====================================================
@@ -50,9 +50,11 @@ DATA DE EMISSÃO: ${new Date(report.generatedAt).toLocaleDateString('pt-BR')}
 - Capital Próprio Imobilizado: ${formatBrl(report.ownStockInvestedCapital)}
 
 2. PERFORMANCE DOS ÚLTIMOS 12 MESES
-- Receita Operacional Bruta: ${formatBrl(report.last12MonthsGrossRevenue)}
-- Lucro Operacional Líquido Realizado: ${formatBrl(report.last12MonthsNetProfit)}
-- Rating de Saúde Financeira: ${report.financialHealthIndex}
+- Receita da loja nas vendas registradas: ${formatBrl(report.last12MonthsGrossRevenue)}
+- Resultado apurado (vendas menos custos lançados): ${formatBrl(report.last12MonthsNetProfit)}
+
+Calculado apenas com as vendas e despesas registradas no sistema.
+Não é balanço, parecer contábil nem auditoria.
 =====================================================
 Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'}.
     `;
@@ -68,7 +70,7 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
     );
   }
 
-  const { ownStock, consignedStock, salesMetrics, sellersCommissions, bankReport } = data || {};
+  const { ownStock, consignedStock, salesMetrics, sellersCommissions, bankReport, commissionRatePercent, warnings = [] } = data || {};
 
   return (
     <div className="space-y-6">
@@ -79,7 +81,7 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
             <h1 className="text-2xl font-bold text-slate-100">DRE & Comissionamento</h1>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Controle gerencial de estoque próprio vs. consignado, comissões de atendentes e relatório bancário anual.
+            Controle gerencial de estoque próprio e consignado, comissões da equipe e resumo dos últimos 12 meses, com base nas vendas e despesas registradas.
           </p>
         </div>
 
@@ -89,14 +91,14 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
             className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            Catálogo Portais (CSV)
+            Estoque (CSV)
           </button>
           <button
             onClick={handleExportBankReport}
             className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
           >
             <Download className="w-4 h-4" />
-            Relatório p/ Banco (12M)
+            Resumo 12 meses (TXT)
           </button>
         </div>
       </div>
@@ -112,7 +114,7 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
             {formatBrl(ownStock?.total_invested)}
           </div>
           <div className="text-xs text-slate-400 mt-2">
-            {ownStock?.count} carros próprios • Varejo: {formatBrl(ownStock?.total_retail_value)}
+            {ownStock?.count} carros próprios • Custos lançados; varejo: {formatBrl(ownStock?.total_retail_value)}
           </div>
         </div>
 
@@ -125,20 +127,20 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
             {formatBrl(consignedStock?.total_retail_value)}
           </div>
           <div className="text-xs text-slate-400 mt-2">
-            {consignedStock?.count} carros de terceiros sob gestão (risco zero de imobilizado)
+            {consignedStock?.count} carros de terceiros sob gestão (sem capital da loja na compra)
           </div>
         </div>
 
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md">
           <div className="flex items-center justify-between text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">
-            <span>Lucro Realizado (Vendas)</span>
+            <span>Resultado apurado (12 meses)</span>
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-mono">
+          <div className={`text-2xl font-black font-mono ${Number(salesMetrics?.totalRealizedProfit) < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
             {formatBrl(salesMetrics?.totalRealizedProfit)}
           </div>
           <div className="text-xs text-slate-400 mt-2">
-            {salesMetrics?.totalSoldCars} vendas • Receita: {formatBrl(salesMetrics?.totalSalesRevenue)}
+            {salesMetrics?.totalSoldCars} vendas • Valor vendido: {formatBrl(salesMetrics?.totalSalesRevenue)}
           </div>
         </div>
       </div>
@@ -150,7 +152,7 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
             <Users className="w-4 h-4 text-emerald-400" />
             Comissionamento por Atendente / Vendedor
           </h3>
-          <span className="text-xs text-slate-400">Regra: 1,5% sobre o valor faturado por venda</span>
+          <span className="text-xs text-slate-400">{commissionRatePercent == null ? 'Percentual de comissão não configurado (Configurações)' : `Regra da loja: ${String(commissionRatePercent).replace('.', ',')}% sobre o valor vendido`}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
@@ -160,7 +162,7 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
                 <th className="px-5 py-3">E-mail</th>
                 <th className="px-5 py-3">Vendas Fechadas</th>
                 <th className="px-5 py-3">Volume Vendido</th>
-                <th className="px-5 py-3">Comissão Apurada</th>
+                <th className="px-5 py-3">Comissão apurada</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -170,7 +172,7 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
                   <td className="px-5 py-4 text-xs text-slate-400 font-mono">{s.email}</td>
                   <td className="px-5 py-4 text-slate-200">{s.salesCount} carros</td>
                   <td className="px-5 py-4 font-mono text-slate-200">{formatBrl(s.totalSold)}</td>
-                  <td className="px-5 py-4 font-mono font-bold text-emerald-400">{formatBrl(s.commissionAmount)}</td>
+                  <td className="px-5 py-4 font-mono font-bold text-emerald-400">{s.commissionAmount == null ? '—' : formatBrl(s.commissionAmount)}</td>
                 </tr>
               ))}
             </tbody>
@@ -178,30 +180,33 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
         </div>
       </div>
 
-      {/* Card Relatório Bancário Oficial */}
+      {warnings.length > 0 && (
+        <ul className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200 space-y-1" aria-label="Avisos do cálculo">
+          {warnings.map(text => <li key={text}>{text}</li>)}
+        </ul>
+      )}
+
+      {/* Resumo para instituições financeiras */}
       {bankReport && (
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-md space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Building className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-base font-bold text-slate-100">Dossiê Consolidado de Crédito (12 Meses)</h3>
+              <h3 className="text-base font-bold text-slate-100">Resumo financeiro dos últimos 12 meses</h3>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              Rating {bankReport.financialHealthIndex}
-            </span>
           </div>
 
           <p className="text-xs text-slate-400">
-            Sumário auditado pronto para apresentação a instituições financeiras, cooperativas de crédito e bancos parceiros de financiamento de estoque (Floor Plan).
+            Resumo gerado a partir dos dados registrados pela loja, para apresentar a instituições financeiras. Não é parecer contábil nem auditoria. Na demonstração, os valores são de exemplo.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-800/40 rounded-xl border border-slate-800">
             <div>
-              <span className="text-[11px] text-slate-400 uppercase font-semibold">Giro de 12 Meses</span>
+              <span className="text-[11px] text-slate-400 uppercase font-semibold">Receita da loja (12 meses)</span>
               <div className="text-base font-bold text-slate-200 font-mono mt-0.5">{formatBrl(bankReport.last12MonthsGrossRevenue)}</div>
             </div>
             <div>
-              <span className="text-[11px] text-slate-400 uppercase font-semibold">Lucro Líquido 12M</span>
+              <span className="text-[11px] text-slate-400 uppercase font-semibold">Resultado apurado 12M</span>
               <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">{formatBrl(bankReport.last12MonthsNetProfit)}</div>
             </div>
             <div>

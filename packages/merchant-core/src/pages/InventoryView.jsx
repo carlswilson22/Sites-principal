@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { storeSync } from '../services/storeSync';
 import { VehicleImage } from '../components/common/VehicleImage';
+import { getVehicleGallery } from '../utils/vehicleGallery';
 import {
   Car,
   Plus,
@@ -76,7 +77,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     ownership_type: 'proprio',
     is_published: 1,
     days_in_stock: 15,
-    notes: 'Veículo revisado com perícia cautelar 100% aprovada.',
+    notes: 'Veículo revisado. Confira laudo e documentação com a loja.',
     features: ['Ar-condicionado Digital', 'Direção Elétrica Progressiva', 'Central Multimídia com Apple CarPlay / Android Auto'],
     tags: ['Único Dono', 'Laudo Cautelar Aprovado', 'Garantia']
   });
@@ -86,9 +87,9 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   useEffect(() => () => { photoSession.current += 1; }, []);
 
-  const saveVehicle = vehicle => {
+  const saveVehicle = async vehicle => {
     try {
-      setVehicles(storeSync.saveVehicle(storeKey, vehicle, defaultVehicles));
+      setVehicles(await storeSync.saveVehicle(storeKey, vehicle, defaultVehicles));
       setError('');
       return true;
     } catch (failure) {
@@ -190,7 +191,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
   };
 
   // Salvar veículo (E3, E5) com storeSync
-  const handleSaveVehicle = (e) => {
+  const handleSaveVehicle = async (e) => {
     e.preventDefault();
     if (!formData.title.trim() || !Number.isFinite(formData.price) || formData.price <= 0) {
       setError('Informe o nome do veículo e um preço maior que zero.');
@@ -200,7 +201,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     if (selectedVehicle) {
       // Editar
       const updatedItem = { ...selectedVehicle, ...formData };
-      if (!saveVehicle(updatedItem)) return;
+      if (!(await saveVehicle(updatedItem))) return;
     } else {
       // Criar
       const newVehicle = {
@@ -208,7 +209,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
         cover_photo: '/images/placeholder-carro.jpg',
         photos: ['/images/placeholder-carro.jpg']
       };
-      if (!saveVehicle(newVehicle)) return;
+      if (!(await saveVehicle(newVehicle))) return;
     }
     setIsModalOpen(false);
   };
@@ -223,10 +224,10 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
   };
 
   // Excluir veículo (E3)
-  const handleDeleteVehicle = (id) => {
+  const handleDeleteVehicle = async (id) => {
     if (window.confirm('Tem certeza de que deseja remover este veículo do estoque?')) {
       try {
-        setVehicles(storeSync.deleteVehicle(storeKey, id, defaultVehicles));
+        setVehicles(await storeSync.deleteVehicle(storeKey, id, defaultVehicles));
         setError('');
       } catch (failure) {
         setError(failure.message || 'Não foi possível remover o veículo.');
@@ -241,7 +242,8 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     setIsReadingPhotos(false);
     setError('');
     setSelectedVehicle(v);
-    setPhotosList(v.photos && v.photos.length > 0 ? [...v.photos] : ['/images/placeholder-carro.jpg']);
+    const gallery = getVehicleGallery(v);
+    setPhotosList(gallery.length > 0 ? gallery : ['/images/placeholder-carro.jpg']);
     setIsPhotosModalOpen(true);
   };
 
@@ -336,7 +338,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
   };
 
   // Salvar fotos no veículo (E4) com storeSync
-  const handleSavePhotos = () => {
+  const handleSavePhotos = async () => {
     if (readingPhotos.current) return;
     if (selectedVehicle) {
       const updatedVehicle = {
@@ -344,7 +346,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
         cover_photo: photosList[0] || selectedVehicle.cover_photo,
         photos: photosList
       };
-      if (!saveVehicle(updatedVehicle)) return;
+      if (!(await saveVehicle(updatedVehicle))) return;
     }
     closePhotos();
   };
@@ -510,7 +512,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                   className="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
-                  Fotos ({car.photos?.length || 1})
+                  Fotos ({getVehicleGallery(car).length})
                 </button>
 
                 <button

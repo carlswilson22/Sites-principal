@@ -1,0 +1,56 @@
+---
+import Panel from '../layouts/Panel.astro';
+import { api } from '../lib/api';
+import { SOURCE_LABEL, when } from '../lib/format';
+
+const { token, user } = Astro.locals;
+const summary = await api(token, 'GET', '/api/dashboard/summary');
+const ind = summary.data?.indicators || { inStock: 0, monthlySales: 0, staleVehicles: 0, newLeads: 0 };
+const pending: any[] = summary.data?.pendingActions || [];
+
+// Primeiros passos: só para o proprietário, e só enquanto faltar algo importante
+let todo: { text: string; href: string }[] = [];
+let usage: any = null;
+if (user?.role === 'proprietario') {
+  const settings = await api(token, 'GET', '/api/settings');
+  const store = settings.data?.store || {};
+  usage = settings.data?.vehicleUsage;
+  if (!store.whatsapp) todo.push({ text: 'Cadastre o WhatsApp da loja: sem ele o botão do site não funciona.', href: '/configuracoes#loja' });
+  if (!store.email) todo.push({ text: 'Cadastre o e-mail que recebe os avisos de novos contatos.', href: '/configuracoes#loja' });
+  if (!store.address) todo.push({ text: 'Cadastre o endereço da loja.', href: '/configuracoes#loja' });
+  if (!store.hours || !Object.keys(store.hours).length) todo.push({ text: 'Informe o horário de atendimento.', href: '/configuracoes#horarios' });
+  if (!store.about) todo.push({ text: 'Escreva o texto “Sobre a loja”.', href: '/configuracoes#loja' });
+}
+---
+<Panel title="Início" current="inicio">
+  <div class="main__head"><h1>Início</h1><a class="btn btn--accent" href="/estoque/novo">Cadastrar veículo</a></div>
+
+  <div class="stats">
+    <div class="stat"><strong>{ind.inStock}</strong><span>veículos disponíveis</span></div>
+    <div class:list={['stat', { 'stat--alert': ind.newLeads > 0 }]}><strong>{ind.newLeads}</strong><span>contatos novos para responder</span></div>
+    <div class="stat"><strong>{ind.monthlySales}</strong><span>vendas nos últimos 30 dias</span></div>
+    <div class:list={['stat', { 'stat--alert': ind.staleVehicles > 0 }]}><strong>{ind.staleVehicles}</strong><span>parados há mais de 60 dias</span></div>
+  </div>
+
+  {usage && usage.over > 0 && (
+    <p class="status status--err" role="alert">A loja tem {usage.published} veículos publicados, acima do limite do pacote ({usage.limit}). Cada bloco extra de 50 é cobrado conforme o contrato.</p>
+  )}
+  {usage && usage.over === 0 && <p class="muted small">{usage.published} de {usage.limit} veículos publicados no pacote.</p>}
+
+  {todo.length > 0 && (
+    <section class="panel" aria-labelledby="passos">
+      <h2 id="passos">Primeiros passos</h2>
+      <ul style="margin:0.75rem 0 0;padding-left:1.1rem">{todo.map(item => <li><a href={item.href}>{item.text}</a></li>)}</ul>
+    </section>
+  )}
+
+  <section class="panel" aria-labelledby="pendentes">
+    <div class="main__head" style="margin-bottom:0.75rem"><h2 id="pendentes">Contatos esperando resposta</h2><a href="/contatos?status=novo">Ver todos</a></div>
+    {pending.length > 0 ? (
+      <div class="scroll"><table class="list">
+        <thead><tr><th>Nome</th><th>Telefone</th><th>Origem</th><th>Quando</th></tr></thead>
+        <tbody>{pending.map(lead => <tr><td>{lead.name}</td><td>{lead.phone}</td><td>{SOURCE_LABEL[lead.source] || lead.source}</td><td>{when(lead.created_at)}</td></tr>)}</tbody>
+      </table></div>
+    ) : <p class="muted" style="margin:0">Nenhum contato novo. Quando alguém escrever pelo site, aparece aqui e você recebe um e-mail.</p>}
+  </section>
+</Panel>

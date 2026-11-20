@@ -211,7 +211,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
                 <FileText className="w-5 h-5 text-amber-400" />
-                Emitir Documento Oficial
+                Emitir documento
               </h3>
               <button
                 type="button"

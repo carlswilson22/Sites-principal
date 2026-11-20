@@ -1,0 +1,23 @@
+---
+import Panel from '../layouts/Panel.astro';
+import Flash from '../components/Flash.astro';
+const forced = Boolean(Astro.locals.user?.mustChangePassword);
+---
+<Panel title="Trocar senha" bare={forced}>
+  <div class:list={[{ login: forced }]}>
+    <h1>{forced ? 'Crie a sua senha' : 'Trocar senha'}</h1>
+    <p class="muted" style="margin-top:0.5rem">
+      {forced ? 'Este é o seu primeiro acesso. Troque a senha provisória por uma só sua para continuar.' : 'Use pelo menos 10 caracteres, com letras e números.'}
+    </p>
+    {forced && <div style="margin-top:1rem"><Flash /></div>}
+    <form class="form panel" method="post" action="/acoes/senha" style="margin-top:1.25rem;max-width:28rem">
+      <label class="field">Senha atual<input name="atual" type="password" autocomplete="current-password" required maxlength="128" /></label>
+      <label class="field">Nova senha (mínimo de 10 caracteres, com letras e números)<input name="nova" type="password" autocomplete="new-password" required minlength="10" maxlength="128" /></label>
+      <label class="field">Repita a nova senha<input name="confirmar" type="password" autocomplete="new-password" required minlength="10" maxlength="128" /></label>
+      <button class="btn btn--accent" type="submit">Salvar nova senha</button>
+    </form>
+    {forced && (
+      <form method="post" action="/acoes/sair" style="margin-top:1rem"><button class="linklike" type="submit">Sair</button></form>
+    )}
+  </div>
+</Panel>

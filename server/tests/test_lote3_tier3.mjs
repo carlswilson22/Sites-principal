@@ -75,11 +75,11 @@ test('Lote 3 (A2): Contratos avançados com aviso legal e numeração', () => {
   });
 
   // Validação do aviso legal obrigatório
-  assert.ok(html.includes('AVISO LEGAL OBRIGATÓRIO'), 'Contrato deve incluir aviso legal');
-  assert.ok(html.includes('revisão e aprovação prévia de advogado'), 'Deve exigir revisão de advogado');
+  assert.ok(html.includes('minuta-modelo'), 'Contrato deve incluir aviso legal');
+  assert.ok(html.includes('revisada e adequada ao caso concreto por advogado'), 'Deve exigir revisão de advogado');
   assert.ok(html.includes('CONTRATO DE CONSIGNAÇÃO MERCANTIL'), 'Deve ter o título correto');
   assert.ok(html.includes('Porsche Macan GTS'), 'Deve conter os dados do veículo');
-  assert.ok(html.includes('1ª Testemunha'), 'Deve conter espaço para testemunhas');
+  assert.ok(html.includes('1ª testemunha'), 'Deve conter espaço para testemunhas');
 });
 
 test('Lote 3 (A3): Comissionamento de vendedores', () => {

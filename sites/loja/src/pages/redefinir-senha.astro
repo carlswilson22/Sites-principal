@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import Flash from '../components/Flash.astro';
+const token = Astro.url.searchParams.get('token') || '';
+const valid = /^[\w-]{16,200}$/.test(token);
+---
+<Base title="Nova senha" path="/redefinir-senha" noindex>
+  <div class="section wrap">
+    <h1>Criar nova senha</h1>
+    <div style="margin-top:1.5rem;max-width:30rem">
+      <Flash />
+      {valid ? (
+        <form class="form" method="post" action="/conta/redefinir" style="margin-top:1rem">
+          <input type="hidden" name="token" value={token} />
+          <label class="field">Nova senha (mínimo de 8 caracteres, com letras e números)
+            <input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" />
+          </label>
+          <button class="btn btn--accent" type="submit">Salvar nova senha</button>
+        </form>
+      ) : (
+        <p>Este link não é válido. <a href="/esqueci-senha">Peça um novo</a>.</p>
+      )}
+    </div>
+  </div>
+</Base>
