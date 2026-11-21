@@ -93,7 +93,7 @@ function StoreApp() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black relative">
+    <div data-store-theme="workspace" className="min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-black relative">
       {/* Navegacao principal e atendimento da loja */}
       <Navbar 
         currentPage={currentPage} 

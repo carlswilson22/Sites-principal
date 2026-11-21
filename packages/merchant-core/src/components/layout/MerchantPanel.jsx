@@ -46,15 +46,22 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToS
   const [tab, setTab] = useState('dashboard');
   const [client, setClient] = useState(null);
   const [vehicles, setVehicles] = useState(() => storeSync.getVehicles(storeKey, defaultVehicles));
+  const [leads, setLeads] = useState(() => storeSync.getLeads(storeKey));
   useEffect(() => storeSync.subscribe(storeKey, detail => {
     if (detail.type === 'VEHICLES_UPDATED') setVehicles(detail.vehicles);
+    if (detail.type === 'LEADS_UPDATED') setLeads(detail.leads);
   }), [storeKey]);
   if (loading) return <p role="status" className="p-8 text-white bg-slate-950 min-h-screen">Carregando acesso ao painel…</p>;
   if (!isStaff) return <LoginView storeKey={storeKey} storeName={dealership.nome} onLoginSuccess={() => setTab('dashboard')} onCancel={onExitToSite} />;
   const allowed = canAccessMerchantRoute(tab, tier, role);
   const active = allowed ? tab : 'dashboard';
   const View = merchantRoutes[active].component;
+  const newSimulations = leads.filter(lead => lead.source === 'simulador_financiamento' && lead.status === 'novo');
   return <MerchantShell storeName={dealership.nome} activeTab={active} onSelectTab={setTab} onExitToSite={onExitToSite}>
+    {active !== 'leads' && newSimulations.length > 0 && <button type="button" onClick={() => setTab('leads')} className="mb-6 w-full rounded-2xl border border-blue-400/40 bg-blue-500/10 p-4 text-left text-sm text-blue-100 hover:bg-blue-500/20" aria-label={`${newSimulations.length} novas simulações de financiamento. Abrir contatos`}>
+      <strong className="block text-white">{newSimulations.length === 1 ? 'Nova simulação de financiamento' : `${newSimulations.length} novas simulações de financiamento`}</strong>
+      <span>Veja os dados do veículo e do contato em Contatos &amp; WhatsApp.</span>
+    </button>}
     <PanelErrorBoundary key={`${active}-${storeKey}`} onRecover={() => setTab('dashboard')}>
       {View ? <View storeKey={storeKey} defaultVehicles={defaultVehicles} vehicles={vehicles}
         dealership={{ ...dealership, ...dealership.endereco }} selectedClient={client}

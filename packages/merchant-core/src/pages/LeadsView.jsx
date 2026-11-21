@@ -195,6 +195,9 @@ export function LeadsView({ storeKey = 'autoelite' }) {
       <div className="space-y-3">
         {filteredLeads.map(lead => {
           const history = Array.isArray(lead.history) ? lead.history.filter(entry => entry && typeof entry === 'object') : [];
+          let simulation = lead.simulation || lead.simulation_data;
+          if (typeof simulation === 'string') { try { simulation = JSON.parse(simulation); } catch { simulation = null; } }
+          const simulationMoney = value => value == null ? 'não informado' : Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
           const rawPhone = String(lead.phone || '').replace(/\D/g, '');
           const phoneWithCountry = rawPhone.length <= 11 ? `55${rawPhone}` : rawPhone;
           const whatsappUrl = `https://wa.me/${phoneWithCountry}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20concession%C3%A1ria%20e%20vi%20seu%20interesse%20no%20${encodeURIComponent(lead.vehicle_title || lead.vehicleName || 'veículo')}!%20Como%20posso%20te%20ajudar?`;
@@ -241,9 +244,12 @@ export function LeadsView({ storeKey = 'autoelite' }) {
                       </li>)}
                     </ol>
                   </details>}
-                  {lead.simulation_data && (
-                    <div className="text-[11px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 inline-block mt-1.5">
-                      Simulação: Entrada R$ {lead.simulation_data.entrada?.toLocaleString('pt-BR')} + {lead.simulation_data.parcelas}x de R$ {lead.simulation_data.valorParcela?.toLocaleString('pt-BR')}
+                  {simulation && (
+                    <div className="text-xs text-amber-200 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20 inline-block mt-2 space-y-1">
+                      <p className="font-semibold">Simulação de financiamento</p>
+                      <p>Entrada {simulationMoney(simulation.entrada)} · {simulation.parcelas ?? 'Prazo não informado'}x de {simulationMoney(simulation.valorParcela)}</p>
+                      {simulation.banco && <p>Condição: {simulation.banco} · Taxa ilustrativa: {simulation.taxaMensal}% ao mês</p>}
+                      {simulation.valorVeiculo != null && <p>Valor do veículo: {Number(simulation.valorVeiculo).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>}
                     </div>
                   )}
                 </div>

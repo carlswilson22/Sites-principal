@@ -71,7 +71,7 @@ function StoreApp() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080c14] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative">
+    <div data-store-theme="classic" className="min-h-screen flex flex-col font-sans selection:bg-blue-600 selection:text-white relative">
       {/* Navegacao principal e atendimento da loja */}
       <Navbar currentPage={currentPage} onNavigate={navigateTo} />
 

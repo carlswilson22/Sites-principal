@@ -70,7 +70,7 @@ export function VehicleDetailModal({
   const fipe = calculateFipeDiff(vehicle.preco, vehicle.fipeReferencia);
 
   return (
-    <div data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 animate-fade-in">
+    <div data-vehicle-ad data-vehicle-id={vehicle.id} ref={dialogRef} role="dialog" aria-modal="true" aria-label={vehicle.nome} tabIndex={-1} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 animate-fade-in">
       <div 
         className="relative w-full max-w-3xl bg-slate-900 border border-cyan-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh_-_1.5rem)] sm:max-h-[calc(100vh_-_3rem)] my-auto"
         onClick={(e) => e.stopPropagation()}
@@ -148,7 +148,7 @@ export function VehicleDetailModal({
 
           {/* Galeria principal */}
           <div data-vehicle-gallery className="space-y-1.5">
-            <div className="relative w-fit max-w-full mx-auto rounded-2xl overflow-hidden group">
+            <div data-preserve-dark className="relative w-fit max-w-full mx-auto rounded-2xl overflow-hidden group">
               <VehicleImage
                 src={currentImage}
               fetchPriority="high"

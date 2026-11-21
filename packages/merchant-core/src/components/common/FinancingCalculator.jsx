@@ -1,17 +1,24 @@
-import React, { useId, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { useFinancingSimulation } from '../../hooks/useFinancingSimulation';
 import { financingBanks } from '../../data/financingBanks';
 
 const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, dealership = {}, lockedVehicle = false, showContact = true, storeKey, showBanks = lockedVehicle }) {
+export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, dealership = {}, lockedVehicle = false, showContact = true, storeKey, showBanks = lockedVehicle, onSubmitSimulation, customer = null, localDemo = false }) {
   const id = useId();
+  const [contact, setContact] = useState({ name: customer?.name || '', phone: '', email: customer?.email || '', consent: false });
+  const [submittedSignature, setSubmittedSignature] = useState(null);
+  const [submissionError, setSubmissionError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const submissionLock = useRef(false);
   const [manualRate, setRate] = useState(storeKey === 'drivenow' ? 1.25 : 1.45);
   const [bankId, setBankId] = useState(financingBanks[0].id);
   const selectedBank = showBanks ? financingBanks.find(bank => bank.id === bankId) || financingBanks[0] : null;
   const rate = selectedBank ? selectedBank.monthlyRatePercent : manualRate;
   const simulation = useFinancingSimulation({ vehicles, preselectedVehicle, fallbackPrice: 95000, downPaymentRatio: 0.3, minimumDownPaymentRatio: 0, monthlyRate: rate / 100 });
   const { selectedVehicle, price, downPayment, term, monthlyPayment, financedAmount } = simulation;
+  const signature = JSON.stringify([selectedVehicle?.id, price, downPayment, term, rate, selectedBank?.id]);
+  const revealed = !onSubmitSimulation || submittedSignature === signature;
   const totalInstallments = rate === 0 ? financedAmount : Math.round(monthlyPayment * term * 100) / 100;
   const field = 'mt-2 block w-full min-w-0 max-w-full min-h-12 px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-600 text-base leading-6 text-white focus:outline-none focus:border-blue-400';
   const label = 'block min-w-0 text-sm font-medium leading-5 text-slate-300';
@@ -21,6 +28,28 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
   const costs = <dl className="space-y-2 text-slate-300">
     {costRows.filter((_, index) => !showBanks || index > 0).map(([label, value]) => <div key={label} className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1"><dt className="min-w-0">{label}</dt><dd className="ml-auto font-medium tabular-nums whitespace-nowrap text-white text-right">{money(value)}</dd></div>)}
   </dl>;
+  const sendSimulation = async event => {
+    event.preventDefault();
+    if (submissionLock.current || revealed) return;
+    const name = contact.name.trim();
+    const phone = contact.phone.trim();
+    const digits = phone.replace(/\D/g, '');
+    if (name.length < 2 || digits.length < 10 || digits.length > 15 || !contact.consent) {
+      setSubmissionError('Informe nome, WhatsApp com DDD e autorize o contato da loja.');
+      return;
+    }
+    submissionLock.current = true;
+    setSubmitting(true);
+    setSubmissionError('');
+    try {
+      await onSubmitSimulation({ name, phone, email: contact.email.trim(), consent: true, vehicle: selectedVehicle,
+        simulation_data: { valorVeiculo: price, entrada: downPayment, parcelas: term, valorParcela: monthlyPayment,
+          saldoFinanciado: financedAmount, taxaMensal: rate, banco: selectedBank?.name || null } });
+      setSubmittedSignature(signature);
+    } catch (error) {
+      setSubmissionError(error.message || 'Não foi possível enviar a simulação. Tente novamente.');
+    } finally { submissionLock.current = false; setSubmitting(false); }
+  };
   return <div className={`w-full min-w-0 max-w-full ${showBanks ? 'space-y-4' : 'space-y-6'} text-sm leading-relaxed`} data-financing-vehicle={selectedVehicle?.id ?? ''} data-financing-bank={selectedBank?.id}>
     {!lockedVehicle && vehicles.length > 0 && <label htmlFor={`${id}-vehicle`} className={label}>Veículo
       <select id={`${id}-vehicle`} value={selectedVehicle?.id ?? ''} onChange={event => simulation.selectVehicle(event.target.value)} className={`${field} truncate pr-8`}>
@@ -38,7 +67,7 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
       </label>)}
     </fieldset>}
     <div className="grid gap-x-5 gap-y-5 min-w-0" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))' }}>
-      {!lockedVehicle && <label htmlFor={`${id}-price`} className={label}>Valor do veículo (R$)
+      {!lockedVehicle && !showBanks && <label htmlFor={`${id}-price`} className={label}>Valor do veículo (R$)
         <input id={`${id}-price`} type="number" min={simulation.bounds.minimum} max={simulation.bounds.maximum} step="0.01" value={price} onChange={event => simulation.setPrice(event.target.value)} className={field} />
       </label>}
       <label htmlFor={`${id}-entry`} className={label}>Entrada (R$)
@@ -75,16 +104,29 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
       </fieldset>
     </>}
     <div aria-live="polite" className="min-w-0 rounded-2xl bg-blue-500/10 border border-blue-400/30 p-4 sm:p-5 space-y-4">
-      <p className="text-slate-300">{showBanks ? `${term} parcelas estimadas · ${selectedBank.name}` : 'Parcela estimada'} <strong data-monthly-payment={monthlyPayment} className="block mt-1 text-2xl sm:text-3xl leading-tight tabular-nums break-words text-white">{money(monthlyPayment)} <span className="inline-block text-sm font-normal text-slate-400">/ mês</span></strong></p>
+      <p className="text-slate-300">{showBanks ? `${term} parcelas estimadas · ${selectedBank.name}` : 'Parcela estimada'} <strong data-monthly-payment={monthlyPayment} className="block mt-1 text-2xl sm:text-3xl leading-tight tabular-nums break-words text-white">{revealed ? <>{money(monthlyPayment)} <span className="inline-block text-sm font-normal text-slate-400">/ mês</span></> : 'R$ ••••'}</strong></p>
       {showBanks ? <>
         <p className="flex flex-wrap justify-between gap-2 text-slate-300">Saldo financiado <span className="font-semibold tabular-nums text-white">{money(financedAmount)}</span></p>
         <details data-financing-costs className="text-sm">
           <summary className="min-h-11 cursor-pointer py-3 text-slate-300">Ver juros e custo total</summary>
-          {costs}
+          {revealed ? costs : <p className="text-slate-400">Envie a simulação para consultar os custos.</p>}
         </details>
-      </> : costs}
+      </> : revealed && costs}
     </div>
     <p className="text-xs leading-relaxed text-slate-400">Estimativa pela Tabela Price. Taxa ilustrativa, sem IOF, tarifas ou seguros. A proposta e o CET dependem da instituição e da análise de crédito.</p>
+    {onSubmitSimulation && !revealed && <form onSubmit={sendSimulation} className="space-y-4" aria-label="Enviar simulação de financiamento">
+      <p className="text-sm text-slate-300">Preencha seus dados para ver a parcela e permitir que a loja entre em contato sobre esta simulação.</p>
+      <label className={label}>Nome completo<input required minLength={2} maxLength={120} value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} autoComplete="name" className={field} /></label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className={label}>WhatsApp com DDD<input required type="tel" maxLength={20} value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} autoComplete="tel" className={field} /></label>
+        <label className={label}>E-mail (opcional)<input type="email" maxLength={160} value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} autoComplete="email" className={field} /></label>
+      </div>
+      <label className="flex items-start gap-2 text-sm text-slate-300"><input required type="checkbox" checked={contact.consent} onChange={event => setContact({ ...contact, consent: event.target.checked })} className="mt-1 h-4 w-4 shrink-0 accent-blue-500" />Autorizo a loja a entrar em contato sobre esta simulação.</label>
+      {submissionError && <p role="alert" className="text-sm text-rose-300">{submissionError}</p>}
+      <button type="submit" disabled={submitting} className="min-h-12 w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500 disabled:opacity-50">{submitting ? 'Enviando…' : 'Quero ver minha parcela'}</button>
+      {localDemo && <p className="text-xs text-slate-400">Nesta demonstração, os dados ficam neste navegador e aparecem no painel aberto neste mesmo dispositivo.</p>}
+    </form>}
+    {onSubmitSimulation && revealed && <p role="status" className="text-sm text-emerald-300">Simulação registrada. A parcela acima é uma estimativa.</p>}
     {showContact && whatsapp && <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(summary)}`} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full min-h-11 items-center px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-semibold">Tenho interesse</a>}
   </div>;
 }

@@ -48,11 +48,6 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           icon: Car,
         },
         {
-          id: 'financing',
-          label: 'Simulador de financiamento',
-          icon: Calculator,
-        },
-        {
           id: 'leads',
           label: 'Contatos & WhatsApp',
           icon: MessageSquare,
@@ -74,21 +69,21 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           icon: Users,
         },
         {
-          id: 'fipe',
-          label: 'Precificador FIPE',
-          icon: Tag,
-        },
-        {
-          id: 'financial',
-          label: 'Financeiro & Margens',
-          icon: DollarSign,
-        },
-        {
           id: 'analytics',
           label: 'Métricas do Site',
           icon: TrendingUp,
         }
       ]
+    },
+    {
+      title: 'Financeiro',
+      items: [
+        { id: 'financing', label: 'Simulador de financiamento', icon: Calculator },
+        { id: 'fipe', label: 'Precificador FIPE', icon: Tag },
+        { id: 'financial', label: 'Financeiro & Margens', icon: DollarSign },
+        { id: 'financial_full', label: 'DRE & Comissões Vendedores', icon: DollarSign },
+        { id: 'market_pricing', label: 'Precificador Mercado & Leilão', icon: Tag },
+      ],
     },
     {
       title: 'Ferramentas',
@@ -103,16 +98,6 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           id: 'contracts_adv',
           label: 'Contratos Avançados & Troca',
           icon: FileText,
-        },
-        {
-          id: 'financial_full',
-          label: 'DRE & Comissões Vendedores',
-          icon: DollarSign,
-        },
-        {
-          id: 'market_pricing',
-          label: 'Precificador Mercado & Leilão',
-          icon: Tag,
         },
         {
           id: 'funnel',

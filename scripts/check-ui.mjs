@@ -83,9 +83,10 @@ for (const [name, Component, props] of [
     const whatsappLinks = html.split('<a ').slice(1).map(part => part.slice(0, part.indexOf('</a>'))).filter(part => part.includes('href="https://wa.me/'));
     const elementText = part => part.slice(part.indexOf('>') + 1).replace(/<[^>]*>/g, '').trim();
     const interestButtons = html.split('<button ').slice(1).map(part => elementText(part.slice(0, part.indexOf('</button>')))).filter(text => text === 'Tenho interesse');
-    if (name.startsWith('chat-modelo-') || name.startsWith('financiamento-publico-')) {
+    if (name.startsWith('chat-modelo-')) {
       if (whatsappLinks.length !== 1 || elementText(whatsappLinks[0]) !== 'Tenho interesse') throw new Error('Contato público ausente, duplicado ou com texto incorreto');
     }
+    if (name.startsWith('financiamento-publico-') && (whatsappLinks.length || !html.includes('Quero ver minha parcela') || !html.includes('Condição C'))) throw new Error('Simulador público deve reunir as condições e o formulário de contato');
     if (name.startsWith('sobre-modelo-') || name.startsWith('troca-publica-') || name === 'condicao-preco-3') {
       if (whatsappLinks.length !== 0 || interestButtons.length !== 1) throw new Error('Formulário de contato sem ação única Tenho interesse');
     }

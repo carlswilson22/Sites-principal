@@ -5,16 +5,22 @@
  * - Compra e Venda com Dação de Veículo em Pagamento (Troca)
  * - Termo Aditivo vinculado ao contrato original com numeração automática
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FileText, ShieldAlert, Printer, Share2, CheckCircle2, AlertCircle, X, ExternalLink } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
 import { isDemoMode } from '../services/demoConfig';
 import { demoTools } from '../services/demoTools.js';
+import { storeSync } from '../services/storeSync';
+import { findContractClient } from '../utils/contractClient';
+import { createRecordId } from '../utils/recordId';
 
 export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], dealership = {} }) {
   const [contractType, setContractType] = useState('consignacao');
   const [vehicleId, setVehicleId] = useState(String(vehicles[0]?.id || ''));
   const [clientId, setClientId] = useState(isDemoMode ? '1' : '');
+  const [clients, setClients] = useState(() => { try { return isDemoMode ? storeSync.getRecords(storeKey, 'clients') : []; } catch { return []; } });
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
   const [parentContractId, setParentContractId] = useState('');
   const [tradeVehicleTitle, setTradeVehicleTitle] = useState(isDemoMode ? 'Sedan Antigo 2018' : '');
   const [tradeYear, setTradeYear] = useState(isDemoMode ? '2018' : '');
@@ -44,16 +50,35 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
   const [error, setError] = useState('');
   const [history, setHistory] = useState(() => { try { return isDemoMode ? demoTools.contracts(storeKey) : []; } catch { return []; } });
 
+  useEffect(() => storeSync.subscribe(storeKey, detail => {
+    if (detail.type === 'CLIENTS_UPDATED') setClients(detail.clients);
+  }), [storeKey]);
+
   const handleGenerate = async (e) => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
     setError('');
+    let createdClientId = null;
     try {
+      let client = null;
+      if (isDemoMode && clientId === 'new') {
+        const data = { clientName: newClientName.trim(), clientPhone: newClientPhone.trim() };
+        if (data.clientName.length < 2) throw new Error('Informe o nome do cliente.');
+        client = findContractClient(storeSync.getRecords(storeKey, 'clients'), data);
+        if (!client) {
+          createdClientId = createRecordId();
+          client = storeSync.saveRecord(storeKey, 'clients', { id: createdClientId, name: data.clientName, phone: data.clientPhone, email: '', cpfMasked: '', address: '', notes: '' }).find(item => item.id === createdClientId);
+        }
+      } else if (isDemoMode && clientId.startsWith('registered:')) {
+        client = storeSync.getRecords(storeKey, 'clients').find(item => String(item.id) === clientId.slice('registered:'.length));
+        if (!client) throw new Error('O cliente selecionado não está mais disponível.');
+      }
       const res = await apiClient.createAdvancedContract({
         type: contractType,
         vehicle_id: isDemoMode ? vehicleId : Number(vehicleId),
-        client_id: isDemoMode ? clientId : Number(clientId),
+        client_id: isDemoMode ? (client?.id || clientId) : Number(clientId),
+        ...(client ? { demo_client: { id: client.id, name: client.name, phone: client.phone, cpf_masked: client.cpfMasked, address: client.address, email: client.email } } : {}),
         parent_contract_id: parentContractId ? (isDemoMode ? parentContractId : Number(parentContractId)) : undefined,
         tradeVehicle: contractType === 'compra_venda_troca' ? { title: tradeVehicleTitle, year: tradeYear, plate: tradePlate } : undefined,
         terms: {
@@ -73,10 +98,18 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
           witness2_cpf: witness2Cpf
         }
       }, storeKey, vehicles, dealership);
+      createdClientId = null;
       setPreviewHtml(res.html);
       setContractCode(res.code);
+      if (client) setClientId(`registered:${client.id}`);
       if (isDemoMode) setHistory(demoTools.contracts(storeKey));
-    } catch (failure) { setError(failure.message); } finally {
+    } catch (failure) {
+      if (createdClientId) {
+        try { storeSync.deleteRecord(storeKey, 'clients', createdClientId); }
+        catch { setError('A minuta não foi salva e o cadastro pode ter permanecido. Confira a carteira antes de tentar novamente.'); setLoading(false); return; }
+      }
+      setError(failure.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -148,15 +181,24 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">{isDemoMode ? 'Cliente de exemplo (ID)' : 'ID do cliente cadastrado'}</label>
-              <input
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5" htmlFor="advanced-contract-client">{isDemoMode ? 'Cliente' : 'ID do cliente cadastrado'}</label>
+              {isDemoMode ? <select id="advanced-contract-client" value={clientId} onChange={e => setClientId(e.target.value)} className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100">
+                <option value="1">Cliente de exemplo</option>
+                {clients.map(client => <option key={client.id} value={`registered:${client.id}`}>{client.name} · {client.phone}</option>)}
+                <option value="new">Cadastrar cliente no contrato</option>
+              </select> : <input
+                id="advanced-contract-client"
                 type="number"
                 required
                 value={clientId}
                 onChange={e => setClientId(e.target.value)}
                 className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
+              />}
             </div>
+            {isDemoMode && clientId === 'new' && <>
+              <label className="block text-xs text-slate-300">Nome do cliente<input required minLength={2} maxLength={120} value={newClientName} onChange={e => setNewClientName(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" /></label>
+              <label className="block text-xs text-slate-300">Telefone com DDD<input required type="tel" value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100" /></label>
+            </>}
           </div>
 
           {/* Campos específicos para Consignação */}

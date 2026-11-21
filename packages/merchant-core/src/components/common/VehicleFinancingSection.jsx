@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useState } from 'react';
 import { Calculator, ChevronDown } from 'lucide-react';
-import { FinancingCalculator } from './FinancingCalculator';
+import { PublicFinancingCalculator } from './PublicFinancingCalculator';
 import { useStoreAccess } from '../../context/StoreAccessContext';
 import { useVehicleAdSection } from './VehicleAdSections';
 
@@ -22,7 +22,7 @@ export function VehicleFinancingSection({ vehicle, dealership, storeKey, initial
       <ChevronDown aria-hidden="true" className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
     </button>
     <div id={id} hidden={!open || !user} className="p-4 sm:p-5 border-t border-slate-700">
-      {mounted && user && <FinancingCalculator vehicles={[vehicle]} preselectedVehicle={vehicle} lockedVehicle showContact={false} dealership={dealership} storeKey={storeKey} />}
+      {mounted && user && <PublicFinancingCalculator vehicles={[vehicle]} preselectedVehicle={vehicle} lockedVehicle dealership={dealership} storeKey={storeKey} />}
     </div>
   </section>;
 }

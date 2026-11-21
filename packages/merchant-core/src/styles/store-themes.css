@@ -1,0 +1,58 @@
+/* Identidades fixas das vitrines. O painel e os diálogos conservam suas próprias superfícies. */
+[data-store-theme="classic"], [data-account-theme="classic"] {
+  --store-page: #f2f7fd;
+  --store-surface: #fff;
+  --store-muted: #e5eef9;
+  --store-border: #c8d8eb;
+  --store-ink: #10243e;
+  --store-copy: #415773;
+  --store-accent: #1757a7;
+}
+[data-store-theme="editorial"], [data-account-theme="editorial"] {
+  --store-page: #f5f5f3;
+  --store-surface: #fff;
+  --store-muted: #eae9e5;
+  --store-border: #d5d4ce;
+  --store-ink: #252825;
+  --store-copy: #505a54;
+  --store-accent: #80601c;
+}
+[data-store-theme="workspace"], [data-account-theme="workspace"] {
+  --store-page: #eef8f8;
+  --store-surface: #fff;
+  --store-muted: #dcefed;
+  --store-border: #bddbd8;
+  --store-ink: #123536;
+  --store-copy: #3b5e60;
+  --store-accent: #087573;
+}
+[data-store-theme] { background: var(--store-page); color: var(--store-ink); }
+[data-store-theme] > header { background: var(--store-surface); border-bottom: 1px solid var(--store-border); }
+[data-store-theme="editorial"] .font-heading:not([role="dialog"]:not([data-vehicle-ad]) *) { font-family: Georgia, 'Times New Roman', serif; }
+[data-store-theme="workspace"] [data-vehicle-id]:not([role="dialog"]) { border-radius: 1rem; }
+[data-store-theme] [class~="bg-gradient-to-b"]:not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { background-image: none; }
+[data-store-theme] :is([class~="bg-slate-950"], [class*="bg-slate-950/"], [class~="bg-slate-900"], [class*="bg-slate-900/"], [class*="bg-[#"]):not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { background-color: var(--store-surface); }
+[data-store-theme] :is([class~="bg-slate-800"], [class*="bg-slate-800/"], [class*="bg-white/5"], [class*="bg-white/10"]):not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { background-color: var(--store-muted); }
+[data-store-theme] :is([class*="border-slate-8"], [class*="border-slate-7"], [class*="border-white/"]):not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { border-color: var(--store-border); }
+[data-store-theme] :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500):not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { color: var(--store-copy); }
+[data-store-theme] :is(h1, h2, h3, h4, strong, .text-white):not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { color: var(--store-ink); }
+[data-store-theme] :is(.text-blue-300, .text-blue-400, .text-cyan-200, .text-cyan-300, .text-cyan-400, .text-amber-200, .text-amber-300, .text-amber-400):not([data-preserve-dark], [data-preserve-dark] *, [data-vehicle-ad], [role="dialog"]:not([data-vehicle-ad]), [role="dialog"]:not([data-vehicle-ad]) *) { color: var(--store-accent); }
+[data-store-theme] [class*="bg-emerald-950"]:not([data-preserve-dark], [data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { background-color: #dcfce7; }
+[data-store-theme] :is(.text-emerald-200, .text-emerald-300, .text-emerald-400):not([data-preserve-dark], [data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { color: #126443; }
+[data-store-theme] :is(.text-rose-300, .text-rose-400):not([data-preserve-dark], [data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { color: #a51d35; }
+[data-store-theme] :is(.text-violet-300, .text-purple-400):not([data-preserve-dark], [data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { color: #6d28a0; }
+[data-store-theme] :is(button, a):is(.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-rose-500):not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { color: #fff; }
+[data-store-theme] :is(button, a):is(.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-rose-500):not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) :is(.text-white, span) { color: inherit; }
+[data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-blue-"], [data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-emerald-"], [data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-violet-"] { color: #fff; }
+[data-store-theme] :is(button, a):hover:not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *, [class*="bg-blue-"], [class*="bg-emerald-"], [class*="bg-rose-"]) { color: var(--store-accent); }
+[data-store-theme] input::placeholder, [data-store-theme] textarea::placeholder { color: #64748b; opacity: 1; }
+
+[data-account-theme] [data-account-card] { background: var(--store-surface); border-color: var(--store-border); color: var(--store-ink); }
+[data-account-theme] [data-account-card] :is([class*="bg-slate-950"], [class*="bg-slate-800"], [class*="bg-zinc-900"], [class*="bg-[#050508]"]) { background: var(--store-muted); border-color: var(--store-border); }
+[data-account-theme] [data-account-card] :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500) { color: var(--store-copy); }
+[data-account-theme] [data-account-card] :is(h1, h2, h3) { color: var(--store-ink); }
+[data-account-theme] [data-account-card] :is(.text-blue-300, .text-amber-200, .text-cyan-200) { color: var(--store-accent); }
+[data-account-theme] [data-account-card] .text-rose-300 { color: #a51d35; }
+[data-account-theme] [data-account-card] :is(button.bg-blue-600) { color: #fff; }
+[data-account-theme] [data-account-card] :is(button:hover):not(.bg-blue-600) { color: var(--store-accent); }
+[data-account-theme="editorial"] [data-account-card] :is(h1, h2) { font-family: Georgia, 'Times New Roman', serif; }

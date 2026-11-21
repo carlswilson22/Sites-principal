@@ -7,6 +7,7 @@ import { Users, Plus, Search, Phone, Mail, FileText, Lock, X, CheckCircle2 } fro
 import { storeSync } from '../services/storeSync';
 import { useAuth } from '../context/AuthContext';
 import { maskCPF } from '../utils/masking';
+import { findContractClient } from '../utils/contractClient';
 
 export function ClientsView({ onOpenContractWithClient, storeKey = 'autoelite' }) {
   const { hasRole } = useAuth();
@@ -55,10 +56,12 @@ export function ClientsView({ onOpenContractWithClient, storeKey = 'autoelite' }
     };
 
     try {
+      const existing = findContractClient(storeSync.getRecords(storeKey, 'clients'), { clientName: formData.name, clientPhone: formData.phone });
+      if (existing) { setError('Este cliente já está cadastrado na carteira da loja.'); return; }
       setClients(storeSync.saveRecord(storeKey, 'clients', newClient));
       setError('');
-    } catch {
-      setError('Não foi possível salvar. Verifique o armazenamento do navegador.');
+    } catch (failure) {
+      setError(failure.message || 'Não foi possível salvar. Verifique o armazenamento do navegador.');
       return;
     }
     setIsModalOpen(false);

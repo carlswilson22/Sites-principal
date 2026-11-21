@@ -10,7 +10,7 @@ export function AccountLoginDialog({ reason, storeKey, storeName, onClose, onSuc
   const theme = getAccountTheme(storeKey);
   return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={id} aria-describedby={`${id}-description`} tabIndex={-1} data-account-theme={theme.variant} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="fixed inset-0 z-[80] bg-slate-950/90 p-4 sm:p-6 flex items-center justify-center overflow-y-auto">
     <div className="w-full max-w-[480px] max-h-[calc(100dvh-2rem)] overflow-y-auto text-white">
-      <div className={`relative border p-5 sm:p-8 shadow-2xl space-y-6 ${theme.card}`}>
+      <div data-account-card className={`relative border p-5 sm:p-8 shadow-2xl space-y-6 ${theme.card}`}>
         <button type="button" aria-label="Fechar login" onClick={onClose} className={`absolute right-2 top-2 min-w-11 min-h-11 rounded-lg text-slate-400 hover:text-white flex items-center justify-center ${accountFocus} ${theme.focus}`}><X aria-hidden="true" className="w-5 h-5" /></button>
         <div className={theme.variant === 'workspace' ? 'pr-8 space-y-3' : 'px-5 text-center space-y-3'}><p className={`text-xs font-semibold uppercase tracking-widest break-words ${theme.accent}`}>{storeName}</p><h2 id={id} className={`text-2xl ${theme.heading}`}>Acesse sua conta</h2><p id={`${id}-description`} className="text-sm leading-relaxed text-slate-400">{reason || 'Entre para acessar suas ferramentas e encontrar seu próximo veículo.'}</p></div>
         <AccountLoginForm theme={theme} onSuccess={onSuccess} />

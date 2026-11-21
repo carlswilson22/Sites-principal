@@ -94,7 +94,8 @@ export const demoTools = {
     terms.cashDownPayment = money(terms.cashDownPayment || 0);
     terms.financedBalance = Math.max(0, car.price - terms.tradeValue - terms.cashDownPayment);
     const code = generateContractCode('CTR', data.contracts.length + 1);
-    const html = generateAdvancedContractHtml({ ...payload, code, parentCode: parent?.code, terms, client: sampleClient(payload.client_id), vehicle: car, store: { name: dealership.nome || 'Enterprise Veículos', cnpj: dealership.cnpj || '00.000.000/0001-00 (exemplo)', address: dealership.cidade ? `${dealership.cidade}/${dealership.uf || ''}` : 'Endereço da loja de exemplo' } });
+    const client = payload.demo_client?.name ? payload.demo_client : sampleClient(payload.client_id);
+    const html = generateAdvancedContractHtml({ ...payload, code, parentCode: parent?.code, terms, client, vehicle: car, store: { name: dealership.nome || 'Enterprise Veículos', cnpj: dealership.cnpj || '00.000.000/0001-00 (exemplo)', address: dealership.cidade ? `${dealership.cidade}/${dealership.uf || ''}` : 'Endereço da loja de exemplo' } });
     const record = { id: createRecordId(), code, type: payload.type, vehicle_id: car.id, vehicleTitle: car.title, client_id: String(payload.client_id), parent_contract_id: parent?.id, html, created_at: new Date().toISOString() };
     data.contracts.unshift(record);
     audit(data, 'CONTRATO_EMITIDO', 'contracts', record.id);

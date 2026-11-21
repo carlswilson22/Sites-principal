@@ -6,10 +6,13 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Printer, Share2, CheckCircle2, AlertTriangle, Eye, X, ShieldAlert } from 'lucide-react';
 import { storeSync } from '../services/storeSync';
 import { generateContractDocument } from '../utils/contracts';
+import { findContractClient } from '../utils/contractClient';
+import { createRecordId } from '../utils/recordId';
 
 export function ContractsView({ storeKey = 'autoelite', selectedClient = null, vehicles = [], dealership = { nome: 'Concessionária' } }) {
   const [error, setError] = useState('');
   const [contracts, setContracts] = useState([]);
+  const [clients, setClients] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
 
@@ -28,10 +31,11 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
 
   useEffect(() => {
     setError('');
-    try { setContracts(storeSync.getRecords(storeKey, 'contracts')); }
+    try { setContracts(storeSync.getRecords(storeKey, 'contracts')); setClients(storeSync.getRecords(storeKey, 'clients')); }
     catch { setContracts([]); setError('Não foi possível carregar os documentos deste navegador.'); }
     return storeSync.subscribe(storeKey, detail => {
       if (detail.type === 'CONTRACTS_UPDATED') setContracts(detail.contracts);
+      if (detail.type === 'CLIENTS_UPDATED') setClients(detail.clients);
     });
   }, [storeKey]);
 
@@ -45,30 +49,60 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
     setFormData(previous => ({
       ...previous,
       [field]: value,
-      clientId: null,
-      ...(previous.clientId != null ? { clientCpf: '', clientAddress: '' } : {})
+      clientId: field === 'clientName' && value !== previous.clientName ? null : previous.clientId,
+      ...(field === 'clientName' && previous.clientId != null && value !== previous.clientName ? { clientCpf: '', clientAddress: '' } : {})
     }));
   };
 
   const handleGenerate = (e) => {
     e.preventDefault();
 
-    const doc = generateContractDocument({
-      type: formData.type,
-      dealership,
-      client: { name: formData.clientName, cpfMasked: formData.clientCpf, address: formData.clientAddress || '' },
-      vehicle: {
-        title: formData.vehicleTitle,
-        version: '',
-        year: formData.vehicleYear,
-        color: formData.vehicleColor || '',
-        km: formData.vehicleKm || 0,
-        price: formData.vehiclePrice,
-        transmission: formData.vehicleTransmission || '',
-        fuel: formData.vehicleFuel || ''
-      },
-      terms: { signalValue: formData.signalValue }
-    });
+    if (storeSync.isRemote) {
+      setError('A emissão de documentos ainda não está conectada ao servidor da loja.');
+      return;
+    }
+
+    let doc;
+    try {
+      doc = generateContractDocument({
+        type: formData.type, dealership,
+        client: { name: formData.clientName, cpfMasked: formData.clientCpf, address: formData.clientAddress || '' },
+        vehicle: { title: formData.vehicleTitle, version: '', year: formData.vehicleYear,
+          color: formData.vehicleColor || '', km: formData.vehicleKm || 0, price: formData.vehiclePrice,
+          transmission: formData.vehicleTransmission || '', fuel: formData.vehicleFuel || '' },
+        terms: { signalValue: formData.signalValue }
+      });
+    } catch {
+      setError('Não foi possível preparar o documento. Confira os dados informados.');
+      return;
+    }
+
+    let client;
+    let createdClientId = null;
+    let previousClient = null;
+    try {
+      const digits = formData.clientPhone.replace(/\D/g, '');
+      if (digits.length < 10 || digits.length > 15) throw new Error('Informe um telefone com DDD para identificar o cliente.');
+      const existingClients = storeSync.getRecords(storeKey, 'clients');
+      client = findContractClient(existingClients, formData);
+      if (!client) {
+        createdClientId = createRecordId();
+        const records = storeSync.saveRecord(storeKey, 'clients', {
+          id: createdClientId, name: formData.clientName.trim(), phone: formData.clientPhone.trim(),
+          cpfMasked: formData.clientCpf || '', address: formData.clientAddress || '', email: '', notes: ''
+        });
+        client = records.find(record => record.id === createdClientId);
+      } else if (formData.clientId != null && client.phone !== formData.clientPhone.trim()) {
+        const duplicate = findContractClient(existingClients.filter(record => record.id !== client.id), { clientName: formData.clientName, clientPhone: formData.clientPhone });
+        if (duplicate) throw new Error('Este telefone já está associado a outro cadastro.');
+        previousClient = client;
+        const records = storeSync.saveRecord(storeKey, 'clients', { ...client, phone: formData.clientPhone.trim() });
+        client = records.find(record => record.id === client.id);
+      }
+    } catch (failure) {
+      setError(failure.message || 'Não foi possível registrar o cliente.');
+      return;
+    }
 
     const newContract = {
       code: doc.code,
@@ -76,7 +110,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
       typeLabel: formData.type === 'compra_venda' ? 'Compra e Venda' : formData.type === 'recibo_sinal' ? 'Recibo de Sinal' : 'Termo de Vistoria',
       clientName: formData.clientName,
       clientPhone: formData.clientPhone,
-      clientId: formData.clientId,
+      clientId: client.id,
       vehicleTitle: formData.vehicleTitle,
       value: formData.type === 'recibo_sinal' ? formData.signalValue : formData.vehiclePrice,
       status: 'emitido',
@@ -88,6 +122,14 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
       setContracts(storeSync.saveRecord(storeKey, 'contracts', newContract));
       setError('');
     } catch {
+      if (createdClientId) {
+        try { storeSync.deleteRecord(storeKey, 'clients', createdClientId); }
+        catch { setError('O documento não foi salvo e o cadastro do cliente pode ter permanecido. Confira a carteira antes de tentar novamente.'); return; }
+      }
+      if (previousClient) {
+        try { storeSync.saveRecord(storeKey, 'clients', previousClient); }
+        catch { setError('O documento não foi salvo e o telefone do cliente pode ter sido atualizado. Confira a carteira antes de tentar novamente.'); return; }
+      }
       setError('Não foi possível salvar o documento. Verifique o armazenamento do navegador.');
       return;
     }
@@ -224,6 +266,17 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
             </div>
 
             <form onSubmit={handleGenerate} className="space-y-3.5">
+              {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
+              {clients.length > 0 && <label className="block text-xs text-slate-300">
+                Usar cliente cadastrado
+                <select value={formData.clientId ?? ''} onChange={event => {
+                  const selected = clients.find(client => String(client.id) === event.target.value);
+                  setFormData(previous => selected ? { ...previous, clientId: selected.id, clientName: selected.name, clientCpf: selected.cpfMasked || '', clientPhone: selected.phone || '', clientAddress: selected.address || '' } : { ...previous, clientId: null, clientName: '', clientCpf: '', clientPhone: '', clientAddress: '' });
+                }} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700">
+                  <option value="">Novo cliente</option>
+                  {clients.map(client => <option key={client.id} value={client.id}>{client.name} {client.phone ? `· ${client.phone}` : ''}</option>)}
+                </select>
+              </label>}
               {vehicles.length > 0 && <label className="block text-xs text-slate-300">
                 Selecionar veículo cadastrado
                 <select defaultValue="" onChange={event => {
@@ -261,8 +314,9 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
 
               <label className="block text-xs text-slate-300">
                 Telefone do cliente
-                <input type="tel" value={formData.clientPhone} onChange={event => handleClientChange('clientPhone', event.target.value)} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700" />
+                <input type="tel" required value={formData.clientPhone} onChange={event => handleClientChange('clientPhone', event.target.value)} className="mt-1 w-full p-2 rounded-xl bg-slate-900 border border-slate-700" />
               </label>
+              <p className="text-xs text-slate-400">Ao gerar o documento, o cliente será vinculado à carteira da loja sem criar outro cadastro para o mesmo contato.</p>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Veículo do Estoque</label>

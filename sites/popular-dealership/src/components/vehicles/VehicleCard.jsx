@@ -20,7 +20,7 @@ export function VehicleCard({
   return (
     <div data-vehicle-id={vehicle.id} className="group rounded-3xl bg-[#090d16] border border-slate-800 hover:border-cyan-500/40 transition-all duration-300 flex flex-col overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-cyan-950/20 relative">
       {/* Imagem com Overlay */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-950 cursor-pointer" onClick={() => onSelect(vehicle)}>
+      <div data-preserve-dark className="relative aspect-[16/10] overflow-hidden bg-slate-950 cursor-pointer" onClick={() => onSelect(vehicle)}>
         <VehicleImage
           src={vehicle.imagemPrincipal}
           alt={vehicle.nome}

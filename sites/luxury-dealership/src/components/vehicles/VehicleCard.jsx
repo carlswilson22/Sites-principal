@@ -14,7 +14,7 @@ export function VehicleCard({ vehicle, onSelect, layout = 'grid', index, isFavor
   return (
     <div data-vehicle-id={vehicle.id} className={`group overflow-hidden ${editorial ? 'rounded-sm bg-[#0c0d14] grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]' : 'rounded-3xl bg-[#0c0d14]/90 border border-white/10 hover:border-amber-500/40 transition-all duration-300 flex flex-col shadow-xl'}`}>
       {/* Imagem com Overlay */}
-      <div className={`relative overflow-hidden bg-black ${editorial ? 'aspect-[4/3] md:aspect-auto md:min-h-80' : 'aspect-[16/10]'}`}>
+      <div data-preserve-dark className={`relative overflow-hidden bg-black ${editorial ? 'aspect-[4/3] md:aspect-auto md:min-h-80' : 'aspect-[16/10]'}`}>
         <VehicleImage
           src={vehicle.imagemPrincipal}
           alt={vehicle.nome}

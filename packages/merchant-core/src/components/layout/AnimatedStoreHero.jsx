@@ -71,7 +71,7 @@ export function AnimatedStoreHero({ children, tone = 'amber', layout = 'cinema' 
     };
   }, [source, showVideo, readySource, dialogOpen, cinema]);
 
-  return <section ref={containerRef} data-testid="hero-video-scrub-container" className={`relative ${cinema && showVideo ? 'h-[220vh]' : ''} ${!cinema ? `h-full overflow-hidden ${panorama ? 'rounded-t-3xl' : 'rounded-3xl'}` : ''} ${palette.background}`}>
+  return <section ref={containerRef} data-preserve-dark data-testid="hero-video-scrub-container" className={`relative ${cinema && showVideo ? 'h-[220vh]' : ''} ${!cinema ? `h-full overflow-hidden ${panorama ? 'rounded-t-3xl' : 'rounded-3xl'}` : ''} ${palette.background}`}>
     <div ref={contentRef} className={`${cinema ? (showVideo ? 'sticky top-0 min-h-screen' : 'min-h-[65vh] sm:min-h-[70vh]') : 'min-h-72 h-full'} relative flex items-center overflow-hidden`}>
     <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
       <VehicleImage src={poster} alt="" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover" />

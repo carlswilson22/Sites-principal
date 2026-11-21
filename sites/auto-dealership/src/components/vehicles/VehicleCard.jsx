@@ -19,7 +19,7 @@ export function VehicleCard({ vehicle, onSelect, show360Badge = true }) {
   return (
     <div data-vehicle-id={vehicle.id} className="group rounded-2xl bg-slate-900/70 border border-slate-800/80 hover:border-blue-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-950/20 flex flex-col overflow-hidden backdrop-blur-md">
       {/* Container de Imagem */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
+      <div data-preserve-dark className="relative aspect-[16/10] overflow-hidden bg-slate-950">
         <VehicleImage
           src={imgSrc}
           alt={`${vehicle.nome} ${vehicle.versao}`}
