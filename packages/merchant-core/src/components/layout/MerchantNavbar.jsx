@@ -16,7 +16,7 @@ export function MerchantNavbar({ onToggleMobileMenu, mobileMenuOpen, storeName =
   };
 
   return (
-    <header className="min-h-16 bg-[#0b1324] border-b border-slate-800 px-4 sm:px-6 py-2 flex flex-wrap sm:flex-nowrap gap-2 items-center justify-between sticky top-0 z-30">
+    <header className="min-h-16 bg-white border-b border-slate-200 px-4 sm:px-6 py-2 flex flex-wrap sm:flex-nowrap gap-2 items-center justify-between sticky top-0 z-30">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -35,7 +35,7 @@ export function MerchantNavbar({ onToggleMobileMenu, mobileMenuOpen, storeName =
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white text-sm sm:text-base tracking-tight">{storeName}</span>
+              <span className="font-bold text-slate-900 text-sm sm:text-base tracking-tight">{storeName}</span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">Painel de Gestão da Concessionária</p>
           </div>
@@ -70,6 +70,7 @@ export function MerchantNavbar({ onToggleMobileMenu, mobileMenuOpen, storeName =
           <button
             type="button"
             onClick={onExitToSite}
+            aria-label="Ver vitrine da loja"
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
             title="Visualizar Site da Loja"
           >

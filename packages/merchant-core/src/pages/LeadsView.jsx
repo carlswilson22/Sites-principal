@@ -140,10 +140,10 @@ export function LeadsView({ storeKey = 'autoelite' }) {
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
             <MessageSquare className="w-6 h-6 text-blue-400" />
-            Contatos & Leads do Site (E6)
+            Contatos e oportunidades
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Centralize mensagens do formulário e cliques no botão de WhatsApp da sua loja.
+            Acompanhe as mensagens e os interesses enviados para a loja.
           </p>
         </div>
       </div>

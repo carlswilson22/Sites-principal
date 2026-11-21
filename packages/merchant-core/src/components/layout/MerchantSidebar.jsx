@@ -3,7 +3,7 @@ import { canAccessMerchantRoute } from '../../utils/merchantAccess';
  * packages/merchant-core/src/components/layout/MerchantSidebar.jsx
  * Menu lateral de navegação com filtragem estrita de Nível Cumulativo (Tier Gate) e Perfil (RBAC).
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Car,
@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Sparkles,
   ShieldAlert,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 import { useTier } from '../../context/TierContext';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +25,7 @@ import { useAuth } from '../../context/AuthContext';
 export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, storeName }) {
   const { tier } = useTier();
   const { role } = useAuth();
+  const [expandedSections, setExpandedSections] = useState({ 'Operação Diária': true, 'Gestão': false, 'Financeiro': true, 'Ferramentas': false });
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -118,8 +120,10 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
     }
   ];
 
-  const visibleSections = menuSections.filter(section => (!section.minTier || tier >= section.minTier) && section.items.some(item => canAccessMerchantRoute(item.id, tier, role)));
-  const showTitles = visibleSections.length > 1;
+  useEffect(() => {
+    const section = menuSections.find(group => group.items.some(item => item.id === activeTab));
+    if (section) setExpandedSections(current => current[section.title] ? current : { ...current, [section.title]: true });
+  }, [activeTab, tier, role]);
 
   return (
     <>
@@ -134,7 +138,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
 
       <aside
         id="merchant-navigation"
-        className={`fixed lg:sticky top-0 lg:top-16 left-0 h-[100dvh] lg:h-[calc(100vh-4rem)] w-64 max-w-[85vw] shrink-0 bg-[#080d1a] border-r border-slate-800 flex-col z-50 lg:z-20 ${isOpen ? 'flex' : 'hidden lg:flex'}`}
+        className={`fixed lg:sticky top-0 lg:top-16 left-0 h-[100dvh] lg:h-[calc(100vh-4rem)] w-64 max-w-[85vw] shrink-0 bg-white border-r border-slate-200 flex-col z-50 lg:z-20 ${isOpen ? 'flex' : 'hidden lg:flex'}`}
       >
         {/* Header mobile com botão de fechar */}
         <div className="lg:hidden h-16 border-b border-slate-800 px-4 flex items-center justify-between">
@@ -162,8 +166,14 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
             if (visibleItems.length === 0) return null;
 
             return (
-              <div key={idx} className="space-y-1">
-                {showTitles && <p className="px-3 pb-1 text-xs font-semibold text-slate-500">{section.title}</p>}
+              <details key={idx} open={Boolean(expandedSections[section.title])} onToggle={event => {
+                const open = event.currentTarget.open;
+                setExpandedSections(current => current[section.title] === open ? current : { ...current, [section.title]: open });
+              }} className="group space-y-1">
+                <summary className="min-h-10 px-3 flex cursor-pointer items-center justify-between gap-2 rounded-lg text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
+                  {section.title}<ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="space-y-1">
                 {visibleItems.map(item => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -188,7 +198,8 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
                     </button>
                   );
                 })}
-              </div>
+                </div>
+              </details>
             );
           })}
         </nav>

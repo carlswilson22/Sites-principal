@@ -94,7 +94,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
             Painel de Controle
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Visão consolidada da operação, estoque e atendimento em tempo real.
+            Acompanhe estoque, vendas e contatos em um só lugar.
           </p>
         </div>
       </div>
@@ -131,14 +131,17 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
         />
       </div>
 
+      <p className="text-sm text-slate-400">Tempo médio em estoque: <strong className="text-slate-200">{indicators.averageStockDays || 0} dias</strong></p>
+
+      <details className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6">
+        <summary className="cursor-pointer font-semibold text-white">Vendas e resultados</summary>
+        <div className="mt-5 space-y-6">
       {/* Resultado do mês: faturamento, ticket médio e valor parado em estoque */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <MetricCard title="Faturamento do Mês" value={money(indicators.revenue)} icon={Banknote} description="Soma das vendas dos últimos 30 dias" color="emerald" />
         <MetricCard title="Ticket Médio" value={money(indicators.averageTicket)} icon={Receipt} description="Valor médio por veículo vendido" color="blue" />
         <MetricCard title="Valor em Estoque" value={money(indicators.stockValue)} icon={Wallet} description="Soma dos preços dos veículos à venda" color="amber" />
       </div>
-      <p className="text-sm text-slate-400">Tempo médio em estoque: <strong className="text-slate-200">{indicators.averageStockDays || 0} dias</strong></p>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6 backdrop-blur-sm">
           <h2 className="text-sm sm:text-base font-bold text-white">Vendas por semana</h2>
@@ -172,6 +175,8 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
             </ul>}
         </div>
       </div>
+        </div>
+      </details>
 
       {/* 3. E2: Lista Curta de Pendências (Contatos sem resposta) */}
       <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6 backdrop-blur-sm">
@@ -181,8 +186,8 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-white">Pendências Operacionais</h2>
-              <p className="text-xs text-slate-400">Contatos recebidos aguardando atendimento imediato</p>
+              <h2 className="text-sm sm:text-base font-bold text-white">Contatos para acompanhar</h2>
+              <p className="text-xs text-slate-400">Novos contatos e atendimentos em andamento</p>
             </div>
           </div>
           {onNavigateTo && (
@@ -197,6 +202,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
         </div>
 
         <div className="divide-y divide-slate-800/60">
+          {pendingActions.length === 0 && <p className="py-3 text-sm text-slate-400">Nenhum contato pendente no momento.</p>}
           {pendingActions.map(lead => (
             <div key={lead.id} className="py-3 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -230,13 +236,15 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
         </div>
       </div>
 
+      {tier >= 2 && hasRole(['gerente']) && <details className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6">
+        <summary className="cursor-pointer font-semibold text-white">Mais análises</summary>
+        <div className="mt-5 space-y-4">
       <TierGate requiredTier={2}>
         {hasRole(['gerente']) && <button type="button" onClick={() => onNavigateTo('analytics')} className="w-full p-5 rounded-2xl bg-slate-900 border border-amber-500/30 text-left hover:bg-slate-800">
           <span className="font-bold text-white block">Métricas do site</span>
           <span className="text-sm text-slate-400">Veja as interações registradas na vitrine por período e por veículo.</span>
         </button>}
       </TierGate>
-
       <TierGate requiredTier={3}>
         {hasRole(['gerente']) && (
         <div className="rounded-2xl bg-slate-900/60 border border-emerald-500/20 p-5 sm:p-6 backdrop-blur-sm">
@@ -262,6 +270,8 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
         </div>
         )}
       </TierGate>
+        </div>
+      </details>}
     </div>
   );
 }

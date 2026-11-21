@@ -753,7 +753,13 @@ for (const [model, scenario] of scenarios) {
       assert(!button('Financeiro & Margens'), 'Atendente recebeu acesso financeiro');
       assert(!button('Contratos Avançados & Troca'), 'Atendente recebeu acesso a contratos avançados');
       assert(button('Simulador de financiamento'), 'Simulador ausente para o atendente');
-      assert(button('Simulador de financiamento').closest('div').textContent.includes('Financeiro'), 'Simulador não está na seção financeira');
+      assert(button('Simulador de financiamento').closest('details').querySelector('summary').textContent.includes('Financeiro'), 'Simulador não está na seção financeira');
+      const financialSection = button('Simulador de financiamento').closest('details');
+      assert(financialSection.open, 'Seção financeira não começou disponível');
+      financialSection.querySelector('summary').click();
+      await wait(() => !financialSection.open);
+      financialSection.querySelector('summary').click();
+      await wait(() => financialSection.open);
       button('Contratos & Termos').click();
       await wait(() => button('Emitir Novo Documento'));
       assert(document.querySelector('h1').textContent.includes('Contratos e Termos'), 'Rota de documentos indisponível ao atendente');

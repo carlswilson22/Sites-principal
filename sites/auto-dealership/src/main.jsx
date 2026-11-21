@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import '../../../packages/merchant-core/src/styles/store-themes.css'
+import '../../../packages/merchant-core/src/styles/merchant-light.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

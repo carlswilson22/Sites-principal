@@ -16,7 +16,7 @@ export function MerchantShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div data-merchant-panel className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       {/* 1. Barra de Navegação Superior */}
       <MerchantNavbar
         storeName={storeName}

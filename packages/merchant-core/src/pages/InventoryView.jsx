@@ -470,7 +470,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                     {car.is_published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
 
-                  <div className="absolute bottom-3 left-3 right-3 flex items-baseline justify-between text-white">
+                  <div data-panel-photo-caption className="absolute bottom-3 left-3 right-3 flex items-baseline justify-between text-white">
                     <span className="text-lg font-black tracking-tight">
                       R$ {car.price?.toLocaleString('pt-BR')}
                     </span>

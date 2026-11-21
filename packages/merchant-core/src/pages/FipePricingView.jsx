@@ -175,7 +175,7 @@ export function FipePricingView() {
 
         {/* Painel de Resultados do Precificador */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 space-y-5">
+          <div className="p-5 sm:p-6 rounded-2xl bg-slate-900/60 border border-amber-500/30 space-y-5">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-amber-400" />
               Proposta Recomendada de Negociação
