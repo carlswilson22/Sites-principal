@@ -7,23 +7,12 @@
   }
   [data-store-theme] button:not(:disabled):active { scale: .98; }
 
-  [data-store-disclosure] {
-    display: grid;
-    overflow: hidden;
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-  [data-store-disclosure][data-open="true"] { animation: store-expand 220ms ease-out both; }
-  [data-store-disclosure][data-open="false"] { animation: store-collapse 220ms ease-in both; pointer-events: none; }
-  [data-store-disclosure] > div { min-height: 0; overflow: hidden; }
-  [data-store-disclosure][hidden] { display: none; }
-
   [data-account-menu][data-open="true"] { animation: store-menu-in 180ms ease-out both; }
   [data-account-menu][data-open="false"] { animation: store-menu-out 180ms ease-in both; pointer-events: none; }
 }
 
-@keyframes store-expand { from { grid-template-rows: 0fr; opacity: 0; } to { grid-template-rows: 1fr; opacity: 1; } }
-@keyframes store-collapse { from { grid-template-rows: 1fr; opacity: 1; } to { grid-template-rows: 0fr; opacity: 0; } }
+[data-store-disclosure][data-open="false"] { pointer-events: none; }
+[data-store-disclosure][hidden] { display: none; }
 @keyframes store-menu-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes store-menu-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-6px) scale(.98); } }
 

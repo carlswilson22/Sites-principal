@@ -3,6 +3,7 @@ import { Calculator, ChevronDown } from 'lucide-react';
 import { PublicFinancingCalculator } from './PublicFinancingCalculator';
 import { useVehicleAdSection } from './VehicleAdSections';
 import { useDisclosurePresence } from './useDisclosurePresence';
+import { AnimatedDisclosure } from './AnimatedDisclosure';
 
 export function VehicleFinancingSection({ vehicle, dealership, storeKey, initialOpen = false, openRequest = 0 }) {
   const [activeService, setActiveService] = useVehicleAdSection('service');
@@ -18,10 +19,10 @@ export function VehicleFinancingSection({ vehicle, dealership, storeKey, initial
     <button type="button" data-ad-service="financing" aria-expanded={open} aria-controls={id} onClick={() => { if (open) setOpen(false); else expand(); }} className="w-full min-h-11 flex items-center gap-3 px-3 py-2.5 text-left text-sm font-semibold text-white hover:bg-slate-800">
       <Calculator aria-hidden="true" className="w-4 h-4 text-blue-300 shrink-0" />
       <span className="flex-1">Simular financiamento deste veículo</span>
-      <ChevronDown aria-hidden="true" className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      <ChevronDown aria-hidden="true" className={`w-4 h-4 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
     </button>
-    <div id={id} data-store-disclosure data-open={open} hidden={!present} aria-hidden={!open} inert={open ? undefined : ''}><div className="p-4 sm:p-5 border-t border-slate-700">
+    <AnimatedDisclosure id={id} open={open} present={present}><div className="p-4 sm:p-5 border-t border-slate-700">
       {mounted && <PublicFinancingCalculator vehicles={[vehicle]} preselectedVehicle={vehicle} lockedVehicle dealership={dealership} storeKey={storeKey} />}
-    </div></div>
+    </div></AnimatedDisclosure>
   </section>;
 }

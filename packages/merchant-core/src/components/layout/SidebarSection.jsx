@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const DURATION = 260;
+const DURATION = 300;
 
 export function SidebarSection({ title, open, onToggle, children }) {
   const [present, setPresent] = useState(open);

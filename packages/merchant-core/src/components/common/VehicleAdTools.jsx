@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import { useVehicleAdSection } from './VehicleAdSections';
 import { useDisclosurePresence } from './useDisclosurePresence';
+import { AnimatedDisclosure } from './AnimatedDisclosure';
 
 const themes = {
   blue: 'border-blue-400 bg-blue-600 text-white',
@@ -22,10 +23,9 @@ function ToolItem({ tool, id, open, visited, theme, onToggle, onClose }) {
       className={`min-h-11 w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white ${open ? themes[theme] : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
       <tool.icon aria-hidden="true" className="w-4 h-4 shrink-0" />
       <span className="min-w-0 flex-1">{tool.label}</span>
-      <ChevronDown aria-hidden="true" className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      <ChevronDown aria-hidden="true" className={`w-4 h-4 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
     </button>
-    <div id={`${id}-${tool.id}-panel`} role="region" aria-labelledby={`${id}-${tool.id}-button`}
-      data-store-disclosure data-open={open} hidden={!present} aria-hidden={!open} inert={open ? undefined : ''}>
+    <AnimatedDisclosure id={`${id}-${tool.id}-panel`} role="region" aria-labelledby={`${id}-${tool.id}-button`} open={open} present={present}>
       {keepContent && <div><div className="p-3 sm:p-4">
         <div className="sticky top-0 z-10 mb-3 flex items-center justify-between gap-3 rounded-xl bg-slate-950 px-2 py-1">
           <h3 className="min-w-0 text-sm font-semibold text-white">{tool.label}</h3>
@@ -35,7 +35,7 @@ function ToolItem({ tool, id, open, visited, theme, onToggle, onClose }) {
         </div>
         {content}
       </div></div>}
-    </div>
+    </AnimatedDisclosure>
   </div>;
 }
 

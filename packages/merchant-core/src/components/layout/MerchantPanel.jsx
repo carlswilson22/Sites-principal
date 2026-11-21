@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTier } from '../../context/TierContext';
 import { storeSync } from '../../services/storeSync';
 import { MerchantShell } from './MerchantShell';
+import { MerchantViewTransition } from './MerchantViewTransition';
 import { LoginView } from '../../pages/LoginView';
 import { DashboardView } from '../../pages/DashboardView';
 import { InventoryView } from '../../pages/InventoryView';
@@ -54,18 +55,20 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToS
   if (!isStaff) return <LoginView storeKey={storeKey} storeName={dealership.nome} onLoginSuccess={() => setTab('dashboard')} onCancel={onExitToSite} />;
   const allowed = canAccessMerchantRoute(tab, tier, role);
   const active = allowed ? tab : 'dashboard';
-  const View = merchantRoutes[active].component;
   const newSimulations = leads.filter(lead => lead.source === 'simulador_financiamento' && lead.status === 'novo');
   return <MerchantShell storeKey={storeKey} storeName={dealership.nome} activeTab={active} onSelectTab={setTab} onExitToSite={onExitToSite}>
     {active !== 'leads' && newSimulations.length > 0 && <button type="button" onClick={() => setTab('leads')} className="mb-6 w-full rounded-2xl border border-blue-400/40 bg-blue-500/10 p-4 text-left text-sm text-blue-100 hover:bg-blue-500/20" aria-label={`${newSimulations.length} novas simulações de financiamento. Abrir contatos`}>
       <strong className="block text-white">{newSimulations.length === 1 ? 'Nova simulação de financiamento' : `${newSimulations.length} novas simulações de financiamento`}</strong>
       <span>Veja os dados do veículo e do contato em Contatos &amp; WhatsApp.</span>
     </button>}
-    <div key={`${active}-${storeKey}`} data-merchant-view={active}><PanelErrorBoundary onRecover={() => setTab('dashboard')}>
-      {View ? <View storeKey={storeKey} defaultVehicles={defaultVehicles} vehicles={vehicles}
-        dealership={{ ...dealership, ...dealership.endereco }} selectedClient={client}
-        onNavigateTo={setTab} onClientPrefilled={() => setClient(null)} onOpenContractWithClient={selected => { setClient(selected); setTab('contracts'); }} />
-        : <p role="status">Selecione uma funcionalidade no menu.</p>}
-    </PanelErrorBoundary></div>
+    <MerchantViewTransition active={active} tier={tier} role={role}>{visible => {
+      const View = merchantRoutes[visible]?.component;
+      return <PanelErrorBoundary key={`${visible}-${storeKey}`} onRecover={() => setTab('dashboard')}>
+        {View ? <View storeKey={storeKey} defaultVehicles={defaultVehicles} vehicles={vehicles}
+          dealership={{ ...dealership, ...dealership.endereco }} selectedClient={client}
+          onNavigateTo={setTab} onClientPrefilled={() => setClient(null)} onOpenContractWithClient={selected => { setClient(selected); setTab('contracts'); }} />
+          : <p role="status">Selecione uma funcionalidade no menu.</p>}
+      </PanelErrorBoundary>;
+    }}</MerchantViewTransition>
   </MerchantShell>;
 }

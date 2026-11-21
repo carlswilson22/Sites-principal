@@ -18,9 +18,9 @@ for (const [model, scenario] of scenarios) {
   const directory = path.resolve('dist', model);
   const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
   const panelCss = fs.readdirSync(path.join(directory, 'assets')).filter(file => /^MerchantPanel-.*\.css$/.test(file)).map(file => fs.readFileSync(path.join(directory, 'assets', file), 'utf8')).join('\n');
-  assert(panelCss.includes('merchant-modal-card-in') && panelCss.includes('merchant-modal-card-out') && panelCss.includes('merchant-view-enter') && panelCss.includes('merchant-sidebar-section-content') && panelCss.includes('prefers-reduced-motion'), `Animações do painel ausentes: ${model}`);
+  assert(panelCss.includes('merchant-modal-card-in') && panelCss.includes('merchant-modal-card-out') && panelCss.includes('data-merchant-view') && panelCss.includes('merchant-sidebar-section-content') && panelCss.includes('prefers-reduced-motion'), `Animações do painel ausentes: ${model}`);
   const siteCss = fs.readdirSync(path.join(directory, 'assets')).filter(file => /^index-.*\.css$/.test(file)).map(file => fs.readFileSync(path.join(directory, 'assets', file), 'utf8')).join('\n');
-  assert(siteCss.includes('public-modal-card-in') && siteCss.includes('public-modal-card-out') && siteCss.includes('store-mobile-navigation') && siteCss.includes('store-collapse') && siteCss.includes('prefers-reduced-motion'), `Animações da loja ausentes: ${model}`);
+  assert(siteCss.includes('public-modal-card-in') && siteCss.includes('public-modal-card-out') && siteCss.includes('store-mobile-navigation') && siteCss.includes('data-store-disclosure') && siteCss.includes('prefers-reduced-motion'), `Animações da loja ausentes: ${model}`);
   const entry = html.match(/<script[^>]+src="([^"]+)"/)?.[1];
   assert(entry, `Entrada não encontrada: ${model}`);
   const failures = [];
@@ -54,7 +54,7 @@ for (const [model, scenario] of scenarios) {
   if (scenario === 'invalid-account') window.sessionStorage.setItem(`store_access_${storeKey}`, '{invalid');
   const windowScrollCalls = [];
   const elementScrollCalls = [];
-  window.scrollTo = options => windowScrollCalls.push(options);
+  window.scrollTo = (...args) => windowScrollCalls.push(args);
   window.HTMLElement.prototype.scrollTo = function (options) {
     elementScrollCalls.push({ element: this, ...options });
     this.scrollTop = options.top;
@@ -272,6 +272,7 @@ for (const [model, scenario] of scenarios) {
       assert(scroller && toolsRow, 'Anúncio sem área de rolagem ou linha das ferramentas');
       assert.equal(elementScrollCalls.length, 0, 'Abrir o anúncio iniciou rolagem sem escolher uma ferramenta');
       const pageScrollCount = windowScrollCalls.length;
+      const pagePosition = { x: window.scrollX, y: window.scrollY };
       scroller.getBoundingClientRect = () => ({ top: 100 });
       toolsRow.getBoundingClientRect = () => ({ top: 100 + 900 - scroller.scrollTop });
       const controlTop = control => 888 + controls.indexOf(control) * 48;
@@ -324,7 +325,14 @@ for (const [model, scenario] of scenarios) {
       panelFor(controls[0]).querySelector('[data-close-ad-tool]').click();
       await wait(() => elementScrollCalls.at(-1)?.top === controlTop(controls[0]) && document.activeElement === controls[0]);
       window.matchMedia = previousMedia;
-      assert.equal(windowScrollCalls.length, pageScrollCount, 'Abrir ou fechar ferramenta rolou a página por trás do anúncio');
+      // Framer Motion restaura a posição ao medir height:auto; a restauração
+      // é aceitável desde que não altere a posição da página de fundo.
+      for (const args of windowScrollCalls.slice(pageScrollCount)) {
+        const x = typeof args[0] === 'object' ? args[0].left ?? pagePosition.x : args[0];
+        const y = typeof args[0] === 'object' ? args[0].top ?? pagePosition.y : args[1];
+        assert.equal(x, pagePosition.x, 'Ferramenta alterou a posição horizontal da página');
+        assert.equal(y, pagePosition.y, 'Ferramenta rolou a página por trás do anúncio');
+      }
       assert(!loginForm(), 'Ferramenta pública do anúncio exigiu login');
       console.log(`OK: ${model} (ferramentas, rolagem ao abrir e fechar, foco e movimento reduzido)`);
       button('Atendimento sobre este veículo').click();
@@ -880,8 +888,9 @@ for (const [model, scenario] of scenarios) {
       const notification = document.querySelector('button[aria-label*="novas simulações de financiamento"]');
       assert(notification, 'Painel não avisou sobre a simulação recebida');
       notification.click();
-      await wait(() => document.querySelector('main h1')?.textContent.includes('Contatos'));
-      assert(document.querySelector('main').textContent.includes('Condição C') && document.querySelector('main').textContent.includes('(61) 99999-1234'), 'Aviso não abriu os dados da simulação no painel');
+      await wait(() => document.querySelector('main h1')?.textContent.includes('Contatos')
+        && document.querySelector('main').textContent.includes('Condição C')
+        && document.querySelector('main').textContent.includes('(61) 99999-1234'));
       assert(!button('Cadastrar cliente'), 'Contato mantém cadastro duplicado');
       button('Criar contrato').click();
       await wait(() => button('Gerar Documento'));

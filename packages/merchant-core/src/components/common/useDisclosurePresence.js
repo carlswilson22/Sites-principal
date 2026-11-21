@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 // Keep the content available just long enough for the closing transition.
-export function useDisclosurePresence(open, duration = 220) {
+export function useDisclosurePresence(open, duration = 320) {
   const [present, setPresent] = useState(open);
 
   useEffect(() => {
