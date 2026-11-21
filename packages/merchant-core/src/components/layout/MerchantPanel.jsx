@@ -9,12 +9,10 @@ import { DashboardView } from '../../pages/DashboardView';
 import { InventoryView } from '../../pages/InventoryView';
 import { LeadsView } from '../../pages/LeadsView';
 import { AgendaView } from '../../pages/AgendaView';
-import { ClientsView } from '../../pages/ClientsView';
-import { ContractsView } from '../../pages/ContractsView';
+import { ContractsCenter } from '../../pages/ContractsCenter';
 import { FipePricingView } from '../../pages/FipePricingView';
 import { FinancialView } from '../../pages/FinancialView';
 import { ConsignmentsView } from '../../pages/ConsignmentsView';
-import { AdvancedContractsView } from '../../pages/AdvancedContractsView';
 import { FullFinancialView } from '../../pages/FullFinancialView';
 import { MarketPricingView } from '../../pages/MarketPricingView';
 import { SalesFunnelView } from '../../pages/SalesFunnelView';
@@ -23,9 +21,9 @@ import { AuditLgpdView } from '../../pages/AuditLgpdView';
 import { AnalyticsView } from '../../pages/AnalyticsView';
 import { FinancingView } from '../../pages/FinancingView';
 
-const merchantViews = { dashboard: DashboardView, inventory: InventoryView, leads: LeadsView, agenda: AgendaView, clients: ClientsView,
-  financing: FinancingView, fipe: FipePricingView, contracts: ContractsView, financial: FinancialView, analytics: AnalyticsView,
-  consignments: ConsignmentsView, contracts_adv: AdvancedContractsView, financial_full: FullFinancialView,
+const merchantViews = { dashboard: DashboardView, inventory: InventoryView, leads: LeadsView, agenda: AgendaView,
+  financing: FinancingView, fipe: FipePricingView, contracts: ContractsCenter, financial: FinancialView, analytics: AnalyticsView,
+  consignments: ConsignmentsView, financial_full: FullFinancialView,
   market_pricing: MarketPricingView, funnel: SalesFunnelView, stories: StoryStudioView, audit_lgpd: AuditLgpdView };
 export const merchantRoutes = Object.fromEntries(Object.entries(merchantViews).map(([id, component]) => [id, { component, ...merchantPermissions[id] }]));
 
@@ -66,7 +64,7 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToS
     <PanelErrorBoundary key={`${active}-${storeKey}`} onRecover={() => setTab('dashboard')}>
       {View ? <View storeKey={storeKey} defaultVehicles={defaultVehicles} vehicles={vehicles}
         dealership={{ ...dealership, ...dealership.endereco }} selectedClient={client}
-        onNavigateTo={setTab} onOpenContractWithClient={selected => { setClient(selected); setTab('contracts'); }} />
+        onNavigateTo={setTab} onClientPrefilled={() => setClient(null)} onOpenContractWithClient={selected => { setClient(selected); setTab('contracts'); }} />
         : <p role="status">Selecione uma funcionalidade no menu.</p>}
     </PanelErrorBoundary>
   </MerchantShell>;

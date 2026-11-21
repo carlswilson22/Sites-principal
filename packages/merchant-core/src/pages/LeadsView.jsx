@@ -4,7 +4,6 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { storeSync } from '../services/storeSync';
-import { useTier } from '../context/TierContext';
 import { buildLeadStatusUpdates, leadStatusLabels } from '../utils/leadHistory';
 import { leadBooking, leadUnanswered } from '../utils/leadAgenda';
 import {
@@ -43,8 +42,7 @@ function LeadActionForm({ lead, storeKey, onSaved }) {
   </details>;
 }
 
-export function LeadsView({ storeKey = 'autoelite' }) {
-  const { tier } = useTier();
+export function LeadsView({ storeKey = 'autoelite', onOpenContractWithClient }) {
   const [feedback, setFeedback] = useState('');
   const [leads, setLeads] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,24 +56,6 @@ export function LeadsView({ storeKey = 'autoelite' }) {
   const selectedLead = leads.find(lead => lead.id === selectedLeadId) || null;
 
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
-
-  const handleCreateClient = lead => {
-    try {
-      const phone = value => String(value || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
-      const clients = storeSync.getRecords(storeKey, 'clients');
-      if (clients.some(client => client.sourceLeadId === lead.id || (phone(lead.phone) && phone(client.phone) === phone(lead.phone)))) {
-        setFeedback('Este contato já está cadastrado na carteira de clientes.');
-        return;
-      }
-      storeSync.saveRecord(storeKey, 'clients', {
-        name: lead.name, phone: lead.phone, email: lead.email || '',
-        cpfMasked: '', notes: lead.message || '', sourceLeadId: lead.id
-      });
-      setFeedback('Cliente cadastrado no CRM desta loja.');
-    } catch {
-      setFeedback('Não foi possível cadastrar o cliente. Verifique o armazenamento do navegador.');
-    }
-  };
 
   // Carga reativa de leads via storeSync
   useEffect(() => {
@@ -290,7 +270,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
 
               {/* Ações Rápidas (E6) */}
               <div className="flex items-center gap-2 self-end md:self-center">
-                {tier >= 2 && <button type="button" onClick={() => handleCreateClient(lead)} className="px-3 py-2 rounded-xl bg-amber-500/10 text-amber-300 text-xs font-semibold">Cadastrar cliente</button>}
+                {onOpenContractWithClient && <button type="button" onClick={() => onOpenContractWithClient({ name: lead.name, phone: lead.phone })} className="px-3 py-2 rounded-xl bg-amber-500/10 text-amber-300 text-xs font-semibold">Criar contrato</button>}
                 {/* Botão de Abertura do WhatsApp */}
                 <a
                   href={whatsappUrl}

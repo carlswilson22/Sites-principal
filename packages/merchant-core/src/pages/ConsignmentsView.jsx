@@ -81,7 +81,7 @@ export function ConsignmentsView({ storeKey = 'apexluxury', vehicles = [] }) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-100">Consignação Completa</h1>
+            <h1 className="text-2xl font-bold text-slate-100">Consignação</h1>
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Gestão de veículos de terceiros, controle de diárias, contratos de guarda e repasse aos consignantes.

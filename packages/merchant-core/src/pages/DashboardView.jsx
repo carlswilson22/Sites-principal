@@ -133,7 +133,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
 
       <p className="text-sm text-slate-400">Tempo médio em estoque: <strong className="text-slate-200">{indicators.averageStockDays || 0} dias</strong></p>
 
-      <details className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6">
+      <details open className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6">
         <summary className="cursor-pointer font-semibold text-white">Vendas e resultados</summary>
         <div className="mt-5 space-y-6">
       {/* Resultado do mês: faturamento, ticket médio e valor parado em estoque */}
@@ -236,7 +236,7 @@ export function DashboardView({ onNavigateTo, storeKey = 'autoelite', defaultVeh
         </div>
       </div>
 
-      {tier >= 2 && hasRole(['gerente']) && <details className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6">
+      {tier >= 2 && hasRole(['gerente']) && <details open className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-5 sm:p-6">
         <summary className="cursor-pointer font-semibold text-white">Mais análises</summary>
         <div className="mt-5 space-y-4">
       <TierGate requiredTier={2}>

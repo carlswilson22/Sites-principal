@@ -1,6 +1,6 @@
 # Matriz de modelos e permissões
 
-Atualizada em **17/11/2026**, referência `3f3961d`. Descreve a configuração
+Atualizada em **21/11/2026**. Descreve a configuração
 demonstrada; a seleção contratual será feita na [base técnica](base-para-contratacao.md).
 
 ## Site público
@@ -11,7 +11,8 @@ demonstrada; a seleção contratual será feita na [base técnica](base-para-con
 | Anúncio, galeria, ficha e laudo cadastrado | Sim | Sim | Sim | Sem validação oficial externa |
 | Atendimento automático no anúncio e WhatsApp | Sim | Sim | Sim | Respostas locais; funcionário no WhatsApp |
 | Cadastro e login de cliente | Sim | Sim | Sim | Conta local neste navegador |
-| Financiamento no anúncio com três bancos ilustrativos | Sim | Sim | Sim | Exige login; sem consulta/aprovação bancária |
+| Financiamento no anúncio com três condições ilustrativas | Sim | Sim | Sim | Sem login; sem consulta/aprovação bancária |
+| Solicitação de visita ou test drive | Sim | Sim | Sim | Pedido local na demonstração; sujeito à confirmação da loja |
 | Serviços, financiamento independente e formulário de troca | Não | Sim | Sim | Referências manuais e registro de interesse |
 | Favoritos | Não | Sim | Sim | Exige login; conta/loja local |
 | Comparação de dois a três veículos | Não | Não | Sim | Pública, sem login |
@@ -32,14 +33,14 @@ acesso à rota no frontend, desde que a edição inclua o módulo.
 | `dashboard` — Início e indicadores | Sim | Sim | Sim | T/G/P | Dados locais |
 | `inventory` — Estoque | Sim | Sim | Sim | T/G/P | Cadastro, edição, publicação e mídia locais |
 | `leads` — Contatos e WhatsApp | Sim | Sim | Sim | T/G/P | Situações, observações e histórico |
+| `agenda` — Agenda e próximas ações | Sim | Sim | Sim | T/G/P | Pedidos e acompanhamento de contatos |
 | `financing` — Financiamento | Sim | Sim | Sim | T/G/P | Estimativa com taxa manual |
 | `contracts` — Contratos e termos | Sim | Sim | Sim | T/G/P | Minutas básicas, histórico e impressão |
-| `clients` — Clientes (CRM) | Não | Sim | Sim | T/G/P | Cadastros locais |
-| `fipe` — Precificador FIPE | Não | Sim | Sim | T/G/P | Referência manual, custos e margem |
+| `fipe` — Precificador FIPE | Não | Sim | Sim | T/G/P | Seleção do estoque, referência manual, custos e margem |
 | `financial` — Financeiro e margens | Não | Sim | Sim | P | Gastos locais; resultado realizado exige valor de venda |
 | `analytics` — Métricas do site | Não | Sim | Sim | G/P | Eventos do navegador, 7/30/90 dias |
-| `consignments` — Consignação completa | Não | Não | Sim | G/P | Dados e cálculos persistidos localmente |
-| `contracts_adv` — Contratos avançados | Não | Não | Sim | G/P | Minutas com dados, numeração e aditivos |
+| `consignments` — Consignação | Não | Não | Sim | G/P | Dados e cálculos persistidos localmente |
+| Contratos avançados, dentro de `contracts` | Não | Não | Sim | G/P | Minutas com dados, numeração e aditivos |
 | `financial_full` — DRE e comissões | Não | Não | Sim | P | Números de exemplo |
 | `market_pricing` — Mercado e leilão | Não | Não | Sim | T/G/P | Entradas manuais e cálculo |
 | `funnel` — Funil e giro | Não | Não | Sim | G/P | Números de exemplo |
@@ -48,13 +49,14 @@ acesso à rota no frontend, desde que a edição inclua o módulo.
 
 | Perfil | AutoElite | DriveNow | Enterprise |
 | --- | --- | --- | --- |
-| Atendente | 5 | 7 | 9 |
-| Gerente | 5 | 8 | 13 |
-| Proprietário | 5 | 9 | 16 |
+| Atendente | 6 | 7 | 9 |
+| Gerente | 6 | 8 | 12 |
+| Proprietário | 6 | 9 | 15 |
 
 Visitante/cliente não têm painel. Excluir veículo exige gerente/proprietário.
-O atalho do CRM para emitir documento também é restrito a esses perfis;
-atendente usa o módulo básico de contratos.
+O cadastro separado de clientes foi retirado do painel. Contratos reutilizam
+clientes existentes ou os cadastram durante a emissão; os contatos permitem
+iniciar um contrato. Contratos avançados seguem restritos a gerente/proprietário.
 
 ## Tela e autorização em servidor
 

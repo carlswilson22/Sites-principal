@@ -17,9 +17,9 @@
 
 | Pacote | Foco | Resumo |
 | --- | --- | --- |
-| 1 Basic | Vitrine e atendimento | Site com estoque, anúncio, contatos e simulação. Painel com 5 módulos |
-| 2 Expert | Gestão da loja | Tudo do 1, mais clientes, precificação, financeiro por veículo, métricas, troca e serviços. Painel com 9 módulos |
-| 3 Premium | Gestão completa | Tudo do 2, mais consignação, contratos avançados, DRE, mercado e leilão, funil, Stories, auditoria e LGPD, e recursos de comparação no site. Painel com 16 módulos |
+| 1 Basic | Vitrine e atendimento | Site com estoque, anúncio, contatos e simulação. Painel com 6 entradas |
+| 2 Expert | Gestão da loja | Tudo do 1, mais precificação, financeiro por veículo, métricas, troca e serviços. Painel com 9 entradas |
+| 3 Premium | Gestão completa | Tudo do 2, mais consignação, contratos avançados reunidos aos demais, DRE, mercado e leilão, funil, Stories, auditoria e LGPD, e recursos de comparação no site. Painel com 15 entradas |
 
 ## 2.1 Módulos avulsos
 
@@ -35,7 +35,7 @@ Qualquer cliente, em qualquer pacote, pode contratar módulos avulsos. Cada mód
 | Favoritos | SP-15 | Expert e Premium |
 | Pedido de aviso por condição de preço | SP-20 | Premium |
 | Consultor virtual | SP-21 | Premium |
-| Clientes (CRM), Precificador FIPE, Financeiro por veículo, Métricas do site | PN-06 a PN-09 | Expert e Premium |
+| Clientes vinculados a contratos, Precificador FIPE, Financeiro por veículo, Métricas do site | PN-06 a PN-09 | Conforme requisito abaixo |
 | Consignação, Contratos avançados, DRE, Mercado e leilão, Funil, Stories, Auditoria e LGPD | PN-10 a PN-16 | Premium |
 | Consulta de placa, Instagram, WhatsApp Cloud API | IN-06 a IN-08 | Nenhum (integrações com custo de terceiros) |
 
@@ -78,12 +78,12 @@ Os módulos essenciais (início, estoque, contatos, equipe, configurações e co
 | PN-03 | Contatos e WhatsApp | 1 | P G A | Lista, filtros, situação, temperatura, observações e histórico |
 | PN-04 | Simulador de financiamento | 1 | P G A | Simulação durante o atendimento, com taxa manual |
 | PN-05 | Contratos e termos | 1 | P G A | Compra e venda, recibo de sinal e termo de vistoria, com prévia, impressão e histórico |
-| PN-06 | Clientes (CRM) | 2 | P G A | Cadastro com CPF e endereço cifrados, busca, conversão de lead em cliente |
-| PN-07 | Precificador FIPE | 2 | P G A | Referência FIPE (consulta ou manual), custos de preparação e margem. Calcula teto de compra e venda sugerida |
+| PN-06 | Clientes vinculados a contratos | 1 | P G A | Na demonstração, a emissão cadastra ou reutiliza o cliente; não há tela independente de cadastro. A API de clientes continua existente no servidor |
+| PN-07 | Precificador FIPE | 2 | P G A | Marca, modelo e ano do estoque, referência manual, custos e margem. O resultado é atualizado ao mudar os valores; não há consulta automática nesta tela |
 | PN-08 | Financeiro por veículo | 2 | P | Lançamento de custos por veículo e margem prevista |
 | PN-09 | Métricas do site | 2 | P G | Acessos, anúncios abertos e cliques no WhatsApp em 7, 30 e 90 dias |
-| PN-10 | Consignação completa | 3 | P G | Consignante, comissão, taxas, diárias, vigência e repasse, com alertas de vencimento |
-| PN-11 | Contratos avançados | 3 | P G | Consignação, compra e venda com troca e aditivos, com numeração e vínculo |
+| PN-10 | Consignação | 3 | P G | Consignante, comissão, taxas, diárias, vigência e repasse, com alertas de vencimento |
+| PN-11 | Contratos avançados | 3 | P G | Disponíveis em Contratos e termos: consignação, compra e venda com troca e aditivos, com numeração e vínculo |
 | PN-12 | DRE e comissões | 3 | P | Demonstrativo e comissão por vendedor, a partir dos dados reais |
 | PN-13 | Mercado e leilão | 3 | P G A | Precificação com concorrentes informados à mão, leilão e liquidez |
 | PN-14 | Funil e giro | 3 | P G | Etapas, conversão, tempo de resposta e estoque parado, a partir dos dados reais |

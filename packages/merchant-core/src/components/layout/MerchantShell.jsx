@@ -30,7 +30,6 @@ export function MerchantShell({
       {/* 2. Corpo com Sidebar Lateral e Área de Trabalho */}
       <div className="flex-1 flex flex-row relative">
         <MerchantSidebar
-          storeName={storeName}
           activeTab={activeTab}
           onSelectTab={onSelectTab}
           isOpen={mobileMenuOpen}

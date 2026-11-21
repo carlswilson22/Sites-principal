@@ -13,7 +13,7 @@ export { DashboardView } from './pages/DashboardView';
 export { InventoryView } from './pages/InventoryView';
 export { LeadsView } from './pages/LeadsView';
 export { LoginView } from './pages/LoginView';
-export { ClientsView } from './pages/ClientsView';
+export { ContractsCenter } from './pages/ContractsCenter';
 export { FipePricingView } from './pages/FipePricingView';
 export { ContractsView } from './pages/ContractsView';
 export { FinancialView } from './pages/FinancialView';

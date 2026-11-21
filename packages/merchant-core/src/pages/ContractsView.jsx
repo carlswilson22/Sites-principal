@@ -9,7 +9,7 @@ import { generateContractDocument } from '../utils/contracts';
 import { findContractClient } from '../utils/contractClient';
 import { createRecordId } from '../utils/recordId';
 
-export function ContractsView({ storeKey = 'autoelite', selectedClient = null, vehicles = [], dealership = { nome: 'Concessionária' } }) {
+export function ContractsView({ storeKey = 'autoelite', selectedClient = null, onClientPrefilled, vehicles = [], dealership = { nome: 'Concessionária' } }) {
   const [error, setError] = useState('');
   const [contracts, setContracts] = useState([]);
   const [clients, setClients] = useState([]);
@@ -43,6 +43,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, v
     if (!selectedClient) return;
     setFormData(previous => ({ ...previous, clientId: selectedClient.id ?? null, clientName: selectedClient.name, clientCpf: selectedClient.cpfMasked || '', clientPhone: selectedClient.phone || '', clientAddress: selectedClient.address || '' }));
     setIsModalOpen(true);
+    onClientPrefilled?.();
   }, [selectedClient]);
 
   const handleClientChange = (field, value) => {

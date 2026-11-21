@@ -1,6 +1,6 @@
 # Módulos do painel — operação e conferência
 
-Atualizado em **17/11/2026**, na `main`, referência `3f3961d`.
+Atualizado em **21/11/2026**.
 A distribuição de edição/cargo está na [matriz](matriz-de-funcionalidades.md).
 Este roteiro é operacional; o escopo contratual ainda será selecionado.
 
@@ -21,7 +21,7 @@ e histórico por loja. Vistoria deixa itens para conferência, sem aprovação
 automática. Alterar manualmente o comprador remove o vínculo anterior.
 
 O simulador do painel usa taxa manual. O anúncio usa seleção de três bancos
-ilustrativos após login. Ambos estimam parcelas; não aprovam crédito. As
+ilustrativos sem exigir login. Ambos estimam parcelas; não aprovam crédito. As
 rotas de financiamento e contratos básicos do servidor também admitem nível 1,
 embora estejam no arquivo de rotas de nível 2.
 
@@ -44,12 +44,14 @@ com filtros de 7/30/90 dias e ranking. Guarda até 10 mil eventos dos últimos
 do veículo e data; não copiam mensagem, nome ou telefone.
 
 Não são visitantes únicos nem tráfego consolidado. Falha de métrica opcional
-não impede navegação. CRM e precificador FIPE usam dados locais/referência manual.
+não impede navegação. Os clientes são cadastrados ou reutilizados na emissão
+de contratos; o precificador usa seleção do estoque e referência manual.
 
 ## Ferramentas Enterprise
 
 - Consignações: dados persistidos e cálculo de comissão, diárias e repasse.
-- Contratos avançados: minutas preenchidas, numeração e aditivos vinculados.
+- Contratos avançados: acessíveis dentro de Contratos e termos para gerente e
+  proprietário, com minutas, numeração e aditivos vinculados.
 - Mercado/leilão: cálculo com concorrentes e demais parâmetros manuais.
 - Stories: escolha do estoque, três layouts, PNG, publicação fictícia local e
   histórico cuja ação **Ver publicação** abre a arte/legenda salva.

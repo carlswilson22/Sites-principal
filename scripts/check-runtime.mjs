@@ -139,6 +139,10 @@ for (const [model, scenario] of scenarios) {
     }
     document.querySelector('button[aria-label="Painel do lojista"]').click();
     await wait(() => button('Contratos & Termos'));
+    assert.equal(document.querySelector('main h1')?.textContent.trim(), 'Painel de Controle', 'Painel não abriu na tela inicial');
+    const salesSummary = [...document.querySelectorAll('main details')].find(item => item.querySelector('summary')?.textContent.includes('Vendas e resultados'));
+    assert(salesSummary?.open, 'Indicadores de vendas começam fechados');
+    assert(!document.querySelector('#merchant-navigation').textContent.includes('· Painel do lojista'), 'Rodapé redundante ainda aparece no menu');
     assert.equal(document.querySelector('[data-merchant-panel]')?.dataset.merchantTheme, { autoelite: 'classic', drivenow: 'editorial', apexluxury: 'workspace' }[storeKey], 'Painel não acompanha a identidade da vitrine');
     const profiles = document.querySelector('select[aria-label="Perfil de acesso"]');
     assert(profiles, 'Painel demonstrativo sem seletor de perfis');
@@ -157,7 +161,7 @@ for (const [model, scenario] of scenarios) {
     assert.equal(document.querySelector('select[aria-label="Perfil de acesso"]').value, role);
     assert(button('Simulador de financiamento') && button('Contratos & Termos'), 'Perfil sem ferramentas essenciais de atendimento');
     if (role !== 'proprietario') for (const label of ['Financeiro & Margens', 'DRE & Comissões Vendedores', 'Auditoria & LGPD']) assert(!button(label), `Perfil ${role} recebeu ${label}`);
-    if (role === 'atendente') for (const label of ['Métricas do Site', 'Consignação Completa', 'Contratos Avançados & Troca', 'Funil de Vendas & Giro']) assert(!button(label), `Atendente recebeu ${label}`);
+    if (role === 'atendente') for (const label of ['Métricas do Site', 'Consignação', 'Contratos avançados e aditivos', 'Funil de Vendas & Giro']) assert(!button(label), `Atendente recebeu ${label}`);
   };
   const signOut = async () => {
     const staffExit = document.querySelector('button[aria-label="Encerrar Sessão"]');
@@ -770,6 +774,13 @@ for (const [model, scenario] of scenarios) {
       notification.click();
       await wait(() => document.querySelector('main h1')?.textContent.includes('Contatos'));
       assert(document.querySelector('main').textContent.includes('Condição C') && document.querySelector('main').textContent.includes('(61) 99999-1234'), 'Aviso não abriu os dados da simulação no painel');
+      assert(!button('Cadastrar cliente'), 'Contato mantém cadastro duplicado');
+      button('Criar contrato').click();
+      await wait(() => button('Gerar Documento'));
+      assert(button('Gerar Documento').form.querySelector('input[type="text"]').value, 'Contrato não recebeu os dados do contato');
+      document.querySelector('button[aria-label="Fechar emissão de documento"]').click();
+      button('Contatos & WhatsApp').click();
+      await wait(() => document.querySelector('main h1')?.textContent.includes('Contatos'));
       const panelMenuToggle = document.querySelector('button[aria-label="Abrir menu de navegação"]');
       assert.equal(panelMenuToggle.getAttribute('aria-expanded'), 'false');
       panelMenuToggle.click();
@@ -786,17 +797,19 @@ for (const [model, scenario] of scenarios) {
       assert(document.querySelector('[data-photo-manager]').textContent.includes(`${initialAdPhotos} / 20`), 'Gerenciador e anúncio contam fotos diferentes');
       document.querySelector('button[aria-label="Fechar gerenciador de fotos"]').click();
       assert(!button('Financeiro & Margens'), 'Atendente recebeu acesso financeiro');
-      assert(!button('Contratos Avançados & Troca'), 'Atendente recebeu acesso a contratos avançados');
+      assert(!button('Contratos avançados e aditivos'), 'Atendente recebeu acesso a contratos avançados');
       assert(button('Simulador de financiamento'), 'Simulador ausente para o atendente');
-      assert(button('Simulador de financiamento').closest('details').querySelector('summary').textContent.includes('Financeiro'), 'Simulador não está na seção financeira');
       const financialSection = button('Simulador de financiamento').closest('details');
-      assert(financialSection.open, 'Seção financeira não começou disponível');
+      assert(financialSection.open, 'Seção do simulador não começou disponível');
+      assert([...financialSection.querySelectorAll('button')].length > 1, 'Seção com apenas uma ferramenta');
       financialSection.querySelector('summary').click();
       await wait(() => !financialSection.open);
       financialSection.querySelector('summary').click();
       await wait(() => financialSection.open);
       button('Contratos & Termos').click();
       await wait(() => button('Emitir Novo Documento'));
+      assert(!button('Gerar Documento'), 'Contato antigo reabriu o formulário de contrato');
+      assert(!button('Contratos avançados e aditivos'), 'Atendente recebeu acesso a minutas avançadas');
       assert(document.querySelector('h1').textContent.includes('Contratos e Termos'), 'Rota de documentos indisponível ao atendente');
       for (const type of ['compra_venda', 'recibo_sinal', 'vistoria_simples']) {
         button('Emitir Novo Documento').click();
@@ -836,6 +849,10 @@ for (const [model, scenario] of scenarios) {
         const menu = document.querySelector('nav[aria-label="Navegação do painel"]');
         const labels = [...menu.querySelectorAll('button')].map(item => item.textContent.trim());
         assert.equal(new Set(labels).size, labels.length, 'Itens duplicados no menu do painel');
+        assert(!labels.includes('Clientes (CRM)') && !labels.includes('Contratos Avançados & Troca'), 'Menu mantém cadastros ou contratos separados');
+        assert([...menu.querySelectorAll('details')].every(group => group.querySelectorAll('button').length > 1), 'Menu contém seção com apenas uma ferramenta');
+        const icons = [...menu.querySelectorAll('button svg')].map(icon => icon.getAttribute('class'));
+        assert.equal(new Set(icons).size, icons.length, 'Menu contém ícones repetidos');
         for (const label of labels) {
           [...menu.querySelectorAll('button')].find(item => item.textContent.trim() === label).click();
           await wait(() => menu.querySelector('button[aria-current="page"]')?.textContent.trim() === label && document.querySelector('main h1'));
@@ -847,6 +864,22 @@ for (const [model, scenario] of scenarios) {
       if (model !== 'auto-dealership') {
         button('Métricas do Site').click();
         await wait(() => document.querySelector('main h1')?.textContent.includes('Métricas'));
+        button('Precificador FIPE').click();
+        await wait(() => document.querySelector('select[aria-label="Marca / Fabricante"]')?.options.length > 0);
+        const brands = document.querySelector('select[aria-label="Marca / Fabricante"]');
+        const models = document.querySelector('select[aria-label="Modelo"]');
+        assert(brands.options.length > 1 && models.options.length, 'Precificador sem opções do estoque');
+        await changeField(brands, brands.options[1].value);
+        await wait(() => models.value && models.options.length);
+        const reference = document.querySelector('input[aria-label="Valor de referência informado"]');
+        const prep = document.querySelector('input[aria-label="Custos de preparação"]');
+        const margin = document.querySelector('input[aria-label="Margem alvo"]');
+        await changeField(reference, '100000');
+        await changeField(prep, '2000');
+        await changeField(margin, '0');
+        await wait(() => document.querySelector('[data-pricing-max]')?.textContent.includes('98.000'));
+        await changeField(margin, '10');
+        await wait(() => document.querySelector('[data-pricing-max]')?.textContent.includes('88.000'));
       }
       await switchStaffRole('atendente');
       assert(!document.querySelector('main').textContent.includes('Métricas do Site'), 'Troca de perfil manteve uma tela restrita');
@@ -897,7 +930,7 @@ for (const [model, scenario] of scenarios) {
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
         await wait(() => !document.querySelector('[data-publication-id]'));
         assert.equal(document.body.style.overflow, '');
-        button('Consignação Completa').click();
+        button('Consignação').click();
         await wait(() => button('Nova Consignação'));
         button('Nova Consignação').click();
         await wait(() => document.querySelector('select[aria-label="Veículo em consignação"]'));
@@ -910,7 +943,9 @@ for (const [model, scenario] of scenarios) {
         assert(consignmentForm.checkValidity(), 'Formulário de exemplo não está pronto para envio');
         consignmentForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
         await wait(() => !button('Registrar Consignação') && document.querySelector('main').textContent.includes('Consignante de exemplo'));
-        button('Contratos Avançados & Troca').click();
+        button('Contratos & Termos').click();
+        await wait(() => button('Contratos avançados e aditivos'));
+        button('Contratos avançados e aditivos').click();
         await wait(() => button('Gerar e Emitir Minuta Contratual'));
         button('Gerar e Emitir Minuta Contratual').form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
         await wait(() => document.querySelector('iframe[title="Prévia da minuta"]'));
