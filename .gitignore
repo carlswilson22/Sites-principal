@@ -36,6 +36,9 @@ logs/
 *.db-wal
 *.db-shm
 
+# Mídia enviada em execução pertence à instalação, não ao código-fonte
+server/data/media/
+
 # Sistema Operacional
 .DS_Store
 Thumbs.db

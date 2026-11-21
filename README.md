@@ -29,4 +29,4 @@ npm run demo -- --color "#0f6cbd" --name "Minha Loja" --open
 
 Sobe a API, o site público e o painel com dados fictícios e fotos de exemplo, e mostra os endereços e os logins.
 Os dados ficam só na memória: ao parar (Ctrl+C) tudo some. Na primeira vez, o site e o painel são compilados sozinhos.
-Comandos de teste: `npm run test:loja`, `npm run test:painel`, `npm run test:merchant` e, na pasta `server`, `node --test tests/*.mjs`.
+Comandos de teste: `npm run test:loja`, `npm run test:painel`, `npm run test:merchant` e `npm run test:server`. O último isola o banco e os arquivos de mídia dos testes em armazenamento temporário.
