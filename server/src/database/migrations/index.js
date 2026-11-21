@@ -8,6 +8,7 @@ import { MIGRATION_002 } from './002_m2_schema.js';
 import { MIGRATION_003 } from './003_primeiro_acesso.js';
 import { MIGRATION_004 } from './004_premium_revisao.js';
 import { MIGRATION_005 } from './005_agenda_leads.js';
+import { MIGRATION_006 } from './006_lembretes.js';
 
 export const migrations = [
   // 001 usa CREATE IF NOT EXISTS, então é segura em bancos criados antes do runner existir.
@@ -15,5 +16,6 @@ export const migrations = [
   { id: 2, name: 'm2_catalogo_clientes_configuracao', sql: MIGRATION_002 },
   { id: 3, name: 'primeiro_acesso', sql: MIGRATION_003 },
   { id: 4, name: 'premium_revisao_vendas', sql: MIGRATION_004 },
-  { id: 5, name: 'agenda_e_origem_de_leads', sql: MIGRATION_005 }
+  { id: 5, name: 'agenda_e_origem_de_leads', sql: MIGRATION_005 },
+  { id: 6, name: 'lembretes_da_agenda', sql: MIGRATION_006 }
 ];

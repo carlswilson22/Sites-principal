@@ -16,7 +16,7 @@ import { createRecordId } from '../utils/recordId.js';
 import { isRemote } from './remote.js';
 import { remoteStoreSync } from './storeSyncRemote.js';
 import { demoDaysInStock, demoLeads } from '../data/demoShowcase.js';
-const RECORD_COLLECTIONS = ['clients', 'contracts', 'expenses'];
+const RECORD_COLLECTIONS = ['clients', 'contracts', 'expenses', 'reminders'];
 
 function readLeadsForMutation(storeKey, fallback) {
   const raw = localStorage.getItem(`store_leads_${storeKey}`);

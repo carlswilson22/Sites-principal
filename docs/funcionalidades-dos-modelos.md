@@ -49,7 +49,7 @@ Atendimento e financiamento no anúncio.
 Não inclui favoritos, comparação, 360°, TCO, dossiê ampliado, formulário de
 troca ou página independente de financiamento na configuração padrão.
 
-### Painel — seis entradas para o proprietário
+### Painel — sete entradas para o proprietário
 
 1. **Início e indicadores:** estoque, vendas recentes, veículos parados,
    novos contatos e pendências calculados dos dados locais da loja.
@@ -62,7 +62,8 @@ troca ou página independente de financiamento na configuração padrão.
 5. **Contratos e termos:** compra/venda, recibo de sinal e termo de vistoria;
    prévia, impressão/salvar PDF pelo navegador, histórico local e mensagem para
    compartilhar. Cadastra ou reutiliza o cliente ao emitir. Sem assinatura eletrônica integrada.
-6. **Agenda e próximas ações:** pedidos de visita e test drive, ações de hoje e atrasadas.
+6. **Agenda e próximas ações:** lembretes independentes, pedidos de visita e test drive e ações de contatos.
+7. **Auditoria e LGPD:** trilha e operações sobre clientes de exemplo, disponíveis ao proprietário.
 
 ## Modelo 2 — DriveNow Multimarcas
 
@@ -86,9 +87,9 @@ Acrescenta à base:
 
 Não inclui comparador, TCO, dossiê ampliado ou 360° padrão.
 
-### Painel — nove módulos para o proprietário
+### Painel — dez módulos para o proprietário
 
-Inclui as seis entradas anteriores e acrescenta:
+Inclui as sete entradas anteriores e acrescenta:
 
 1. **Precificador FIPE:** marca, modelo e ano do estoque; referência manual,
    preparação e margem com resultado atualizado ao alterar os valores. Sem consulta FIPE atualizada.
@@ -130,7 +131,7 @@ Acrescenta:
 
 ### Painel — quinze entradas para o proprietário
 
-Inclui os nove anteriores e acrescenta:
+Inclui os dez anteriores e acrescenta:
 
 10. **Consignação:** consignante, comissão, taxas, diárias, vigência,
     prazo e cálculo de repasse; gravação local na demonstração.
@@ -147,9 +148,6 @@ Inclui os nove anteriores e acrescenta:
 15. **Estúdio de Stories:** estoque da loja, três layouts, preço/enquadramento
     e PNG 1080 × 1920. Publicação fictícia local, histórico e arte salva;
     não publica no Instagram real.
-16. **Auditoria e LGPD:** exportação JSON e anonimização de clientes de exemplo,
-    com trilha local. Não altera todas as contas/CRM/bases reais. Só proprietário.
-
 Consignações, minutas avançadas, publicações e ações sobre titulares de exemplo
 são persistidas por loja no navegador. Limpar os dados pode removê-las.
 As [integrações](manuais-de-integracao.md) detalham servidor e pendências.

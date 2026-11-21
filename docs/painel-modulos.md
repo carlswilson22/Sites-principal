@@ -25,6 +25,10 @@ ilustrativos sem exigir login. Ambos estimam parcelas; não aprovam crédito. As
 rotas de financiamento e contratos básicos do servidor também admitem nível 1,
 embora estejam no arquivo de rotas de nível 2.
 
+## Agenda e Auditoria
+
+Nos três modelos, a agenda permite gerenciar lembretes independentes e próximas ações dos contatos sem sair da tela. Os lembretes ficam no navegador na demonstração ou no banco do servidor quando conectado. Não há aviso automático para cada lembrete. Auditoria e LGPD ficam disponíveis ao proprietário, com ações de exemplo no modo demonstrativo; a cobertura não inclui todas as bases.
+
 ## Financeiro por veículo — modelos 2 e 3
 
 Exclusivo do proprietário; permite cadastrar, editar e remover aquisição/outros
@@ -56,8 +60,6 @@ de contratos; o precificador usa seleção do estoque e referência manual.
 - Stories: escolha do estoque, três layouts, PNG, publicação fictícia local e
   histórico cuja ação **Ver publicação** abre a arte/legenda salva.
 - Exportação de catálogo: arquivo CSV local, sem envio direto a portais.
-- Auditoria/LGPD: ações persistidas sobre clientes de exemplo; não abrangem
-  todas as contas, documentos ou CRM.
 - DRE/comissões e funil/giro: relatórios com números de exemplo, sem consolidar
   automaticamente estoque, gastos e contatos locais.
 

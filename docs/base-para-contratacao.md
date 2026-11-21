@@ -52,7 +52,7 @@ painel não equivale a quantidade de integrações operacionais contratadas.
 | Atendimento | Assistente automático local e encaminhamento explícito ao WhatsApp | Canais, número da loja e eventual atendimento humano dentro do site |
 | Instagram | Arte PNG e simulação local com histórico | Conta real, permissões, hospedagem da mídia, atualização e teste do adaptador |
 | DRE e funil Enterprise | Relatórios com números de exemplo | Fontes, fórmulas, conciliação e consolidação efetiva dos dados |
-| LGPD Enterprise | Exportação/anonimização de clientes de exemplo | Atendimento real ao titular em todas as bases, documentos e backups aplicáveis |
+| LGPD nos três modelos | Exportação/anonimização de clientes de exemplo | Atendimento real ao titular em todas as bases, documentos e backups aplicáveis |
 | Documentos emitidos pelo painel | Minutas básicas e avançadas conforme o modelo | Textos comerciais/jurídicos da loja, campos, revisão e forma de assinatura |
 
 O servidor Node/SQLite está no repositório, mas não está hospedado no GitHub

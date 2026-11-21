@@ -1,6 +1,6 @@
 /**
  * packages/merchant-core/src/pages/AuditLgpdView.jsx
- * Governança, Trilha de Auditoria & Conformidade LGPD (Nível 3 - A8).
+ * Governança e ferramentas de apoio à LGPD para todos os modelos.
  * Acesso exclusivo para o Proprietário.
  */
 import React, { useState, useEffect } from 'react';

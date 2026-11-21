@@ -33,7 +33,7 @@ acesso à rota no frontend, desde que a edição inclua o módulo.
 | `dashboard` — Início e indicadores | Sim | Sim | Sim | T/G/P | Dados locais |
 | `inventory` — Estoque | Sim | Sim | Sim | T/G/P | Cadastro, edição, publicação e mídia locais |
 | `leads` — Contatos e WhatsApp | Sim | Sim | Sim | T/G/P | Situações, observações e histórico |
-| `agenda` — Agenda e próximas ações | Sim | Sim | Sim | T/G/P | Pedidos e acompanhamento de contatos |
+| `agenda` — Agenda e próximas ações | Sim | Sim | Sim | T/G/P | Lembretes, pedidos e acompanhamento de contatos |
 | `financing` — Financiamento | Sim | Sim | Sim | T/G/P | Estimativa com taxa manual |
 | `contracts` — Contratos e termos | Sim | Sim | Sim | T/G/P | Minutas básicas, histórico e impressão |
 | `fipe` — Precificador FIPE | Não | Sim | Sim | T/G/P | Seleção do estoque, referência manual, custos e margem |
@@ -45,13 +45,13 @@ acesso à rota no frontend, desde que a edição inclua o módulo.
 | `market_pricing` — Mercado e leilão | Não | Não | Sim | T/G/P | Entradas manuais e cálculo |
 | `funnel` — Funil e giro | Não | Não | Sim | G/P | Números de exemplo |
 | `stories` — Estúdio de Stories | Não | Não | Sim | T/G/P | PNG e publicação fictícia local |
-| `audit_lgpd` — Auditoria e LGPD | Não | Não | Sim | P | Clientes de exemplo, sem cobertura de todas as bases |
+| `audit_lgpd` — Auditoria e LGPD | Sim | Sim | Sim | P | Clientes de exemplo, sem cobertura de todas as bases |
 
 | Perfil | AutoElite | DriveNow | Enterprise |
 | --- | --- | --- | --- |
 | Atendente | 6 | 7 | 9 |
 | Gerente | 6 | 8 | 12 |
-| Proprietário | 6 | 9 | 15 |
+| Proprietário | 7 | 10 | 15 |
 
 Visitante/cliente não têm painel. Excluir veículo exige gerente/proprietário.
 O cadastro separado de clientes foi retirado do painel. Contratos reutilizam
@@ -70,10 +70,8 @@ embora implementados em `tier2Routes.js`. O prefixo da URL não define sozinho
 a autorização.
 
 O Estúdio abre para os três perfis no frontend; publicação real na API exige
-gerente/proprietário. A rota de exportação de titular verifica sessão, mas
-não aplica a restrição de proprietário que o menu de auditoria impõe. Esse
-desalinhamento precisa de correção/homologação antes do uso de dados reais.
-Simulação local não comprova essas autorizações. Homologar
+gerente/proprietário. Auditoria, exportação e anonimização exigem proprietário
+na política do servidor para os três modelos. Simulação local não comprova essas autorizações. Homologar
 cada operação e acesso por requisição direta no servidor da futura instalação.
 
 ## Serviços não ativados na publicação

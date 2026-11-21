@@ -9,6 +9,7 @@ import { handleAuthRoutes } from './routes/authRoutes.js';
 import { handleDashboardRoutes } from './routes/dashboardRoutes.js';
 import { handleInventoryRoutes } from './routes/inventoryRoutes.js';
 import { handleLeadRoutes } from './routes/leadRoutes.js';
+import { handleReminderRoutes } from './routes/reminderRoutes.js';
 import { handleTier2Routes } from './routes/tier2Routes.js';
 import { handleTier3Routes } from './routes/tier3Routes.js';
 import { getStoreTier } from './middlewares/tierGate.js';
@@ -119,6 +120,7 @@ export function createServer(settings = config) {
       // 7. Roteamento de Contatos e Leads (E6 - Nível 1)
       const leadHandled = await handleLeadRoutes(req, res, pathname, body);
       if (leadHandled) return;
+      if (await handleReminderRoutes(req, res, pathname, body)) return;
 
       // 8. Roteamento de Recursos Avançados do Nível 2 (I1 a I8)
       const tier2Handled = await handleTier2Routes(req, res, pathname, body);

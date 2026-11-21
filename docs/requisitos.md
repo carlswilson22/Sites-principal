@@ -17,9 +17,9 @@
 
 | Pacote | Foco | Resumo |
 | --- | --- | --- |
-| 1 Basic | Vitrine e atendimento | Site com estoque, anúncio, contatos e simulação. Painel com 6 entradas |
-| 2 Expert | Gestão da loja | Tudo do 1, mais precificação, financeiro por veículo, métricas, troca e serviços. Painel com 9 entradas |
-| 3 Premium | Gestão completa | Tudo do 2, mais consignação, contratos avançados reunidos aos demais, DRE, mercado e leilão, funil, Stories, auditoria e LGPD, e recursos de comparação no site. Painel com 15 entradas |
+| 1 Basic | Vitrine e atendimento | Site com estoque, anúncio, contatos e simulação. Painel com 7 entradas para o proprietário |
+| 2 Expert | Gestão da loja | Tudo do 1, mais precificação, financeiro por veículo, métricas, troca e serviços. Painel com 10 entradas para o proprietário |
+| 3 Premium | Gestão completa | Tudo do 2, mais consignação, contratos avançados reunidos aos demais, DRE, mercado e leilão, funil, Stories e recursos de comparação no site. Painel com 15 entradas para o proprietário |
 
 ## 2.1 Módulos avulsos
 
@@ -36,7 +36,8 @@ Qualquer cliente, em qualquer pacote, pode contratar módulos avulsos. Cada mód
 | Pedido de aviso por condição de preço | SP-20 | Premium |
 | Consultor virtual | SP-21 | Premium |
 | Clientes vinculados a contratos, Precificador FIPE, Financeiro por veículo, Métricas do site | PN-06 a PN-09 | Conforme requisito abaixo |
-| Consignação, Contratos avançados, DRE, Mercado e leilão, Funil, Stories, Auditoria e LGPD | PN-10 a PN-16 | Premium |
+| Consignação, Contratos avançados, DRE, Mercado e leilão, Funil, Stories | PN-10 a PN-15 | Premium |
+| Auditoria e LGPD | PN-16 | Todos os pacotes |
 | Consulta de placa, Instagram, WhatsApp Cloud API | IN-06 a IN-08 | Nenhum (integrações com custo de terceiros) |
 
 Os módulos essenciais (início, estoque, contatos, equipe, configurações e contas de clientes) fazem parte de todos os pacotes e não podem ser removidos.
@@ -88,7 +89,7 @@ Os módulos essenciais (início, estoque, contatos, equipe, configurações e co
 | PN-13 | Mercado e leilão | 3 | P G A | Precificação com concorrentes informados à mão, leilão e liquidez |
 | PN-14 | Funil e giro | 3 | P G | Etapas, conversão, tempo de resposta e estoque parado, a partir dos dados reais |
 | PN-15 | Estúdio de Stories | 3 | P G A | Arte em PNG 1080x1920 com três layouts. Publicação real só com o adicional de Instagram |
-| PN-16 | Auditoria e LGPD | 3 | P | Trilha de ações, exportação e anonimização de titular, em todas as bases da instalação |
+| PN-16 | Auditoria e LGPD | 1 | P | Trilha, exportação e anonimização de exemplo; cobertura de todas as bases da instalação é requisito para operação real |
 | PN-17 | Usuários da equipe | 1 | P | Criar, desativar e trocar o cargo de funcionários |
 | PN-18 | Configurações da loja | 1 | P | Dados da loja, horários, WhatsApp, taxas do simulador, logo e cores |
 | PN-19 | Descrição por IA | **Avulso** | P G A | Rascunho de descrição do anúncio, sempre revisado por uma pessoa. Usa a franquia de IA |

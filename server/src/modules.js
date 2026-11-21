@@ -8,9 +8,9 @@
 import { getDb } from './database/db.js';
 import { getStoreTier } from './middlewares/tierGate.js';
 
-const BASIC = ['dashboard', 'inventory', 'leads', 'financing', 'contracts', 'users', 'settings', 'customers'];
+const BASIC = ['dashboard', 'inventory', 'leads', 'financing', 'contracts', 'users', 'settings', 'customers', 'audit_lgpd'];
 const EXPERT = [...BASIC, 'clients', 'fipe', 'financial', 'analytics', 'trade_in', 'services', 'favorites'];
-const PREMIUM = [...EXPERT, 'consignments', 'contracts_adv', 'financial_full', 'market_pricing', 'funnel', 'stories', 'audit_lgpd',
+const PREMIUM = [...EXPERT, 'consignments', 'contracts_adv', 'financial_full', 'market_pricing', 'funnel', 'stories',
   'compare', 'tco', 'dossier', 'viewer360', 'price_alert', 'virtual_consultant'];
 
 export const PACKAGES = { 1: { id: 'basic', name: 'Basic', modules: BASIC }, 2: { id: 'expert', name: 'Expert', modules: EXPERT }, 3: { id: 'premium', name: 'Premium', modules: PREMIUM } };

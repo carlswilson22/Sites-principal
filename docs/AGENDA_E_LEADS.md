@@ -4,6 +4,8 @@ Os três modelos compartilham a agenda e os contatos. Na página Agenda ou no an
 
 O formulário de contato e o simulador também geram contatos no mesmo lugar. A simulação é pública e registra veículo, entrada, prazo, condição e parcela estimada. Não é necessário criar conta para esses fluxos. No painel, a equipe registra a próxima ação e a data; ações vencidas aparecem em Atrasados, e ações futuras do dia em Hoje. Ao responder, é necessário mudar a situação do contato para Em atendimento, Ganho ou Perdido.
 
+Na própria agenda, a equipe pode criar, editar, concluir, reabrir e excluir lembretes independentes, além de selecionar um contato e definir ou alterar sua próxima ação. Lembretes e ações aparecem agrupados por prazo; os pedidos de visita continuam separados. O servidor persiste os lembretes no banco da loja; na demonstração eles ficam somente no navegador. A agenda apresenta os compromissos no painel e não envia notificações automáticas de lembrete.
+
 ## Origem de marketing
 
 Links podem usar `utm_source`, `utm_campaign` e `utm_medium`, por exemplo `?utm_source=instagram&utm_campaign=ofertas`. A atribuição fica na sessão do navegador e acompanha os novos contatos, inclusive os de financiamento e agenda. Sem UTM, o sistema tenta reconhecer Instagram, Google ou OLX pelo endereço de referência; caso contrário registra Direto. A lista do painel mostra quantos contatos e quantos ganhos foram atribuídos a cada canal. Isso é atribuição simples, não uma medição completa de conversões.

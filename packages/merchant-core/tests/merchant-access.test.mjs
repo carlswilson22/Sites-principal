@@ -16,6 +16,8 @@ test('contratos e termos estão disponíveis aos três perfis em todas as ediç�
 
 test('ferramentas de atendimento mantêm as restrições financeiras e administrativas', () => {
   for (const tier of [1, 2, 3]) {
+    assert.equal(canAccessMerchantRoute('audit_lgpd', tier, 'proprietario'), true);
+    assert.equal(canAccessMerchantRoute('audit_lgpd', tier, 'gerente'), false);
     assert.equal(canAccessMerchantRoute('financial', tier, 'atendente'), false);
     assert.equal(canAccessMerchantRoute('financial_full', tier, 'gerente'), false);
     assert.equal(canAccessMerchantRoute('contracts_adv', tier, 'atendente'), false);

@@ -21,7 +21,7 @@ import {
   Car
 } from 'lucide-react';
 
-function LeadActionForm({ lead, storeKey, onSaved }) {
+export function LeadActionForm({ lead, storeKey, onSaved }) {
   const [action, setAction] = useState(lead.next_action || '');
   const [when, setWhen] = useState(() => {
     const date = new Date(lead.next_action_at || '');
