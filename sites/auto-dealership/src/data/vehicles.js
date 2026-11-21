@@ -24,7 +24,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-89214-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Estrutura e longarinas originais e intocadas",
@@ -72,7 +72,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-77412-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Monobloco íntegro, sem deformidades",
@@ -120,7 +120,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-99014-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Colunas e soleiras 100% preservadas",
@@ -168,7 +168,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-44128-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Longarinas sem sinais de impacto",
@@ -216,7 +216,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-63201-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Estrutural original íntegro",
@@ -264,7 +264,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-11984-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Estrutura dianteira e traseira seladas de fábrica",
@@ -312,7 +312,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-30281-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Chassi sobre longarinas sem empeno ou corrosão",
@@ -360,7 +360,7 @@ const catalogVehicles = [
       "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=1200&q=80"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "AMT-95510-DF",
       perito: "Perícia Cautelar Certificada",
       estrutura: "Integridade estrutural alemã 100% impecável",

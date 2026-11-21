@@ -9,7 +9,7 @@ export function buildVehicleWhatsappLink(vehicle, phone = dealershipInfo.whatsap
     `• *Ano:* ${vehicle.ano}\n` +
     `• *Km:* ${vehicle.km.toLocaleString('pt-BR')} km\n` +
     `• *Valor à vista:* ${formatCurrency(vehicle.preco)}\n` +
-    `• *Laudo:* ${vehicle.laudoCautelar?.status || 'Laudo Cautelar 100% Aprovado'}\n\n` +
+    `• *Laudo:* ${vehicle.laudoCautelar?.status || 'Não informado'}\n\n` +
     `Gostaria de agendar uma visita e saber mais sobre as condições de negociação.`;
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;

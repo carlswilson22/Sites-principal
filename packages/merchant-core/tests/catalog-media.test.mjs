@@ -98,3 +98,20 @@ test('estoque já salvo recebe a galeria corrigida sem apagar anúncios e fotos 
     delete globalThis.localStorage;
   }
 });
+
+test('corrige apenas o status antigo do exemplo sem sobrescrever o estoque salvo', () => {
+  const seed = { id: 1, nome: 'Veículo de exemplo', laudoCautelar: { status: 'Não informado', codigoLaudo: 'EX-1' } };
+  const legacy = { ...seed, laudoCautelar: { status: '100% Aprovado', codigoLaudo: 'EX-1' } };
+  const custom = { ...seed, id: 2, laudoCautelar: { status: 'Status informado pela loja', codigoLaudo: 'CLIENTE-1' } };
+  const raw = JSON.stringify([legacy, custom]);
+  globalThis.window = {};
+  globalThis.localStorage = { getItem: () => raw, setItem: () => { throw new Error('A leitura não deve gravar'); } };
+  try {
+    const vehicles = storeSync.getVehicles('autoelite', [seed]);
+    assert.equal(vehicles[0].laudoCautelar.status, 'Não informado');
+    assert.equal(vehicles[1].laudoCautelar.status, 'Status informado pela loja');
+  } finally {
+    delete globalThis.window;
+    delete globalThis.localStorage;
+  }
+});

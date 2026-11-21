@@ -148,13 +148,12 @@ export function VehicleDetailModal({
 
           {/* Galeria principal */}
           <div data-vehicle-gallery className="space-y-1.5">
-            <div className="relative w-full aspect-[16/10] max-h-[52dvh] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 group">
-              {currentImage && <VehicleImage src={currentImage} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40" />}
+            <div className="relative w-fit max-w-full mx-auto rounded-2xl overflow-hidden group">
               <VehicleImage
                 src={currentImage}
               fetchPriority="high"
                 alt={images.length ? `${vehicle.nome} - Foto ${imageIndex + 1}` : `Foto de ${vehicle.nome} indisponível`}
-                className="relative w-full h-full object-contain"
+                className="block w-auto h-auto max-w-full max-h-[52dvh] object-contain"
               />
 
               {images.length > 1 && (

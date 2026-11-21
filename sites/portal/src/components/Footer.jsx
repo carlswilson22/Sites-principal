@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitBranch, ShieldCheck } from 'lucide-react';
+import { Smartphone, ShieldCheck } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -17,12 +17,12 @@ export const Footer = () => {
 
         <div className="flex items-center gap-6 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
-            <GitBranch className="w-4 h-4 text-blue-600" />
-            <span>GitHub Pages CI/CD Automatizado</span>
+            <Smartphone className="w-4 h-4 text-blue-600" />
+            <span>Navegação adaptada ao celular</span>
           </div>
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Perícia Cautelar 100% Integrada</span>
+            <span>Três modelos para sua loja</span>
           </div>
         </div>
       </div>

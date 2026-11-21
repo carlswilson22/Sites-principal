@@ -19,8 +19,7 @@ export const modelsList = [
       'Galeria e simulador dentro do anúncio',
       'Atendimento no site e contato com a loja',
       'Páginas de estoque e apresentação da empresa'
-    ],
-    techStack: ['React 18', 'Tailwind CSS', 'Vite', 'Lucide Icons']
+    ]
   },
   {
     id: 'luxury-dealership',
@@ -41,8 +40,7 @@ export const modelsList = [
       'Avaliação do usado na troca',
       'Favoritos para o cliente salvar veículos',
       'Concierge no anúncio e módulos de gestão'
-    ],
-    techStack: ['React 18', 'Tailwind CSS', 'Finance Engine', 'Vite']
+    ]
   },
   {
     id: 'popular-dealership',
@@ -62,7 +60,6 @@ export const modelsList = [
       'Visualizador 360° incluído nos anúncios compatíveis',
       'Calculadora de custo total e dossiê do veículo',
       'Atendimento e financiamento dentro do anúncio'
-    ],
-    techStack: ['React 18', 'Local Storage', 'Tailwind CSS', 'Vite']
+    ]
   }
 ];

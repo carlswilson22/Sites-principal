@@ -4,16 +4,15 @@ import { resolveAssetUrl } from '../../utils/assets';
 import { subscribeDialogActivity } from '../../utils/dialogActivity';
 
 const tones = {
-  blue: { background: 'bg-slate-950' },
-  amber: { background: 'bg-[#050508]' },
-  cyan: { background: 'bg-[#070a12]' },
+  blue: { background: 'bg-slate-950', poster: '/images/catalog/bmw320i-front.jpg' },
+  amber: { background: 'bg-[#050508]', poster: '/images/catalog/porsche-911-gt3-rs-front.jpg' },
+  cyan: { background: 'bg-[#070a12]', poster: '/images/catalog/compass-front.jpg' },
 };
 
 export function AnimatedStoreHero({ children, tone = 'amber', layout = 'cinema' }) {
   const cinema = layout === 'cinema';
   const panorama = layout === 'panorama';
   const [reducedMotion, setReducedMotion] = useState(true);
-  const [mobile, setMobile] = useState(false);
   const [readySource, setReadySource] = useState(null);
   const [failedSource, setFailedSource] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -21,24 +20,21 @@ export function AnimatedStoreHero({ children, tone = 'amber', layout = 'cinema' 
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const palette = tones[tone] || tones.amber;
-  const poster = resolveAssetUrl('/images/hero-video-poster.jpg');
-  const source = resolveAssetUrl(`/videos/${mobile ? 'hero-scrub-720.mp4' : 'hero-scrub.mp4'}`);
+  const poster = resolveAssetUrl(palette.poster);
+  const source = resolveAssetUrl('/videos/hero-attributed.mp4');
   const showVideo = !reducedMotion && failedSource !== source;
   useEffect(() => subscribeDialogActivity(setDialogOpen), []);
 
   useEffect(() => {
     if (!window.matchMedia) return;
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const screen = window.matchMedia('(max-width: 767px)');
-    const update = () => { setReducedMotion(motion.matches); setMobile(screen.matches); };
+    const update = () => { setReducedMotion(motion.matches); };
     update();
     const listen = media => media.addEventListener ? media.addEventListener('change', update) : media.addListener?.(update);
     const unlisten = media => media.removeEventListener ? media.removeEventListener('change', update) : media.removeListener?.(update);
     listen(motion);
-    listen(screen);
     return () => {
       unlisten(motion);
-      unlisten(screen);
     };
   }, []);
 

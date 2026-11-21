@@ -48,9 +48,17 @@ function readVehicles(storeKey, fallbackData) {
   if (!Array.isArray(parsed) || parsed.some(vehicle => !vehicle || typeof vehicle !== 'object' || Array.isArray(vehicle))) {
     throw new Error('O estoque salvo está inválido. Os dados existentes foram preservados.');
   }
-  return reconcileCatalogMedia(parsed, fallbackData).map((vehicle, index) => normalizeVehicle(
-    raw === null && vehicle.days_in_stock == null ? { ...vehicle, days_in_stock: demoDaysInStock(index) } : vehicle
-  ));
+  return reconcileCatalogMedia(parsed, fallbackData).map((vehicle, index) => {
+    const seed = fallbackData.find(candidate => String(candidate.id) === String(vehicle.id)
+      && (candidate.title ?? candidate.nome) === (vehicle.title ?? vehicle.nome));
+    const report = vehicle.laudoCautelar;
+    // Remove only the old template's approval text, preserving custom reports and saved data.
+    const legacyStatus = /^100% Aprovado(?: Sem Reparos| Impecável| \+ Laudo Balístico)?$/;
+    const migrated = seed?.laudoCautelar?.status === 'Não informado' && report?.codigoLaudo === seed.laudoCautelar.codigoLaudo && legacyStatus.test(report?.status || '')
+      ? { ...vehicle, laudoCautelar: { ...report, status: seed.laudoCautelar.status } }
+      : vehicle;
+    return normalizeVehicle(raw === null && migrated.days_in_stock == null ? { ...migrated, days_in_stock: demoDaysInStock(index) } : migrated);
+  });
 }
 
 function persistVehicles(storeKey, vehicles) {

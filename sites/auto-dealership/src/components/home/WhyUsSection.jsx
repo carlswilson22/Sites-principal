@@ -8,22 +8,22 @@ export function WhyUsSection() {
       icon: ShieldCheck,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-950/60 border-emerald-500/30',
-      title: 'Perícia Cautelar 100% Aprovada',
-      description: 'Todos os veículos passam por varredura pericial de estrutura, lataria, histórico de sinistro, leilão e integridade de chassi.'
+      title: 'Informações do veículo',
+      description: 'Consulte os dados e documentos informados pela loja em cada anúncio.'
     },
     {
       icon: Award,
       color: 'text-blue-400',
       bgColor: 'bg-blue-950/60 border-blue-500/30',
-      title: '1 Ano de Garantia Completa',
-      description: 'Cobertura mecânica para motor e transmissão com assistência 24h e guincho em todo o território nacional.'
+      title: 'Atendimento personalizado',
+      description: 'Converse com a equipe para esclarecer dúvidas sobre cada veículo e suas condições.'
     },
     {
       icon: Wrench,
       color: 'text-amber-400',
       bgColor: 'bg-amber-950/60 border-amber-500/30',
-      title: 'Revisão Preventiva de 120 Itens',
-      description: 'Troca preventiva de óleo, filtros, higienização de ar-condicionado, polimento e cristalização antes de cada entrega.'
+      title: 'Detalhes para sua escolha',
+      description: 'Compare os veículos disponíveis e confirme os detalhes com a loja.'
     },
     {
       icon: Zap,
@@ -44,7 +44,7 @@ export function WhyUsSection() {
           Por que comprar na {dealershipInfo.nome}?
         </h2>
         <p className="text-slate-400 text-sm">
-          Aliamos o padrão dos melhores showrooms do país à tecnologia de perícia automotiva digital para garantir uma compra 100% segura.
+          Conheça os veículos, consulte as informações disponíveis e converse com a nossa equipe.
         </p>
       </div>
 

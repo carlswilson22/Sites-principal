@@ -37,7 +37,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       "/images/cars/sc-001/315.jpg"
     ],
     laudoCautelar: {
-      status: "100% Aprovado Sem Reparos",
+      status: "Não informado",
       codigoLaudo: "APX-911-RS",
       perito: "Perícia Cautelar Exotics",
       estrutura: "Monobloco e células de fibra de carbono intocadas",
@@ -99,7 +99,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       "/images/cars/sc-002/315.jpg"
     ],
     laudoCautelar: {
-      status: "100% Aprovado Impecável",
+      status: "Não informado",
       codigoLaudo: "APX-F8-TRB",
       perito: "Perícia Maranello Certified",
       estrutura: "Estrutura tubular de alumínio espacial íntegra",
@@ -161,7 +161,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       "/images/cars/sc-003/315.jpg"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "APX-HUR-640",
       perito: "Sant'Agata Cautelar",
       estrutura: "Chassi híbrido carbono/alumínio perfeito",
@@ -223,7 +223,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       "/images/cars/sc-004/315.jpg"
     ],
     laudoCautelar: {
-      status: "100% Aprovado + Laudo Balístico",
+      status: "Não informado",
       codigoLaudo: "APX-G63-MAG",
       perito: "Blindagem Certificada Exército Brasileiro",
       estrutura: "Chassi de longarinas reforçado, peso e calibração homologados",
@@ -285,7 +285,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       "/images/cars/sc-005/315.jpg"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "APX-MCL-720",
       perito: "Woking Technical Inspection",
       estrutura: "Monocage II-S em fibra de carbono intocada",
@@ -347,7 +347,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       "/images/cars/sc-001/315.jpg"
     ],
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "APX-M4-COMP",
       perito: "BMW M Certified",
       estrutura: "Estrutura e suspensão calibradas sem detalhes",

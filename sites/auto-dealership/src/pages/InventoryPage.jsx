@@ -16,7 +16,7 @@ export function InventoryPage({ vehicles, searchFilter, onClearFilter, onSelectV
             Estoque de Seminovos
           </h1>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mt-2 font-light">
-            Encontre o veículo ideal entre nossas opções inspecionadas, 100% periciadas com laudo cautelar digital e com 1 ano de garantia total.
+            Encontre seu próximo veículo e consulte as informações disponíveis em cada anúncio.
           </p>
         </div>
       </div>

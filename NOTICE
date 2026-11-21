@@ -53,6 +53,24 @@ da licença do código do projeto.
 
 ---
 
+## 4. Animações dos destaques dos modelos
+
+Os vídeos `hero-attributed.mp4` são animações diferentes, produzidas para
+este projeto com aproximação e recorte de fotografias do Wikimedia Commons.
+Não são filmagens de veículos em movimento. As imagens originais, autores e
+licenças são:
+
+- **AutoElite:** [BMW 320i M Sport (G20)](https://commons.wikimedia.org/wiki/File:BMW_320i_M_Sport_(G20)_front.jpg), por Tokumeigakarinoaoshima, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- **DriveNow:** [Porsche 992 GT3 RS](https://commons.wikimedia.org/wiki/File:Porsche_992_GT3_RS_MYLE_Festival_2025_DSC_9586.jpg), por Alexander Migl, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- **Enterprise:** [Jeep Compass Limited 4WD](https://commons.wikimedia.org/wiki/File:2021_Jeep_Compass_Limited_4WD_in_Billet_Silver_Metallic,_front_left.jpg), por Mr.choppers, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+
+As adaptações consistem no redimensionamento, recorte e animação gradual da
+imagem; são disponibilizadas sob as respectivas licenças indicadas acima.
+Os antigos arquivos `hero-scrub*.mp4` não são utilizados: sua origem não foi
+identificada e não é possível atribuí-los de forma confiável.
+
+---
+
 MIT License (MicroKit UI):
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -152,6 +152,7 @@ function StoreApp() {
           <AIConsultantPage
             vehicles={publishedVehicles}
             onSelectVehicle={openVehicle}
+            onNavigate={navigateTo}
           />
         )}
 

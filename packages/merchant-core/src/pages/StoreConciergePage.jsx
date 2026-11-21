@@ -46,9 +46,6 @@ export function StoreConciergePage({ dealership, storeKey, vehicles = [], onSele
           {message.action === 'request' && <button type="button" onClick={() => setRequest('preference')} className="underline text-white min-h-11">Registrar minha preferência</button>}
         </div>)}
       </div>
-      <div className="px-4 sm:px-6 py-3 border-t border-slate-700 flex flex-wrap gap-2">
-        {(embedded ? ['Detalhes do veículo', 'Visitar a loja', 'Consultar o laudo', 'Simular financiamento'] : ['Encontrar um veículo', 'Visitar a loja', 'Endereço e horários', 'Como simular financiamento?']).map(text => <button key={text} type="button" onClick={() => send(text)} className="min-h-10 px-3 py-2 rounded-lg border border-slate-600 text-xs text-slate-200 hover:bg-slate-800">{text}</button>)}
-      </div>
       <form onSubmit={event => { event.preventDefault(); send(input); }} className="p-4 sm:p-6 flex items-end gap-2">
         <label className="flex-1 text-sm text-slate-300">Sua mensagem<textarea maxLength={1200} rows={2} value={input} onChange={event => setInput(event.target.value)} className="mt-1 w-full p-3 bg-slate-950 border border-slate-600 rounded-xl text-white" placeholder={embedded ? 'O que você gostaria de saber sobre este veículo?' : 'Ex.: SUV automático até 150 mil'} /></label>
         <button type="submit" disabled={!input.trim()} aria-label="Enviar mensagem" className="min-h-12 min-w-12 flex justify-center items-center rounded-xl bg-blue-600 text-white disabled:opacity-40"><Send aria-hidden="true" className="w-5 h-5" /></button>

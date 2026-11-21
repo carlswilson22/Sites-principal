@@ -309,10 +309,15 @@ for (const [model, scenario] of scenarios) {
         assert(!button('Tirar dúvidas'), 'Atalho duplicado de atendimento permanece no anúncio');
       };
       assertSingleWhatsapp();
+      assert(!button('Visitar a loja'), 'O chat ainda mostra atalhos de frases prontas');
       for (let visit = 0; visit < 3; visit += 1) {
         const log = ad.querySelector('[role="log"]');
         const count = log.children.length;
-        button('Visitar a loja').click();
+        const input = ad.querySelector('[data-concierge-vehicle] textarea');
+        Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(input, 'Quero visitar a loja');
+        input.dispatchEvent(new window.Event('input', { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 20));
+        input.form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
         await wait(() => log.children.length > count);
         assertSingleWhatsapp();
       }
@@ -535,6 +540,10 @@ for (const [model, scenario] of scenarios) {
       button('Serviços').click();
       await wait(() => document.querySelector('h1')?.textContent === 'Serviços da loja');
       assert(!button('Favoritos') && !button('Comparar veículos'), 'Serviços preservou cópias dos atalhos do estoque');
+      buttons().find(item => item.textContent.includes('Consultor virtual')).click();
+      await wait(() => document.querySelector('h1')?.textContent === 'Atendimento Enterprise Veículos');
+      assert(document.querySelector('textarea'), 'Atendimento não abriu para receber uma mensagem');
+      assert(!document.querySelector('main').textContent.includes('DriveNow'), 'Atendimento mostra o nome de outra loja');
       button('Estoque').click();
       await wait(() => buttons().find(item => item.textContent.includes('Comparar escolhas')));
       for (let index = 0; index < 2; index += 1) {

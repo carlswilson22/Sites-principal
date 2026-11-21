@@ -45,7 +45,7 @@ export function SalesFunnelView({ storeKey = 'autoelite', defaultVehicles = [] }
   const funnelSteps = rawSteps.map(step => ({ ...step, rate: step.rate ?? (firstCount > 0 ? Math.round((step.count / firstCount) * 1000) / 10 : 0) }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

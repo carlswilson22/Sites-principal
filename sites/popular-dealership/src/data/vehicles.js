@@ -54,7 +54,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       cidadeRegistro: "Brasília - DF"
     },
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "DN-89214-DF",
       perito: "Informado pela loja",
       estrutura: "Estrutura e longarinas originais e intocadas",
@@ -133,7 +133,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       cidadeRegistro: "Brasília - DF"
     },
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "DN-47102-DF",
       perito: "Informado pela loja",
       estrutura: "Integridade total atestada",
@@ -212,7 +212,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       cidadeRegistro: "Goiânia - GO"
     },
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "DN-33190-GO",
       perito: "Informado pela loja",
       estrutura: "Estrutura e torre dos amortecedores originais",
@@ -291,7 +291,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       cidadeRegistro: "Brasília - DF"
     },
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "DN-11928-DF",
       perito: "Informado pela loja",
       estrutura: "Estrutura e assoalho intactos",
@@ -370,7 +370,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       cidadeRegistro: "Brasília - DF"
     },
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "DN-66201-DF",
       perito: "Informado pela loja",
       estrutura: "Longarinas e teto originais",
@@ -449,7 +449,7 @@ import { applyCatalogMedia } from '../../../../packages/merchant-core/src/utils/
       cidadeRegistro: "Anápolis - GO"
     },
     laudoCautelar: {
-      status: "100% Aprovado",
+      status: "Não informado",
       codigoLaudo: "DN-99410-GO",
       perito: "Informado pela loja",
       estrutura: "Estrutura intacta",
