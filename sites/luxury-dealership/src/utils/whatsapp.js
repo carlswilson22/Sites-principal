@@ -30,6 +30,8 @@ export function buildFinancingWhatsappLink({ vehicle, vehicleName, valor, entrad
 export function buildTradeInWhatsappLink(dadosTroca) {
   const text = 
     `🔄 *Avaliação de Usado / Troca - ${dealershipInfo.nome}*\n\n` +
+    `• *Cliente:* ${dadosTroca.nome}\n` +
+    `• *Telefone:* ${dadosTroca.telefone}\n` +
     `• *Veículo Atual:* ${dadosTroca.marca} ${dadosTroca.modelo} (${dadosTroca.ano})\n` +
     `• *KM:* ${dadosTroca.km} km\n` +
     `• *Blindado:* ${dadosTroca.blindado ? 'Sim' : 'Não'}\n` +

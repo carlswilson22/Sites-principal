@@ -467,6 +467,13 @@ for (const [model, scenario] of scenarios) {
         }
         await new Promise(resolve => setTimeout(resolve, 20));
         assert(form.checkValidity(), 'Preço inicial não passa na própria validação');
+        const savedLeads = window.localStorage.getItem('store_leads_apexluxury');
+        window.localStorage.setItem('store_leads_apexluxury', '{invalid');
+        form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+        await wait(() => alert.querySelector('[role="alert"]')?.textContent.includes('Não foi possível registrar'));
+        assert(!alert.querySelector('[role="status"]') && alert.querySelector('a[href*="wa.me"]'), 'Falha no registro confirmou sucesso ou perdeu o contato alternativo');
+        if (savedLeads === null) window.localStorage.removeItem('store_leads_apexluxury');
+        else window.localStorage.setItem('store_leads_apexluxury', savedLeads);
         form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
         form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
         await wait(() => alert.querySelector('[role="status"]'));
@@ -560,6 +567,39 @@ for (const [model, scenario] of scenarios) {
       await wait(() => !document.querySelector('[data-store-layout]'));
       const results = [...document.querySelectorAll('[data-vehicle-id]')];
       assert(results.length && results.every(item => item.textContent.includes('HB20')), 'Busca inicial não acompanha o estoque');
+    }
+    if (fullFlow && model !== 'auto-dealership') {
+      button('Serviços').click();
+      await wait(() => document.querySelector('h1')?.textContent === 'Serviços da loja');
+      buttons().find(item => item.textContent.includes('Financiamento')).click();
+      await wait(() => document.querySelector('h1')?.textContent === 'Simulador de financiamento');
+      assert(document.querySelector('[data-financing-vehicle]'), 'Atalho de financiamento abriu uma tela vazia');
+      button('Serviços').click();
+      await wait(() => buttons().find(item => item.textContent.includes('Avaliação de troca')));
+      buttons().find(item => item.textContent.includes('Avaliação de troca')).click();
+      await wait(() => document.querySelector('form input[name="marca"]'));
+      const tradeForm = document.querySelector('form input[name="marca"]').closest('form');
+      for (const [name, value] of Object.entries({ nome: 'Cliente Troca', telefone: '(61) 99999-4321', marca: 'Fiat', modelo: 'Argo' })) {
+        await changeField(tradeForm.querySelector(`[name="${name}"]`), value);
+      }
+      tradeForm.querySelector('input[name="consent"]').click();
+      const previousLeads = window.localStorage.getItem(`store_leads_${storeKey}`);
+      window.localStorage.setItem(`store_leads_${storeKey}`, '{invalid');
+      tradeForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      await wait(() => tradeForm.querySelector('[role="alert"]'));
+      assert(!tradeForm.querySelector('[role="status"]') && tradeForm.querySelector('a[href*="wa.me"]'), 'Falha na avaliação perdeu o contato alternativo ou confirmou sucesso');
+      if (previousLeads === null) window.localStorage.removeItem(`store_leads_${storeKey}`);
+      else window.localStorage.setItem(`store_leads_${storeKey}`, previousLeads);
+      openedWindows.length = 0;
+      tradeForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      await wait(() => tradeForm.textContent.includes('Solicitação registrada'));
+      assert(JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`)).some(lead => lead.name === 'Cliente Troca' && lead.source === 'avaliacao_troca'), 'Avaliação não registrou o contato no painel');
+      assert(tradeForm.querySelector('a[href*="wa.me"]'), 'Avaliação sem alternativa quando o WhatsApp é bloqueado');
+      assert.equal(openedWindows.length, 1, 'Avaliação não abriu uma única conversa');
+      openedWindows.length = 0;
+      console.log(`OK: ${model} (atalhos de serviços e avaliação de troca)`);
+      button('Início').click();
+      await wait(() => document.querySelector('[data-store-layout]'));
     }
     if (fullFlow && model === 'luxury-dealership') {
       button('Estoque').click();

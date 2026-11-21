@@ -13,6 +13,7 @@ import { demoTools } from '../services/demoTools.js';
 import { storeSync } from '../services/storeSync';
 import { findContractClient } from '../utils/contractClient';
 import { createRecordId } from '../utils/recordId';
+import { printDocument } from '../utils/printDocument';
 
 export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], dealership = {} }) {
   const [contractType, setContractType] = useState('consignacao');
@@ -48,6 +49,7 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
   const [contractCode, setContractCode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [printError, setPrintError] = useState('');
   const [history, setHistory] = useState(() => { try { return isDemoMode ? demoTools.contracts(storeKey) : []; } catch { return []; } });
 
   useEffect(() => storeSync.subscribe(storeKey, detail => {
@@ -115,19 +117,12 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
   };
 
   const handlePrint = () => {
-    const win = window.open('', '_blank');
-    if (win) {
-      win.document.write(previewHtml);
-      win.document.close();
-      win.focus();
-      win.print();
-    }
+    setPrintError('');
+    try { printDocument(previewHtml, { title: 'Impressão da minuta', onError: setPrintError }); }
+    catch (failure) { setPrintError(failure.message); }
   };
 
-  const handleShareWhatsapp = () => {
-    const text = encodeURIComponent(`Olá! Segue a minuta do instrumento contratual (${contractCode}) gerada pelo nosso sistema. Lembramos que deve ser revisada por advogado habilitado.`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-  };
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Olá! A minuta ${contractCode} está pronta para conferência. Podemos combinar o envio do documento?`)}`;
 
   return (
     <div className="space-y-6">
@@ -391,16 +386,19 @@ export function AdvancedContractsView({ storeKey = 'apexluxury', vehicles = [], 
                 <Printer className="w-4 h-4" />
                 Imprimir / PDF
               </button>
-              <button
-                onClick={handleShareWhatsapp}
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-semibold rounded-xl border border-emerald-500/30 transition-colors"
               >
                 <Share2 className="w-4 h-4" />
-                Enviar WhatsApp
-              </button>
+                Conversar no WhatsApp
+              </a>
             </div>
           </div>
 
+          {printError && <p role="alert" className="text-sm text-rose-300">{printError}</p>}
           <iframe title="Prévia da minuta" srcDoc={previewHtml} sandbox="" className="w-full h-[500px] rounded-xl bg-white border-0" />
         </div>
       )}

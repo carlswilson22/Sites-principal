@@ -1,9 +1,11 @@
 import { siteAnalytics } from '../../../../../packages/merchant-core/src/services/siteAnalytics.js';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ArrowLeftRight, Shield, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { buildTradeInWhatsappLink } from '../../utils/whatsapp';
-import { storeSync } from '../../../../../packages/merchant-core/src';
+import { submitTradeInLead } from '../../../../../packages/merchant-core/src/services/tradeInLead';
+import { validateStoreRequest } from '../../../../../packages/merchant-core/src/utils/concierge';
+import { isRemote } from '../../../../../packages/merchant-core/src/services/remote';
 
 export function TradeInEvaluation({ vehicles = [] }) {
   const [formData, setFormData] = useState({
@@ -15,8 +17,13 @@ export function TradeInEvaluation({ vehicles = [] }) {
     km: '',
     blindado: false,
     interesse: '',
-    observacoes: ''
+    observacoes: '', consent: false
   });
+  const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [whatsappUrl, setWhatsappUrl] = useState('');
+  const lock = useRef(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -26,21 +33,22 @@ export function TradeInEvaluation({ vehicles = [] }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (lock.current || sent) return;
     try {
-      Promise.resolve(storeSync.addLead('drivenow', {
-        name: formData.nome.trim(),
-        phone: formData.telefone.trim(),
-        vehicle_title: formData.interesse,
-        source: 'avaliacao_troca',
-        consent: true,
-        message: `Veículo na troca: ${formData.marca} ${formData.modelo} ${formData.ano} (${formData.km} km) - Blindado: ${formData.blindado ? 'Sim' : 'Não'}. Interesse: ${formData.interesse || 'Em aberto'}. Observações: ${formData.observacoes || 'Nenhuma'}`
-      })).catch(() => {});
-    } catch {}
+      validateStoreRequest({ name: formData.nome, phone: formData.telefone });
+      if (!formData.consent || !formData.marca.trim() || !formData.modelo.trim()) throw new Error('Preencha o veículo e autorize o contato da loja.');
+    } catch (failure) { setError(failure.message); return; }
     const url = buildTradeInWhatsappLink(formData);
-    siteAnalytics.track('drivenow', { type: 'whatsapp_click', page: 'troca' });
-    window.open(url, '_blank', 'noopener,noreferrer');
+    setWhatsappUrl(url); setError(''); setBusy(true); lock.current = true;
+    try {
+      const saving = submitTradeInLead('drivenow', formData);
+      try { window.open(url, '_blank', 'noopener,noreferrer'); siteAnalytics.track('drivenow', { type: 'whatsapp_click', page: 'troca' }); } catch { /* O link abaixo continua disponível. */ }
+      await saving;
+      setSent(true);
+    } catch (failure) { setError(failure.message || 'Não foi possível registrar o contato. Tente novamente.'); }
+    finally { lock.current = false; setBusy(false); }
   };
 
   return (
@@ -149,15 +157,20 @@ export function TradeInEvaluation({ vehicles = [] }) {
             </label>
           </div>
 
+          <label className="sm:col-span-2 flex items-start gap-2 text-sm text-slate-300"><input type="checkbox" name="consent" required checked={formData.consent} onChange={handleChange} className="mt-1" />Autorizo a loja a entrar em contato sobre a avaliação.</label>
+          {error && <p role="alert" className="sm:col-span-2 text-sm text-rose-300">{error}</p>}
+          {sent && <p role="status" className="sm:col-span-2 text-sm text-emerald-300">{isRemote ? 'Solicitação registrada para a loja.' : 'Solicitação registrada no painel deste navegador.'}</p>}
+          {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="sm:col-span-2 text-sm underline">Abrir conversa no WhatsApp</a>}
           <div className="sm:col-span-2 pt-2">
             <Button
               type="submit"
               variant="gold"
               size="lg"
               icon={Send}
+              disabled={busy || sent}
               className="w-full py-3.5"
             >
-              Tenho interesse
+              {busy ? 'Registrando…' : sent ? 'Solicitação registrada' : 'Tenho interesse'}
             </Button>
           </div>
         </form>

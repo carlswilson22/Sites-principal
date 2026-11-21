@@ -1,6 +1,7 @@
 import { siteAnalytics } from '../../../../../packages/merchant-core/src/services/siteAnalytics.js';
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
 import { storeSync } from '../../../../../packages/merchant-core/src/services/storeSync';
+import { isRemote } from '../../../../../packages/merchant-core/src/services/remote';
 import { validatePriceAlert } from '../../utils/priceAlert';
 import { useId, useRef } from 'react';
 ﻿import React, { useState } from 'react';
@@ -18,27 +19,40 @@ export function PriceAlertModal({ vehicle, onClose }) {
   const [targetPrice, setTargetPrice] = useState(Math.round(vehicle.preco * 0.95));
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [whatsappUrl, setWhatsappUrl] = useState('');
+  const [busy, setBusy] = useState(false);
 
   if (!vehicle) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitting.current || sent) return;
-    submitting.current = true;
-    let url;
+    let contact;
     try {
-      const contact = validatePriceAlert({ name: nome, phone: telefone, targetPrice }, vehicle.preco);
-      url = buildPriceAlertWhatsappLink({ vehicle, targetPrice: contact.targetPrice, nome: contact.name, telefone: contact.phone });
-      Promise.resolve(storeSync.addLead('apexluxury', { name: contact.name, phone: contact.phone, source: 'alerta_preco', vehicle_id: vehicle.id, vehicle_title: vehicle.nome, message: `Interesse em condição de preço: ${formatCurrency(contact.targetPrice)} para ${vehicle.nome}.`, targetPrice: contact.targetPrice, consent: true })).catch(() => {});
+      contact = validatePriceAlert({ name: nome, phone: telefone, targetPrice }, vehicle.preco);
     } catch (failure) {
-      submitting.current = false;
       setError(failure.message || 'Não foi possível registrar seu interesse.');
       return;
     }
+    const url = buildPriceAlertWhatsappLink({ vehicle, targetPrice: contact.targetPrice, nome: contact.name, telefone: contact.phone });
+    setWhatsappUrl(url);
     setError('');
-    siteAnalytics.track('apexluxury', { type: 'whatsapp_click', page: 'alerta-preco', vehicleId: vehicle?.id });
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setSent(true);
+    submitting.current = true;
+    setBusy(true);
+    try {
+      const saving = storeSync.addLead('apexluxury', { name: contact.name, phone: contact.phone, source: 'alerta_preco', vehicle_id: vehicle.id, vehicle_title: vehicle.nome, message: `Interesse em condição de preço: ${formatCurrency(contact.targetPrice)} para ${vehicle.nome}.`, targetPrice: contact.targetPrice, consent: true });
+      try {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        siteAnalytics.track('apexluxury', { type: 'whatsapp_click', page: 'alerta-preco', vehicleId: vehicle?.id });
+      } catch { /* A conversa também pode ser aberta pelo link exibido abaixo. */ }
+      await saving;
+      setSent(true);
+    } catch {
+      setError('Não foi possível registrar seu interesse. Tente novamente ou abra a conversa abaixo.');
+    } finally {
+      submitting.current = false;
+      setBusy(false);
+    }
   };
 
   return (
@@ -77,7 +91,7 @@ export function PriceAlertModal({ vehicle, onClose }) {
         {sent ? (
           <div role="status" className="p-4 rounded-xl bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 text-xs text-center flex flex-col items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-            <span>Interesse registrado neste navegador. Continue no WhatsApp para enviar a mensagem e combinar o retorno com a loja.</span>
+            <span>{isRemote ? 'Interesse registrado para a loja.' : 'Interesse registrado neste navegador.'} Continue no WhatsApp para enviar a mensagem e combinar o retorno com a loja.</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
@@ -133,12 +147,14 @@ export function PriceAlertModal({ vehicle, onClose }) {
               variant="primary"
               size="md"
               icon={Send}
+              disabled={busy}
               className="w-full py-3"
             >
-              Tenho interesse
+              {busy ? 'Registrando...' : 'Tenho interesse'}
             </Button>
           </form>
         )}
+        {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block text-center text-xs text-cyan-300 underline">Abrir conversa no WhatsApp</a>}
       </div>
     </div>
   );

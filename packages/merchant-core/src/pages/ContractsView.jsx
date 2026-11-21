@@ -8,9 +8,11 @@ import { storeSync } from '../services/storeSync';
 import { generateContractDocument } from '../utils/contracts';
 import { findContractClient } from '../utils/contractClient';
 import { createRecordId } from '../utils/recordId';
+import { printDocument } from '../utils/printDocument';
 
 export function ContractsView({ storeKey = 'autoelite', selectedClient = null, onClientPrefilled, vehicles = [], dealership = { nome: 'Concessionária' } }) {
   const [error, setError] = useState('');
+  const [printError, setPrintError] = useState('');
   const [contracts, setContracts] = useState([]);
   const [clients, setClients] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,17 +142,9 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, o
 
   const handlePrint = () => {
     if (!previewDoc) return;
-    const frame = document.createElement('iframe');
-    frame.title = 'Impressão do documento';
-    frame.style.cssText = 'position:fixed;width:0;height:0;border:0;';
-    frame.onload = () => {
-      const printWindow = frame.contentWindow;
-      printWindow.addEventListener('afterprint', () => frame.remove(), { once: true });
-      printWindow.focus();
-      printWindow.print();
-    };
-    frame.srcdoc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Documento</title></head><body>${previewDoc.html}</body></html>`;
-    document.body.appendChild(frame);
+    setPrintError('');
+    try { printDocument(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Documento</title></head><body>${previewDoc.html}</body></html>`, { onError: setPrintError }); }
+    catch (failure) { setPrintError(failure.message); }
   };
 
   const handleShareWhatsApp = (contract) => {
@@ -399,6 +393,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, o
               </div>
             </div>
 
+            {printError && <p role="alert" className="px-4 py-2 text-sm text-rose-700">{printError}</p>}
             <div className="flex-1 overflow-y-auto p-6" dangerouslySetInnerHTML={{ __html: previewDoc.html }} />
           </div>
         </div>
