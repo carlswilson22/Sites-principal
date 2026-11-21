@@ -17,6 +17,8 @@ for (const [model, scenario] of scenarios) {
   const fullFlow = scenario === 'normal' || scenario === 'lan-http';
   const directory = path.resolve('dist', model);
   const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
+  const panelCss = fs.readdirSync(path.join(directory, 'assets')).filter(file => /^MerchantPanel-.*\.css$/.test(file)).map(file => fs.readFileSync(path.join(directory, 'assets', file), 'utf8')).join('\n');
+  assert(panelCss.includes('merchant-modal-card-in') && panelCss.includes('merchant-modal-card-out') && panelCss.includes('prefers-reduced-motion'), `Animações do painel ausentes: ${model}`);
   const entry = html.match(/<script[^>]+src="([^"]+)"/)?.[1];
   assert(entry, `Entrada não encontrada: ${model}`);
   const failures = [];
@@ -26,6 +28,17 @@ for (const [model, scenario] of scenarios) {
   const origin = scenario === 'lan-http' ? 'http://192.168.1.10' : 'https://carlswilson22.github.io';
   const dom = new JSDOM(html, { url: `${origin}/Sites-principal/${model}/`, runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
   const { window } = dom;
+  // O JSDOM não carrega folhas adicionadas pelo pré-carregamento de módulos do Vite.
+  const appendHead = window.document.head.appendChild.bind(window.document.head);
+  window.document.head.appendChild = element => {
+    const result = appendHead(element);
+    if (element.tagName === 'LINK' && element.rel === 'stylesheet') {
+      const pathname = new URL(element.href, window.location.href).pathname;
+      const file = path.join(directory, pathname.split(`/${model}/`)[1] || '');
+      window.setTimeout(() => element.dispatchEvent(new window.Event(fs.existsSync(file) && fs.statSync(file).isFile() ? 'load' : 'error')), 0);
+    }
+    return result;
+  };
   window.TextEncoder = TextEncoder;
   if (scenario === 'lan-http') Object.defineProperty(window, 'crypto', { value: undefined });
   const openedWindows = [];
@@ -873,10 +886,20 @@ for (const [model, scenario] of scenarios) {
       const inventoryCard = document.querySelector(`[data-inventory-vehicle-id="${initialAdId}"]`);
       const photoButton = [...inventoryCard.querySelectorAll('button')].find(item => item.textContent.includes('Fotos ('));
       assert.equal(Number(photoButton.textContent.match(/Fotos \((\d+)\)/)?.[1]), initialAdPhotos, 'Painel e anúncio contam fotos diferentes');
+      const previousMotionPreference = window.matchMedia;
+      window.matchMedia = () => ({ matches: false });
       photoButton.click();
       await wait(() => document.querySelector('[data-photo-manager]'));
+      assert.equal(document.querySelector('[data-photo-manager]').closest('[data-merchant-modal]')?.dataset.phase, 'open', 'Abertura do modal sem transição');
       assert(document.querySelector('[data-photo-manager]').textContent.includes(`${initialAdPhotos} / 20`), 'Gerenciador e anúncio contam fotos diferentes');
       document.querySelector('button[aria-label="Fechar gerenciador de fotos"]').click();
+      await wait(() => document.querySelector('[data-photo-manager]')?.closest('[data-merchant-modal]')?.dataset.phase === 'closing');
+      await wait(() => !document.querySelector('[data-photo-manager]'));
+      window.matchMedia = previousMotionPreference;
+      photoButton.click();
+      await wait(() => document.querySelector('[data-photo-manager]'));
+      document.querySelector('button[aria-label="Fechar gerenciador de fotos"]').click();
+      await wait(() => !document.querySelector('[data-photo-manager]'));
       assert(!button('Financeiro & Margens'), 'Atendente recebeu acesso financeiro');
       assert(!button('Contratos avançados e aditivos'), 'Atendente recebeu acesso a contratos avançados');
       assert(button('Simulador de financiamento'), 'Simulador ausente para o atendente');
@@ -946,6 +969,8 @@ for (const [model, scenario] of scenarios) {
       if (model !== 'auto-dealership') {
         button('Métricas do Site').click();
         await wait(() => document.querySelector('main h1')?.textContent.includes('Métricas'));
+        assert(document.querySelector('main').textContent.includes('Visualizações de anúncios') && document.querySelector('main').textContent.includes('Cada abertura do mesmo anúncio conta uma visualização'), 'Métricas não explicam as visualizações repetidas');
+        assert(!document.querySelector('main').textContent.includes('Anúncios abertos'), 'Métricas mantiveram o rótulo ambíguo');
         button('Precificador FIPE').click();
         await wait(() => document.querySelector('select[aria-label="Marca / Fabricante"]')?.options.length > 0);
         const brands = document.querySelector('select[aria-label="Marca / Fabricante"]');
@@ -1000,18 +1025,23 @@ for (const [model, scenario] of scenarios) {
         const titleField = [...document.querySelectorAll('label')].find(label => label.textContent.includes('Título da arte')).querySelector('input');
         await changeField(titleField, 'Título editado depois');
         assert.equal(JSON.parse(window.localStorage.getItem(samplesKey)).stories[0].story.vehicle.title, publication.story.vehicle.title, 'Edição alterou a publicação salva');
+        const savedMotionPreference = window.matchMedia;
+        window.matchMedia = () => ({ matches: false });
         button('Ver publicação').click();
         await wait(() => document.querySelector('[role="dialog"][data-publication-id]'));
         assert.equal(document.querySelector('[data-publication-id] h3').textContent, publication.story.vehicle.title);
         assert.equal(document.body.style.overflow, 'hidden', 'Publicação não abriu uma janela visível');
         document.querySelector('button[aria-label="Fechar publicação"]').click();
-        await wait(() => !document.querySelector('[data-publication-id]'));
+        await wait(() => document.querySelector('[data-publication-id]')?.closest('[data-merchant-modal]')?.dataset.phase === 'closing');
         button('Ver publicação').click();
-        await wait(() => document.querySelector('[data-publication-id]'));
+        await wait(() => document.querySelector('[data-publication-id]')?.closest('[data-merchant-modal]')?.dataset.phase === 'open');
+        await new Promise(resolve => setTimeout(resolve, 220));
+        assert(document.querySelector('[data-publication-id]'), 'Reabrir durante a saída fechou a janela novamente');
         assert.equal(document.querySelector('[data-publication-id]').dataset.publicationId, publication.id, 'Botão não reabre a mesma publicação');
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
         await wait(() => !document.querySelector('[data-publication-id]'));
         assert.equal(document.body.style.overflow, '');
+        window.matchMedia = savedMotionPreference;
         button('Consignação').click();
         await wait(() => button('Nova Consignação'));
         button('Nova Consignação').click();

@@ -47,7 +47,7 @@ com filtros de 7/30/90 dias e ranking. Guarda até 10 mil eventos dos últimos
 90 dias, por loja, no navegador usado. Eventos contêm tipo, página, identificador
 do veículo e data; não copiam mensagem, nome ou telefone.
 
-Não são visitantes únicos nem tráfego consolidado. Falha de métrica opcional
+Cada abertura de um anúncio é uma visualização, inclusive reaberturas feitas pela própria equipe; o número não representa a quantidade de anúncios do veículo. O total de cliques no WhatsApp inclui contatos gerais, enquanto a tabela reúne apenas os cliques associados a um veículo, sem comprovar o envio de mensagem. Não são visitantes únicos nem tráfego consolidado. Falha de métrica opcional
 não impede navegação. Os clientes são cadastrados ou reutilizados na emissão
 de contratos; o precificador usa seleção do estoque e referência manual.
 

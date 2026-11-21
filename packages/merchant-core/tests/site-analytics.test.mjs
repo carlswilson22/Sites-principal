@@ -11,15 +11,24 @@ test('métricas respeitam período, separam veículos e não contam eventos futu
     { type: 'vehicle_view', vehicle_id: 7, created_at: recent },
     { type: 'whatsapp_click', vehicle_id: 7, created_at: recent },
     { type: 'whatsapp_click', created_at: recent },
+    { type: 'page_view', vehicle_id: 9, created_at: recent },
     { type: 'vehicle_view', vehicle_id: 8, created_at: '2026-10-15T12:00:00Z' },
     { type: 'page_view', created_at: '2026-11-11T12:00:00Z' },
   ];
   const summary = summarizeAnalytics(events, [{ id: 7, nome: 'Veículo de teste' }], 7, now);
-  assert.equal(summary.pageViews, 1);
+  assert.equal(summary.pageViews, 2);
   assert.equal(summary.vehicleViews, 2);
   assert.equal(summary.whatsappClicks, 2);
   assert.deepEqual(summary.ranking, [{ id: '7', title: 'Veículo de teste', views: 2, whatsapp: 1 }]);
   assert.equal(summarizeAnalytics(events, [], 30, now).vehicleViews, 3);
+});
+
+test('visualizações repetidas são contadas no mesmo anúncio e aceitam o título do estoque', () => {
+  const now = Date.parse('2026-11-10T12:00:00Z');
+  const events = Array.from({ length: 6 }, () => ({ type: 'vehicle_view', vehicle_id: 7, created_at: '2026-11-09T12:00:00Z' }));
+  const summary = summarizeAnalytics(events, [{ id: 7, title: 'Chevrolet Tracker' }], 7, now);
+  assert.equal(summary.vehicleViews, 6);
+  assert.deepEqual(summary.ranking, [{ id: '7', title: 'Chevrolet Tracker', views: 6, whatsapp: 0 }]);
 });
 
 test('registro é isolado por loja e descarta campos pessoais não permitidos', () => {

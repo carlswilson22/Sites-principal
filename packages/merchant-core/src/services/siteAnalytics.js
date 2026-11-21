@@ -7,7 +7,7 @@ export function summarizeAnalytics(events, vehicles = [], days = 30, now = Date.
   const filtered = events.filter(event => TYPES.includes(event.type) && Date.parse(event.created_at) >= cutoff && Date.parse(event.created_at) <= now);
   const ranking = new Map();
   for (const event of filtered) {
-    if (event.vehicle_id == null) continue;
+    if (event.vehicle_id == null || !['vehicle_view', 'whatsapp_click'].includes(event.type)) continue;
     const id = String(event.vehicle_id);
     const item = ranking.get(id) || { id, views: 0, whatsapp: 0 };
     if (event.type === 'vehicle_view') item.views++;
@@ -19,7 +19,7 @@ export function summarizeAnalytics(events, vehicles = [], days = 30, now = Date.
     vehicleViews: filtered.filter(event => event.type === 'vehicle_view').length,
     whatsappClicks: filtered.filter(event => event.type === 'whatsapp_click').length,
     ranking: [...ranking.values()].map(item => ({ ...item,
-      title: vehicles.find(vehicle => String(vehicle.id) === item.id)?.nome || `Veículo ${item.id} (fora do estoque)`,
+      title: (() => { const vehicle = vehicles.find(entry => String(entry.id) === item.id); return vehicle?.nome || vehicle?.title || `Veículo ${item.id} (fora do estoque)`; })(),
     })).sort((first, second) => second.views - first.views || second.whatsapp - first.whatsapp),
   };
 }

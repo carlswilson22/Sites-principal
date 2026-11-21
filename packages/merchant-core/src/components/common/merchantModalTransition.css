@@ -1,0 +1,28 @@
+@keyframes merchant-modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes merchant-modal-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes merchant-modal-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes merchant-modal-card-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(.99); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-merchant-modal][data-phase="open"] > * { animation: merchant-modal-backdrop-in 200ms ease-out both; }
+  [data-merchant-modal][data-phase="open"] > * > :first-child { animation: merchant-modal-card-in 200ms ease-out both; }
+  [data-merchant-modal][data-phase="closing"] > * { animation: merchant-modal-backdrop-out 180ms ease-in both; pointer-events: none; }
+  [data-merchant-modal][data-phase="closing"] > * > :first-child { animation: merchant-modal-card-out 180ms ease-in both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-merchant-modal] > *,
+  [data-merchant-modal] > * > :first-child { animation: none !important; transition: none !important; }
+}

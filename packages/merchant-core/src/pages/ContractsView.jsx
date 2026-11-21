@@ -9,6 +9,7 @@ import { generateContractDocument } from '../utils/contracts';
 import { findContractClient } from '../utils/contractClient';
 import { createRecordId } from '../utils/recordId';
 import { printDocument } from '../utils/printDocument';
+import { MerchantModalTransition } from '../components/common/MerchantModalTransition';
 
 export function ContractsView({ storeKey = 'autoelite', selectedClient = null, onClientPrefilled, vehicles = [], dealership = { nome: 'Concessionária' } }) {
   const [error, setError] = useState('');
@@ -242,7 +243,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, o
       </div>
 
       {/* 3. Modal de Emissão de Contrato */}
-      {isModalOpen && (
+      <MerchantModalTransition open={isModalOpen}>{isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-lg p-5 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -365,10 +366,10 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, o
             </form>
           </div>
         </div>
-      )}
+      )}</MerchantModalTransition>
 
       {/* 4. Modal de Visualização e Impressão / PDF */}
-      {previewDoc && (
+      <MerchantModalTransition open={Boolean(previewDoc)}>{previewDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-slate-900">
             <div className="p-4 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
@@ -397,7 +398,7 @@ export function ContractsView({ storeKey = 'autoelite', selectedClient = null, o
             <div className="flex-1 overflow-y-auto p-6" dangerouslySetInnerHTML={{ __html: previewDoc.html }} />
           </div>
         </div>
-      )}
+      )}</MerchantModalTransition>
     </div>
   );
 }

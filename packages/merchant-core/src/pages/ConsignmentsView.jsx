@@ -8,6 +8,7 @@ import { FileText, Plus, AlertTriangle, X } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
 import { isDemoMode } from '../services/demoConfig';
 import { useDialog } from '../components/common/useDialog';
+import { MerchantModalTransition } from '../components/common/MerchantModalTransition';
 
 function ConsignmentDialog({ onClose, children }) {
   const ref = useDialog(onClose);
@@ -186,7 +187,7 @@ export function ConsignmentsView({ storeKey = 'apexluxury', vehicles = [] }) {
       </div>
 
       {/* Modal Nova Consignação */}
-      {isModalOpen && (
+      <MerchantModalTransition open={isModalOpen}>{isModalOpen && (
         <ConsignmentDialog onClose={() => setIsModalOpen(false)}>
             <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
               <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
@@ -361,7 +362,7 @@ export function ConsignmentsView({ storeKey = 'apexluxury', vehicles = [] }) {
               </div>
             </form>
         </ConsignmentDialog>
-      )}
+      )}</MerchantModalTransition>
     </div>
   );
 }

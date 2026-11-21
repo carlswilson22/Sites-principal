@@ -5,6 +5,7 @@ import { normalizeVehicle } from '../utils/vehicles.js';
 import { createStoryPng, downloadBlob, storyTemplates } from '../utils/storyArt.js';
 import { StoryPreview } from '../components/common/StoryPreview';
 import { StoryPublicationDialog } from '../components/common/StoryPublicationDialog';
+import { MerchantModalTransition } from '../components/common/MerchantModalTransition';
 
 export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehicles = [] }) {
   const catalog = vehicles.map(normalizeVehicle);
@@ -87,6 +88,6 @@ export function StoryStudioView({ dealership = {}, storeKey = 'apexluxury', vehi
     <section className={panel}><h2 className="text-lg font-semibold text-white">Histórico de simulações</h2>{!history.length && <p className="text-sm text-slate-400">Sua primeira publicação aparecerá aqui. Escolha uma arte e clique em Simular publicação.</p>}
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">{history.map(item => <article key={item.id} className="rounded-xl border border-slate-700 p-4 space-y-2"><p className="font-semibold text-white">{item.story?.vehicle.title || item.vehicle_title}</p><p className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString('pt-BR')}</p><p className="text-xs text-cyan-200">{item.status === 'sample_published' ? 'Publicado na prévia' : item.status}</p>{item.story && <button type="button" aria-haspopup="dialog" onClick={() => setActivePublication(item)} className="min-h-11 text-sm text-pink-200 underline underline-offset-4">Ver publicação</button>}</article>)}</div>
     </section>
-    {activePublication?.story && <StoryPublicationDialog publication={activePublication} onClose={() => setActivePublication(null)} />}
+    <MerchantModalTransition open={Boolean(activePublication?.story)}>{activePublication?.story && <StoryPublicationDialog publication={activePublication} onClose={() => setActivePublication(null)} />}</MerchantModalTransition>
   </div>;
 }

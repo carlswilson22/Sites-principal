@@ -3,6 +3,7 @@
  * Gestão de Estoque, Fotos e Ficha Técnica do Anúncio (E3, E4, E5 - Nível 1)
  */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { MerchantModalTransition } from '../components/common/MerchantModalTransition';
 import { storeSync } from '../services/storeSync';
 import { VehicleImage } from '../components/common/VehicleImage';
 import { getVehicleGallery } from '../utils/vehicleGallery';
@@ -538,7 +539,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
       </div>
 
       {/* 4. Modal de Cadastro e Edição (E3, E5) */}
-      {isModalOpen && (
+      <MerchantModalTransition open={isModalOpen}>{isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
@@ -715,10 +716,10 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
             </form>
           </div>
         </div>
-      )}
+      )}</MerchantModalTransition>
 
       {/* 5. Modal do Gestor de Fotos (E4: até 20 fotos, capa, reordenar, remover) */}
-      {isPhotosModalOpen && (
+      <MerchantModalTransition open={isPhotosModalOpen}>{isPhotosModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
           <div data-photo-manager className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
@@ -851,7 +852,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
             </div>
           </div>
         </div>
-      )}
+      )}</MerchantModalTransition>
     </div>
   );
 }

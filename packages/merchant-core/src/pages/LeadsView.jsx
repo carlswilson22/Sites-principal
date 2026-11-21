@@ -6,6 +6,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { storeSync } from '../services/storeSync';
 import { buildLeadStatusUpdates, leadStatusLabels } from '../utils/leadHistory';
 import { leadBooking, leadUnanswered } from '../utils/leadAgenda';
+import { MerchantModalTransition } from '../components/common/MerchantModalTransition';
 import {
   MessageSquare,
   Search,
@@ -302,7 +303,7 @@ export function LeadsView({ storeKey = 'autoelite', onOpenContractWithClient }) 
       </div>
 
       {/* Modal de Atualização de Situação */}
-      {selectedLead && (
+      <MerchantModalTransition open={Boolean(selectedLead)}>{selectedLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
           <div role="dialog" aria-modal="true" aria-labelledby="lead-status-title" className="bg-[#0b1324] border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-2xl">
             <h3 id="lead-status-title" className="font-bold text-white text-base">
@@ -351,7 +352,7 @@ export function LeadsView({ storeKey = 'autoelite', onOpenContractWithClient }) 
             </div>
           </div>
         </div>
-      )}
+      )}</MerchantModalTransition>
     </div>
   );
 }
