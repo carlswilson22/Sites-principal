@@ -1,5 +1,5 @@
 /* Identidades fixas das vitrines. O painel e os diálogos conservam suas próprias superfícies. */
-[data-store-theme="classic"], [data-account-theme="classic"] {
+[data-store-theme="classic"], [data-account-theme="classic"], [data-merchant-theme="classic"] {
   --store-page: #e1edfc;
   --store-surface: #f5f9ff;
   --store-header: #c1dbff;
@@ -11,7 +11,7 @@
   --store-accent: #124eaa;
   --store-action: #1759b5;
 }
-[data-store-theme="editorial"], [data-account-theme="editorial"] {
+[data-store-theme="editorial"], [data-account-theme="editorial"], [data-merchant-theme="editorial"] {
   --store-page: #fff0d4;
   --store-surface: #fffaf1;
   --store-header: #f1d39c;
@@ -23,7 +23,7 @@
   --store-accent: #80500a;
   --store-action: #8d560d;
 }
-[data-store-theme="workspace"], [data-account-theme="workspace"] {
+[data-store-theme="workspace"], [data-account-theme="workspace"], [data-merchant-theme="workspace"] {
   --store-page: #d8f5e8;
   --store-surface: #f2fff8;
   --store-header: #a6e3c9;

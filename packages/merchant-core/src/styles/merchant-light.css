@@ -1,24 +1,30 @@
 /* Tema do painel, isolado das vitrines e das prévias de arte. */
 [data-merchant-panel] {
-  --panel-ink: #172b45;
-  --panel-copy: #40536b;
-  --panel-border: #d8e2ed;
-  background: #f2f6fb;
+  --panel-ink: var(--store-ink, #10243e);
+  --panel-copy: var(--store-copy, #415773);
+  --panel-border: var(--store-border, #a7c6ed);
+  --panel-surface: var(--store-surface, #f5f9ff);
+  --panel-muted: var(--store-muted, #d7e8ff);
+  --panel-accent: var(--store-accent, #124eaa);
+  --panel-action: var(--store-action, #1759b5);
+  background: var(--store-page, #e1edfc);
   color: var(--panel-ink);
 }
 
-[data-merchant-panel] :is(.bg-slate-900, .bg-slate-900\/40, .bg-slate-900\/60, .bg-slate-900\/70, .bg-slate-900\/80, .bg-slate-900\/90, .bg-\[\#0b1324\], .bg-\[\#080d1a\]):not([role="dialog"].fixed, [data-story-template], [data-story-template] *) { background-color: #fff; }
-[data-merchant-panel] :is(.bg-slate-950, .bg-slate-950\/40, .bg-slate-950\/60, .bg-slate-950\/80, .bg-slate-950\/90, .bg-slate-950\/95):not([role="dialog"].fixed, [data-story-template], [data-story-template] *) { background-color: #f7f9fc; }
-[data-merchant-panel] :is(.bg-slate-700, .bg-slate-700\/40, .bg-slate-800, .bg-slate-800\/30, .bg-slate-800\/40, .bg-slate-800\/50, .bg-slate-800\/60, .bg-slate-800\/80, .bg-slate-800\/90):not([data-story-template], [data-story-template] *) { background-color: #edf2f8; }
+[data-merchant-panel] > header.bg-white { background-color: var(--store-header, #c1dbff); border-color: var(--panel-border); }
+[data-merchant-panel] aside { background-color: var(--panel-surface); border-color: var(--panel-border); }
+[data-merchant-panel] :is(.bg-white, .bg-slate-900, .bg-slate-900\/40, .bg-slate-900\/60, .bg-slate-900\/70, .bg-slate-900\/80, .bg-slate-900\/90, .bg-\[\#0b1324\], .bg-\[\#080d1a\]):not([role="dialog"].fixed, [data-story-template], [data-story-template] *) { background-color: var(--panel-surface); }
+[data-merchant-panel] :is(.bg-slate-950, .bg-slate-950\/40, .bg-slate-950\/60, .bg-slate-950\/80, .bg-slate-950\/90, .bg-slate-950\/95):not([role="dialog"].fixed, [data-story-template], [data-story-template] *) { background-color: var(--panel-surface); }
+[data-merchant-panel] :is(.bg-slate-50, .bg-slate-100, .bg-slate-700, .bg-slate-700\/40, .bg-slate-800, .bg-slate-800\/30, .bg-slate-800\/40, .bg-slate-800\/50, .bg-slate-800\/60, .bg-slate-800\/80, .bg-slate-800\/90):not([data-story-template], [data-story-template] *) { background-color: var(--panel-muted); }
 [data-merchant-panel] :is(.bg-rose-950, .bg-rose-950\/40, .bg-rose-950\/60):not([data-story-template], [data-story-template] *) { background-color: #fff1f2; }
 [data-merchant-panel] :is(.bg-emerald-950, .bg-emerald-950\/60):not([data-story-template], [data-story-template] *) { background-color: #e7f8ef; }
 
-[data-merchant-panel] :is(.border-slate-600, .border-slate-700, .border-slate-700\/40, .border-slate-700\/60, .border-slate-700\/80, .border-slate-800, .border-slate-800\/60, .border-slate-800\/80, .border-white\/10):not([data-story-template], [data-story-template] *) { border-color: var(--panel-border); }
+[data-merchant-panel] :is(.border-slate-200, .border-slate-300, .border-slate-600, .border-slate-700, .border-slate-700\/40, .border-slate-700\/60, .border-slate-700\/80, .border-slate-800, .border-slate-800\/60, .border-slate-800\/80, .border-white\/10):not([data-story-template], [data-story-template] *) { border-color: var(--panel-border); }
 [data-merchant-panel] :is(.divide-slate-800, .divide-slate-800\/60, .divide-slate-800\/80) > :not([hidden]) ~ :not([hidden]) { border-color: var(--panel-border); }
 
-[data-merchant-panel] :is(.text-white, .text-slate-100, .text-slate-200):not([data-story-template], [data-story-template] *) { color: var(--panel-ink); }
-[data-merchant-panel] :is(.text-slate-300, .text-slate-400, .text-slate-500):not([data-story-template], [data-story-template] *) { color: var(--panel-copy); }
-[data-merchant-panel] :is(.text-blue-100, .text-blue-200, .text-blue-300, .text-blue-400):not([data-story-template], [data-story-template] *) { color: #1d4f9a; }
+[data-merchant-panel] :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-900):not([data-story-template], [data-story-template] *) { color: var(--panel-ink); }
+[data-merchant-panel] :is(.text-slate-300, .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700):not([data-story-template], [data-story-template] *) { color: var(--panel-copy); }
+[data-merchant-panel] :is(.text-blue-100, .text-blue-200, .text-blue-300, .text-blue-400, .text-blue-600):not([data-story-template], [data-story-template] *) { color: var(--panel-accent); }
 [data-merchant-panel] :is(.text-cyan-200, .text-cyan-300, .text-cyan-400):not([data-story-template], [data-story-template] *) { color: #0c667c; }
 [data-merchant-panel] :is(.text-emerald-200, .text-emerald-200\/80, .text-emerald-300, .text-emerald-400):not([data-story-template], [data-story-template] *) { color: #116443; }
 [data-merchant-panel] :is(.text-amber-200, .text-amber-200\/90, .text-amber-300, .text-amber-400, .text-amber-400\/90):not([data-story-template], [data-story-template] *) { color: #854408; }
@@ -32,5 +38,13 @@
 [data-merchant-panel] :is(.bg-blue-600, .bg-blue-600\/90, .bg-purple-600\/90).text-white:not([data-story-template] *) { color: #fff; }
 [data-merchant-panel] :is(input, textarea)::placeholder { color: #64748b; opacity: 1; }
 [data-merchant-panel] :is(input, select, textarea) { color-scheme: light; }
-[data-merchant-panel] :is(button, a):hover:not(.bg-blue-600, .bg-blue-500, .bg-emerald-500, .bg-emerald-600, .bg-amber-500, .bg-cyan-300, .bg-rose-600, [class*="from-purple-600"], [data-story-template] *) { color: #174b91; }
-[data-merchant-panel] :is(button, a):is(.hover\:bg-slate-700, .hover\:bg-slate-800, .hover\:bg-slate-800\/30, .hover\:bg-slate-800\/40, .hover\:bg-slate-800\/60, .hover\:bg-slate-900, .hover\:bg-slate-900\/80):hover:not(.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-rose-600, [data-story-template] *) { background-color: #e5edf7; }
+[data-merchant-panel] :is(button, a):hover:not(.bg-blue-600, .bg-blue-500, .bg-emerald-500, .bg-emerald-600, .bg-amber-500, .bg-cyan-300, .bg-rose-600, [class*="from-purple-600"], [data-story-template] *) { color: var(--panel-accent); }
+[data-merchant-panel] :is(button, a):is(.hover\:bg-slate-700, .hover\:bg-slate-800, .hover\:bg-slate-800\/30, .hover\:bg-slate-800\/40, .hover\:bg-slate-800\/60, .hover\:bg-slate-900, .hover\:bg-slate-900\/80):hover:not(.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-rose-600, [data-story-template] *) { background-color: var(--panel-muted); }
+
+/* Ações principais seguem a identidade da vitrine; cores de aviso continuam semânticas. */
+[data-merchant-panel] :is(.bg-blue-600, .bg-blue-600\/90, .bg-blue-500):not([data-story-template], [data-story-template] *) { background-color: var(--panel-action); }
+[data-merchant-panel] :is(button, a):is(.bg-blue-600, .bg-blue-500):not([data-story-template] *) { background-color: var(--panel-action); color: #fff; }
+[data-merchant-panel] :is(button, a):is(.bg-blue-600, .bg-blue-500):hover:not([data-story-template] *) { background-color: var(--panel-accent); color: #fff; }
+[data-merchant-panel] :is(.bg-blue-500\/10, .bg-blue-500\/20, .bg-blue-600\/10, .bg-blue-600\/20):not([data-story-template], [data-story-template] *) { background-color: var(--store-feature, #d0e4ff); }
+[data-merchant-panel] :is(button, a, input, select, textarea, summary):focus-visible:not([data-story-template] *) { outline-color: var(--panel-accent); --tw-ring-color: var(--panel-accent); }
+[data-merchant-panel] :is(input[type="checkbox"], input[type="radio"], input[type="range"]):not([data-story-template] *) { accent-color: var(--panel-action); }

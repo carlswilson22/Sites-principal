@@ -58,7 +58,7 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToS
   const active = allowed ? tab : 'dashboard';
   const View = merchantRoutes[active].component;
   const newSimulations = leads.filter(lead => lead.source === 'simulador_financiamento' && lead.status === 'novo');
-  return <MerchantShell storeName={dealership.nome} activeTab={active} onSelectTab={setTab} onExitToSite={onExitToSite}>
+  return <MerchantShell storeKey={storeKey} storeName={dealership.nome} activeTab={active} onSelectTab={setTab} onExitToSite={onExitToSite}>
     {active !== 'leads' && newSimulations.length > 0 && <button type="button" onClick={() => setTab('leads')} className="mb-6 w-full rounded-2xl border border-blue-400/40 bg-blue-500/10 p-4 text-left text-sm text-blue-100 hover:bg-blue-500/20" aria-label={`${newSimulations.length} novas simulações de financiamento. Abrir contatos`}>
       <strong className="block text-white">{newSimulations.length === 1 ? 'Nova simulação de financiamento' : `${newSimulations.length} novas simulações de financiamento`}</strong>
       <span>Veja os dados do veículo e do contato em Contatos &amp; WhatsApp.</span>

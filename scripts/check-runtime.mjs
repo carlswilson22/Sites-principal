@@ -139,6 +139,7 @@ for (const [model, scenario] of scenarios) {
     }
     document.querySelector('button[aria-label="Painel do lojista"]').click();
     await wait(() => button('Contratos & Termos'));
+    assert.equal(document.querySelector('[data-merchant-panel]')?.dataset.merchantTheme, { autoelite: 'classic', drivenow: 'editorial', apexluxury: 'workspace' }[storeKey], 'Painel não acompanha a identidade da vitrine');
     const profiles = document.querySelector('select[aria-label="Perfil de acesso"]');
     assert(profiles, 'Painel demonstrativo sem seletor de perfis');
     assert.deepEqual([...profiles.options].map(option => option.value), ['proprietario', 'gerente', 'atendente']);
