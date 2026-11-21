@@ -15,7 +15,7 @@ export function HeroSection({ onNavigate }) {
           <p className="text-sm text-white font-medium drop-shadow-md">Novos caminhos. Uma escolha sua.</p>
         </div>
       </AnimatedStoreHero>
-      <div className="rounded-b-3xl bg-[#10292e] p-6 sm:p-8 lg:px-10">
+      <div style={{ backgroundColor: 'var(--store-feature)' }} className="rounded-b-3xl bg-[#10292e] p-6 sm:p-8 lg:px-10">
         <div className="space-y-3">
           <h1 id="enterprise-hero-title" className="text-3xl sm:text-4xl lg:text-5xl font-heading font-medium tracking-tight leading-tight text-white">Sua escolha.<br /><span className="text-cyan-200">Por uma nova perspectiva.</span></h1>
           <p className="max-w-xl text-sm sm:text-base text-slate-300 leading-relaxed">Descubra os veículos, reúna seus favoritos e compare os detalhes antes de decidir.</p>

@@ -7,9 +7,9 @@ na implantação, sem transformar um modelo em outro.
 
 | Modelo | Identidade | Cores | Estrutura principal |
 | --- | --- | --- | --- |
-| AutoElite (Basic) | Direta e acessível | Azul e superfícies claras azuladas | Busca na abertura, imagem ao lado e veículos em grade. |
-| DriveNow (Expert) | Editorial e contemplativa | Cinza claro, branco e detalhes dourados | Abertura cinematográfica, títulos com serifa e seleção em cartões horizontais. |
-| Enterprise (Premium) | Contemporânea e orientada à comparação | Verde-petróleo, turquesa e superfícies claras | Abertura panorâmica e ferramentas de escolha, favoritos e comparação. |
+| AutoElite (Basic) | Direta e acessível | Azul vivo, cabeçalho azul-claro e fundo azul suave | Busca na abertura, imagem ao lado e veículos em grade. |
+| DriveNow (Expert) | Editorial e contemplativa | Dourado, cabeçalho âmbar e fundo claro em tom de champanhe | Abertura cinematográfica, títulos com serifa e seleção em cartões horizontais. |
+| Enterprise (Premium) | Contemporânea e orientada à comparação | Verde-petróleo, cabeçalho verde e fundo verde suave | Abertura panorâmica e ferramentas de escolha, favoritos e comparação. |
 
 Os temas das vitrines ficam em `packages/merchant-core/src/styles/store-themes.css`.
 As imagens e os vídeos da abertura mantêm contraste próprio. Componentes

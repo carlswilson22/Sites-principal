@@ -1,30 +1,39 @@
 /* Identidades fixas das vitrines. O painel e os diálogos conservam suas próprias superfícies. */
 [data-store-theme="classic"], [data-account-theme="classic"] {
-  --store-page: #f2f7fd;
-  --store-surface: #fff;
-  --store-muted: #e5eef9;
-  --store-border: #c8d8eb;
+  --store-page: #e1edfc;
+  --store-surface: #f5f9ff;
+  --store-header: #c1dbff;
+  --store-feature: #d0e4ff;
+  --store-muted: #d7e8ff;
+  --store-border: #a7c6ed;
   --store-ink: #10243e;
   --store-copy: #415773;
-  --store-accent: #1757a7;
+  --store-accent: #124eaa;
+  --store-action: #1759b5;
 }
 [data-store-theme="editorial"], [data-account-theme="editorial"] {
-  --store-page: #f5f5f3;
-  --store-surface: #fff;
-  --store-muted: #eae9e5;
-  --store-border: #d5d4ce;
-  --store-ink: #252825;
-  --store-copy: #505a54;
-  --store-accent: #80601c;
+  --store-page: #fff0d4;
+  --store-surface: #fffaf1;
+  --store-header: #f1d39c;
+  --store-feature: #f8dfb0;
+  --store-muted: #f9e5bf;
+  --store-border: #e2bd7d;
+  --store-ink: #372a19;
+  --store-copy: #614d34;
+  --store-accent: #80500a;
+  --store-action: #8d560d;
 }
 [data-store-theme="workspace"], [data-account-theme="workspace"] {
-  --store-page: #eef8f8;
-  --store-surface: #fff;
-  --store-muted: #dcefed;
-  --store-border: #bddbd8;
-  --store-ink: #123536;
-  --store-copy: #3b5e60;
-  --store-accent: #087573;
+  --store-page: #d8f5e8;
+  --store-surface: #f2fff8;
+  --store-header: #a6e3c9;
+  --store-feature: #c2eedc;
+  --store-muted: #c3edda;
+  --store-border: #8fceb5;
+  --store-ink: #093d30;
+  --store-copy: #28594c;
+  --store-accent: #006f56;
+  --store-action: #087055;
 }
 [data-store-theme] { background: var(--store-page); color: var(--store-ink); }
 [data-store-theme] > header { background: var(--store-surface); border-bottom: 1px solid var(--store-border); }
@@ -44,6 +53,8 @@
 [data-store-theme] :is(button, a):is(.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-rose-500):not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { color: #fff; }
 [data-store-theme] :is(button, a):is(.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-rose-500):not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) :is(.text-white, span) { color: inherit; }
 [data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-blue-"], [data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-emerald-"], [data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-violet-"] { color: #fff; }
+[data-store-theme] :is(button, a):is(.bg-blue-600, .bg-blue-500, .bg-cyan-300):not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { background-color: var(--store-action) !important; color: #fff !important; }
+[data-store-theme] :is(button, a)[class*="bg-gradient-to-r"][class*="from-blue-"]:not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *) { background-image: none; background-color: var(--store-action); }
 [data-store-theme] :is(button, a):hover:not([data-preserve-dark] *, [role="dialog"]:not([data-vehicle-ad]) *, [class*="bg-blue-"], [class*="bg-emerald-"], [class*="bg-rose-"]) { color: var(--store-accent); }
 [data-store-theme] input::placeholder, [data-store-theme] textarea::placeholder { color: #64748b; opacity: 1; }
 
