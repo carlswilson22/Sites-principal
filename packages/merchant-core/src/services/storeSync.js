@@ -10,6 +10,7 @@
 
 const EVENT_PREFIX = 'merchant_store_update_';
 import { normalizeVehicle } from '../utils/vehicles.js';
+import { marketingAttribution } from '../utils/marketing.js';
 import { reconcileCatalogMedia } from '../utils/catalogMedia.js';
 import { createRecordId } from '../utils/recordId.js';
 import { isRemote } from './remote.js';
@@ -224,6 +225,7 @@ const localStoreSync = {
   addLead(storeKey, lead) {
     const list = readLeadsForMutation(storeKey, () => this.getLeads(storeKey));
     const newLead = {
+      ...marketingAttribution(),
       ...lead,
       vehicle_id: lead.vehicle_id ?? lead.vehicleId,
       vehicle_title: lead.vehicle_title ?? lead.vehicleName,

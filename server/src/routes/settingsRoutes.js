@@ -11,6 +11,7 @@ import { audit, sendJson } from './util.js';
 import { clientIp } from '../security/http.js';
 import { getDb } from '../database/db.js';
 import { vehicleUsage } from '../services/vehicleLimit.js';
+import { alertMinutes } from '../services/leadReports.js';
 
 const CONSENT_VERSION = '1';
 const text = (value, max) => typeof value === 'string' && value.length <= max;
@@ -26,6 +27,7 @@ function publicSettings() {
   const store = { name: config.store.name, cnpj: config.store.cnpj, city: config.store.city, uf: config.store.uf, ...(readSetting('store', {}) || {}) };
   return {
     store,
+    leadAlertMinutes: alertMinutes(),
     theme: readSetting('theme', {}) || {},
     package: { id: currentPackage().id, name: currentPackage().name },
     modules: enabledModules(),

@@ -8,7 +8,7 @@ export function StoreServicesPage({ onNavigate, premium = false }) {
       { id: 'simulador', title: 'Financiamento', description: 'Escolha um veículo e consulte uma estimativa de entrada e parcelas.', icon: Calculator },
       { id: 'troca', title: 'Avaliação de troca', description: 'Informe os dados do seu veículo para conversar com a equipe sobre a troca.', icon: ArrowLeftRight },
       premium
-        ? { id: 'concierge', title: 'Atendimento e visita', description: 'Conheça as opções de atendimento e agende uma visita à loja.', icon: CalendarDays }
+        ? { id: 'agenda', title: 'Visita ou test drive', description: 'Escolha um horário para solicitar uma visita ou test drive.', icon: CalendarDays }
         : { id: 'consultor-ia', title: 'Consultor virtual', description: 'Explore os veículos de acordo com o que você procura.', icon: Bot },
     ],
   }];

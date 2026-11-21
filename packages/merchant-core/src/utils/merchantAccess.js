@@ -1,5 +1,5 @@
 export const merchantPermissions = {
-  dashboard: { tier: 1 }, inventory: { tier: 1 }, leads: { tier: 1 },
+  dashboard: { tier: 1 }, inventory: { tier: 1 }, leads: { tier: 1 }, agenda: { tier: 1 },
   financing: { tier: 1, roles: ['gerente', 'atendente'] },
   clients: { tier: 2 }, fipe: { tier: 2 },
   contracts: { tier: 1, roles: ['gerente', 'atendente'] },

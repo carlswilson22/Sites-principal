@@ -117,10 +117,7 @@ export function FinancingCalculator({ vehicles = [], preselectedVehicle = null, 
     {onSubmitSimulation && !revealed && <form onSubmit={sendSimulation} className="space-y-4" aria-label="Enviar simulação de financiamento">
       <p className="text-sm text-slate-300">Preencha seus dados para ver a parcela e permitir que a loja entre em contato sobre esta simulação.</p>
       <label className={label}>Nome completo<input required minLength={2} maxLength={120} value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} autoComplete="name" className={field} /></label>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className={label}>WhatsApp com DDD<input required type="tel" maxLength={20} value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} autoComplete="tel" className={field} /></label>
-        <label className={label}>E-mail (opcional)<input type="email" maxLength={160} value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} autoComplete="email" className={field} /></label>
-      </div>
+      <label className={label}>WhatsApp com DDD<input required type="tel" maxLength={20} value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} autoComplete="tel" className={field} /></label>
       <label className="flex items-start gap-2 text-sm text-slate-300"><input required type="checkbox" checked={contact.consent} onChange={event => setContact({ ...contact, consent: event.target.checked })} className="mt-1 h-4 w-4 shrink-0 accent-blue-500" />Autorizo a loja a entrar em contato sobre esta simulação.</label>
       {submissionError && <p role="alert" className="text-sm text-rose-300">{submissionError}</p>}
       <button type="submit" disabled={submitting} className="min-h-12 w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500 disabled:opacity-50">{submitting ? 'Enviando…' : 'Quero ver minha parcela'}</button>

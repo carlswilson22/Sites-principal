@@ -53,7 +53,7 @@ test('Migração: banco criado antes do runner é atualizado, com backup e sem p
   legacy.prepare("INSERT INTO vehicles (title, year, color, price) VALUES ('Carro Antigo', '2020', 'Preto', 50000)").run();
 
   const applied = runMigrations(legacy, { backupDir: path.join(dir, 'backups') });
-  assert.deepStrictEqual(applied, [1, 2, 3, 4]);
+  assert.deepStrictEqual(applied, [1, 2, 3, 4, 5]);
   assert.strictEqual(legacy.prepare('SELECT title FROM vehicles').get().title, 'Carro Antigo');
   assert.ok(legacy.prepare("SELECT 1 FROM pragma_table_info('vehicles') WHERE name = 'slug'").get(), 'coluna nova criada');
   assert.deepStrictEqual(runMigrations(legacy, { backupDir: path.join(dir, 'backups') }), [], 'segunda execução não repete');

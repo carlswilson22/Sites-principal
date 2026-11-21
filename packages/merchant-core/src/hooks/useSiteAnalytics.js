@@ -1,9 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { siteAnalytics } from '../services/siteAnalytics.js';
+import { marketingAttribution } from '../utils/marketing.js';
 
 export function useSiteAnalytics(storeKey, page, selectedVehicle) {
   const lastPage = useRef(null);
   const lastVehicle = useRef(null);
+  useEffect(() => {
+    marketingAttribution();
+  }, [storeKey]);
   useEffect(() => {
     if (page === 'painel-lojista') { lastPage.current = null; return; }
     const key = `${storeKey}:${page}`;

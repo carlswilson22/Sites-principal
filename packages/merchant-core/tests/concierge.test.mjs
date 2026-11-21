@@ -20,7 +20,7 @@ test('concierge combina categoria, câmbio e orçamento e omite veículos indisp
 test('visita, financiamento e transferência humana são opções explícitas', () => {
   const visit = conciergeReply('Agendar test drive', vehicles);
   assert.equal(visit.action, 'visit');
-  assert.match(visit.text, /diretamente com o lojista pelo WhatsApp/);
+  assert.match(visit.text, /agenda/);
   assert.equal(conciergeReply('Quero financiar', vehicles).action, 'inventory');
   assert.equal(conciergeReply('Falar com funcionário', vehicles).action, 'human');
   assert.match(conciergeReply('Falar com funcionário', vehicles).text, /Tenho interesse/);
@@ -34,7 +34,7 @@ test('atendimento no anúncio responde sobre o próprio veículo e mantém finan
   assert.match(conciergeReply('Qual o preço?', vehicles, {}, vehicle).text, /Hyundai HB20.*65\.000/);
   assert.equal(conciergeReply('Simular financiamento', vehicles, {}, vehicle).action, 'financing');
   assert.equal(conciergeReply('Agendar visita', vehicles, {}, vehicle).action, 'visit');
-  assert.match(conciergeReply('Agendar visita', vehicles, {}, vehicle).text, /Tenho interesse/);
+  assert.match(conciergeReply('Agendar visita', vehicles, {}, vehicle).text, /botões de visita ou test drive/);
   assert.match(conciergeReply('Falar com funcionário', vehicles, {}, vehicle).text, /Tenho interesse/);
   assert.match(conciergeReply('Ver laudo', vehicles, {}, vehicle).text, /não tem um status de laudo informado/);
 });

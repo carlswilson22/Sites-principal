@@ -122,7 +122,7 @@ for (const [name, Component, props] of [
       if (!html.includes(count ? 'Foto 1 de ' + count : 'Sem fotos cadastradas')) throw new Error('Contador da galeria incorreto');
       if (count > 1 && !html.includes('Ver foto ' + count + ' de ' + count)) throw new Error('Navegação de fotos incompleta');
       if (props.vehicle.imagemPrincipal.includes('/images/catalog/') && !html.includes('Foto ilustrativa do modelo')) throw new Error('Créditos da foto ausentes');
-      if (html.includes('data-financing-vehicle=') || html.includes('type="number"')) throw new Error('Simulador foi montado para visitante sem login');
+      if (html.includes('data-financing-vehicle=') !== Boolean(props.initialFinancing)) throw new Error('Montagem inicial do simulador público incorreta');
       if (html.includes('data-concierge-vehicle=') || html.includes('<textarea')) throw new Error('Chat fechado está sendo montado antecipadamente');
       if (html.includes('data-feature="vehicle-360"') !== (Component === PopularModal)) throw new Error('360 habilitado em edição incorreta');
       const services = html.indexOf('data-vehicle-services=');

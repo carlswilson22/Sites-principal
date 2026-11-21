@@ -11,6 +11,7 @@ import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
 import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
+import { BookingPage } from '../../../packages/merchant-core/src/components/common/BookingForm';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 
 
@@ -102,6 +103,7 @@ function StoreApp() {
           />
         )}
 
+        {currentPage === 'agenda' && <BookingPage storeKey="autoelite" dealership={dealershipInfo} vehicles={publishedVehicles} />}
         {currentPage === 'sobre-contato' && (
           <AboutContactPage />
         )}

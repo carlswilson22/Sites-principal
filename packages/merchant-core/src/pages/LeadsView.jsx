@@ -6,6 +6,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { storeSync } from '../services/storeSync';
 import { useTier } from '../context/TierContext';
 import { buildLeadStatusUpdates, leadStatusLabels } from '../utils/leadHistory';
+import { leadBooking, leadUnanswered } from '../utils/leadAgenda';
 import {
   MessageSquare,
   Search,
@@ -21,6 +22,27 @@ import {
   Car
 } from 'lucide-react';
 
+function LeadActionForm({ lead, storeKey, onSaved }) {
+  const [action, setAction] = useState(lead.next_action || '');
+  const [when, setWhen] = useState(() => {
+    const date = new Date(lead.next_action_at || '');
+    if (!Number.isFinite(date.getTime())) return '';
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  });
+  const [feedback, setFeedback] = useState('');
+  const save = async (clear = false) => {
+    if (!clear && (!action.trim() || !when || !Number.isFinite(Date.parse(when)))) return setFeedback('Informe a ação e a data.');
+    try {
+      const updated = await storeSync.updateLead(storeKey, lead.id, { next_action: clear ? '' : action.trim(), next_action_at: clear ? null : new Date(when).toISOString() });
+      onSaved(updated); setFeedback(clear ? 'Ação removida.' : 'Próxima ação salva.');
+    } catch (error) { setFeedback(error.message || 'Não foi possível salvar.'); }
+  };
+  return <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold text-blue-600">{lead.next_action ? `Próxima ação: ${lead.next_action}` : 'Definir próxima ação'}</summary>
+    <div className="mt-2 grid gap-2 sm:grid-cols-2"><label className="text-slate-600">Ação<input value={action} onChange={event => setAction(event.target.value)} maxLength={200} placeholder="Ex.: ligar para o cliente" className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900" /></label><label className="text-slate-600">Data e hora<input type="datetime-local" value={when} onChange={event => setWhen(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900" /></label></div>
+    <div className="mt-2 flex gap-2"><button type="button" onClick={() => save()} className="rounded-lg bg-blue-600 px-3 py-2 text-white">Salvar ação</button>{lead.next_action && <button type="button" onClick={() => save(true)} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">Remover</button>}</div>{feedback && <p role="status" className="mt-1 text-slate-700">{feedback}</p>}
+  </details>;
+}
+
 export function LeadsView({ storeKey = 'autoelite' }) {
   const { tier } = useTier();
   const [feedback, setFeedback] = useState('');
@@ -31,7 +53,11 @@ export function LeadsView({ storeKey = 'autoelite' }) {
   const [newStatus, setNewStatus] = useState('em_atendimento');
   const [statusNote, setStatusNote] = useState('');
   const [statusError, setStatusError] = useState('');
+  const [now, setNow] = useState(Date.now);
+  const alertAfter = storeSync.getSettings?.()?.leadAlertMinutes || 60;
   const selectedLead = leads.find(lead => lead.id === selectedLeadId) || null;
+
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
 
   const handleCreateClient = lead => {
     try {
@@ -186,6 +212,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
         </div>
       </div>
 
+      <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700"><strong>Origem de marketing</strong><div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">{Object.entries(leads.reduce((groups, lead) => { const key = lead.marketing_source || 'Não informada'; const item = groups[key] || { total: 0, sales: 0 }; item.total++; if (lead.status === 'ganho') item.sales++; groups[key] = item; return groups; }, {})).map(([source, counts]) => <span key={source}>{source}: {counts.total} contato(s), {counts.sales} ganho(s)</span>)}</div></div>
       <p role="status" className="text-sm text-slate-400">{filteredLeads.length} de {leads.length} contatos</p>
       {filteredLeads.length === 0 && <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 text-sm text-slate-400">
         {leads.length ? 'Nenhum contato corresponde à busca e à situação selecionadas.' : 'Nenhum contato recebido nesta loja. Novas solicitações aparecerão aqui.'}
@@ -197,6 +224,9 @@ export function LeadsView({ storeKey = 'autoelite' }) {
           const history = Array.isArray(lead.history) ? lead.history.filter(entry => entry && typeof entry === 'object') : [];
           let simulation = lead.simulation || lead.simulation_data;
           if (typeof simulation === 'string') { try { simulation = JSON.parse(simulation); } catch { simulation = null; } }
+          const booking = leadBooking(lead);
+          if (booking) simulation = null;
+          const unanswered = leadUnanswered(lead, now, alertAfter);
           const simulationMoney = value => value == null ? 'não informado' : Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
           const rawPhone = String(lead.phone || '').replace(/\D/g, '');
           const phoneWithCountry = rawPhone.length <= 11 ? `55${rawPhone}` : rawPhone;
@@ -205,7 +235,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
           return (
             <div
               key={lead.id}
-              className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${unanswered ? 'border-red-400 bg-red-50' : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'}`}
             >
               <div className="flex items-start sm:items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 font-bold text-sm shrink-0">
@@ -216,6 +246,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold text-white text-sm sm:text-base">{lead.name}</span>
                     {getStatusBadge(lead.status)}
+                    {unanswered && <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-800">Sem resposta há {alertAfter} min</span>}
                     <span className="text-[11px] text-slate-500">• {new Date(lead.created_at).toLocaleDateString('pt-BR')}</span>
                   </div>
 
@@ -223,6 +254,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
                     <span>{lead.phone}</span>
                     {lead.email && <span>• {lead.email}</span>}
                     <span>• Origem: <strong className="text-slate-300 capitalize">{String(lead.source || 'site').replaceAll('_', ' ')}</strong></span>
+                    <span>• Canal: {lead.marketing_source || 'Não informado'}{lead.marketing_campaign ? ` · Campanha: ${lead.marketing_campaign}` : ''}</span>
                   </div>
 
                   {lead.vehicle_title && (
@@ -234,6 +266,7 @@ export function LeadsView({ storeKey = 'autoelite' }) {
                   )}
 
                   {lead.message && <p className="text-xs text-slate-300 mt-2 whitespace-pre-wrap">{lead.message}</p>}
+                  <LeadActionForm key={`${lead.id}-${lead.next_action_at || ''}`} lead={lead} storeKey={storeKey} onSaved={setLeads} />
                   {history.length > 0 && <details className="mt-3 text-xs text-slate-300">
                     <summary className="cursor-pointer text-blue-300">Histórico de atendimento ({history.length})</summary>
                     <ol className="mt-2 space-y-2 border-l border-slate-700 pl-3">

@@ -94,7 +94,7 @@ try {
   if (fs.existsSync(media)) {
     const list = tar(['-tzf', media]);
     if (list.status !== 0) fail('O arquivo de fotos do backup está corrompido.');
-    report.mediaFiles = list.stdout.split('\n').filter(line => line && !line.endsWith('/')).length;
+    report.mediaFiles = list.stdout.split('\n').filter(line => line && !/[\\/]$/.test(line.trim())).length;
   }
 
   if (extractTo) {

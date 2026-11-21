@@ -458,7 +458,7 @@ export async function handleTier3Routes(req, res, pathname, body) {
     try {
       const leadRows = db.prepare('SELECT id FROM leads WHERE phone = ? OR (email IS NOT NULL AND email != \'\' AND email = ?)').all(client.phone, client.email || '');
       for (const lead of leadRows) {
-        db.prepare("UPDATE leads SET name = 'Titular anonimizado', phone = '00000000000', email = NULL, message = NULL, simulation_data = NULL WHERE id = ?").run(lead.id);
+        db.prepare("UPDATE leads SET name = 'Titular anonimizado', phone = '00000000000', email = NULL, message = NULL, simulation_data = NULL, next_action = NULL, next_action_at = NULL, marketing_source = NULL, marketing_campaign = NULL, marketing_medium = NULL, status = 'perdido' WHERE id = ?").run(lead.id);
         db.prepare('DELETE FROM lead_history WHERE lead_id = ?').run(lead.id);
         scrubbed.solicitacoes_de_troca += db.prepare("UPDATE trade_in_requests SET notes = NULL, vehicle_data = '{}' WHERE lead_id = ?").run(lead.id).changes;
         scrubbed.contatos += 1;

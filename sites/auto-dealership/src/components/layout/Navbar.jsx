@@ -8,6 +8,7 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'home', label: 'Início' },
     { id: 'estoque', label: 'Estoque' },
     { id: 'destaques', label: 'Destaques' },
+    { id: 'agenda', label: 'Agenda' },
     { id: 'sobre-contato', label: 'Sobre Nós e Contato' }
   ];
   return <SiteHeader currentPage={currentPage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} Logo={AutomatchLogo} />;

@@ -8,6 +8,7 @@ assertProductionReady();
 const { createServer } = await import('./app.js');
 const { runSeed } = await import('./database/seed.js');
 const { getStoreTier } = await import('./middlewares/tierGate.js');
+const { startLeadReports } = await import('./services/leadReports.js');
 
 const TIER = getStoreTier();
 
@@ -26,6 +27,7 @@ if (config.seedDemo) {
 }
 
 const server = createServer();
+startLeadReports();
 
 server.listen(config.port, () => {
   console.log(`🚀 [Merchant Server] API ativa na porta ${config.port} (Nível ${TIER})`);

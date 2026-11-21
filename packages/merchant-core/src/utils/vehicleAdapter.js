@@ -80,6 +80,7 @@ export function leadFromApi(lead) {
 export function leadToApi(lead) {
   const body = {
     name: lead.name, phone: lead.phone, email: lead.email || undefined, message: lead.message || undefined,
+    marketing_source: lead.marketing_source, marketing_campaign: lead.marketing_campaign, marketing_medium: lead.marketing_medium,
     source: SOURCE_TO_API[lead.source] || 'site_formulario', consent: lead.consent === true
   };
   const vehicleId = number(lead.vehicle_id ?? lead.vehicleId);

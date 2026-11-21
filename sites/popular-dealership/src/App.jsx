@@ -20,6 +20,7 @@ import { useFavorites } from './hooks/useFavorites';
 import { useComparator } from './hooks/useComparator';
 import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
 import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
+import { BookingPage } from '../../../packages/merchant-core/src/components/common/BookingForm';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
 
@@ -158,7 +159,7 @@ function StoreApp() {
 
         {currentPage === 'servicos' && <StoreServicesPage onNavigate={navigateTo} />}
 
-        {currentPage === 'simulador' && isAuthenticated && (
+        {currentPage === 'simulador' && (
           <FinancingPage
             vehicles={publishedVehicles}
             preselectedVehicle={financingPreselectedVehicle}
@@ -182,6 +183,7 @@ function StoreApp() {
           />
         )}
 
+        {currentPage === 'agenda' && <BookingPage storeKey="apexluxury" dealership={dealershipInfo} vehicles={publishedVehicles} />}
         {currentPage === 'sobre-contato' && (
           <AboutContactPage />
         )}

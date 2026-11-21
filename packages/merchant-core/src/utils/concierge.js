@@ -9,7 +9,7 @@ export function conciergeReply(message, vehicles = [], dealership = {}, vehicle 
     const address = dealership.endereco || {};
     return { text: `${dealership.nome}: ${[address.logradouro, address.bairro, address.cidade, address.uf].filter(Boolean).join(', ')}. ${Object.values(dealership.horarios || {}).join('. ')}.`, action: 'visit' };
   }
-  if (/visita|agendar|test.?drive/.test(query)) return { text: `Combine o dia e horário diretamente com o lojista pelo WhatsApp${vehicle ? ` para conhecer o ${vehicle.nome || vehicle.title}. Use “Tenho interesse” no final deste anúncio` : '. Use a opção abaixo para continuar com a equipe'}.`, action: 'visit' };
+  if (/visita|agendar|test.?drive/.test(query)) return { text: vehicle ? 'Use os botões de visita ou test drive neste anúncio para solicitar um horário. A loja confirma os detalhes com você.' : 'Abra a agenda para solicitar um horário para visita ou test drive. A loja confirma os detalhes com você.', action: 'visit' };
   if (/financia|parcela|entrada|simula/.test(query)) return { text: vehicle ? 'O simulador está no final deste anúncio. Ajuste entrada, prazo e taxa para consultar uma estimativa, sem sair daqui.' : 'Abra um anúncio e escolha “Simular financiamento deste veículo”. Você ajusta entrada, prazo e taxa sem sair do anúncio.', action: vehicle ? 'financing' : 'inventory' };
   if (vehicle) {
     const name = vehicle.nome || vehicle.title;
@@ -46,7 +46,7 @@ export function conciergeReply(message, vehicles = [], dealership = {}, vehicle 
       ? { text: 'Estas opções do estoque combinam com o que você informou. Abra o anúncio para ver as fotos, os detalhes e simular as parcelas.', vehicleIds: matches.map(vehicle => vehicle.id) }
       : { text: 'Não encontrei opções cadastradas com esses critérios. Você pode ajustar o orçamento ou registrar sua preferência para conversar com a loja.', action: 'request' };
   }
-  return { text: 'Posso consultar veículos por modelo, categoria ou orçamento e orientar uma simulação. Por exemplo: “Quero um SUV até 150 mil”. Para combinar uma visita, converse com o lojista pelo WhatsApp.', action: 'inventory' };
+  return { text: 'Posso consultar veículos por modelo, categoria ou orçamento e orientar uma simulação. Por exemplo: “Quero um SUV até 150 mil”. Para solicitar uma visita, acesse a agenda.', action: 'inventory' };
 }
 
 export function validateStoreRequest({ name, phone }) {

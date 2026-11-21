@@ -6,6 +6,7 @@ import { canAccessMerchantRoute } from '../../utils/merchantAccess';
 import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
+  CalendarDays,
   Car,
   Users,
   MessageSquare,
@@ -54,6 +55,7 @@ export function MerchantSidebar({ activeTab, onSelectTab, isOpen, onClose, store
           label: 'Contatos & WhatsApp',
           icon: MessageSquare,
         },
+        { id: 'agenda', label: 'Agenda e próximas ações', icon: CalendarDays },
         {
           id: 'contracts',
           label: 'Contratos & Termos',

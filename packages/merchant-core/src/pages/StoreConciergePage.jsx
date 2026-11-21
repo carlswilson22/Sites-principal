@@ -42,6 +42,7 @@ export function StoreConciergePage({ dealership, storeKey, vehicles = [], onSele
             return vehicle && <button key={vehicleId} type="button" onClick={() => onSelectVehicle(vehicle)} className="flex items-center gap-3 w-full p-3 text-left rounded-xl border border-slate-600 hover:border-blue-300"><VehicleImage src={vehicle.imagemPrincipal} alt="" className="w-20 h-14 object-cover rounded-lg shrink-0" /><span>{vehicle.nome}<span className="block text-blue-200">{money(vehicle.preco)}</span></span></button>;
           })}
           {!embedded && message.action === 'inventory' && <button type="button" onClick={() => onNavigate('estoque')} className="underline text-white min-h-11">Ver estoque</button>}
+          {!embedded && message.action === 'visit' && <button type="button" onClick={() => onNavigate('agenda')} className="underline text-white min-h-11">Abrir agenda</button>}
           {embedded && message.action === 'financing' && <button type="button" onClick={onShowFinancing} className="underline text-white min-h-11">Abrir simulador neste anúncio</button>}
           {message.action === 'request' && <button type="button" onClick={() => setRequest('preference')} className="underline text-white min-h-11">Registrar minha preferência</button>}
         </div>)}

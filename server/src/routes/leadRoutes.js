@@ -59,7 +59,7 @@ export async function handleLeadRoutes(req, res, pathname, body) {
       return sendJson(res, 429, { error: 'Muitos envios. Tente novamente em alguns minutos.', retryAfterSeconds: limit.retryAfterSeconds });
     }
 
-    const { vehicle_id, name, phone, email, source, simulation_data, consent, message } = body || {};
+    const { vehicle_id, name, phone, email, source, simulation_data, consent, message, marketing_source, marketing_campaign, marketing_medium } = body || {};
     const cleanName = String(name || '').trim();
     const digits = String(phone || '').replace(/\D/g, '');
 
@@ -82,16 +82,23 @@ export async function handleLeadRoutes(req, res, pathname, body) {
     if (vehicle_id != null && !db.prepare('SELECT id FROM vehicles WHERE id = ?').get(vehicle_id)) {
       return sendJson(res, 400, { error: 'Veículo não encontrado.' });
     }
+    if (simulation_data?.booking) {
+      const booking = simulation_data.booking;
+      if (!['visita', 'test_drive'].includes(booking.type) || typeof booking.starts_at !== 'string' || !Number.isFinite(Date.parse(booking.starts_at)) || Date.parse(booking.starts_at) <= Date.now()) {
+        return sendJson(res, 400, { error: 'Informe um tipo de agendamento e um horário futuro válidos.' });
+      }
+    }
     const simulation = simulation_data ? JSON.stringify(simulation_data) : null;
     if (simulation && simulation.length > 5000) {
       return sendJson(res, 400, { error: 'Dados da simulação grandes demais.' });
     }
 
     const result = db.prepare(`
-      INSERT INTO leads (vehicle_id, name, phone, email, source, temperature, status, simulation_data, message, consent_lgpd, consent_version, consent_at)
-      VALUES (?, ?, ?, ?, ?, 'morno', 'novo', ?, ?, 1, '1', ?)
+      INSERT INTO leads (vehicle_id, name, phone, email, source, temperature, status, simulation_data, message, consent_lgpd, consent_version, consent_at, marketing_source, marketing_campaign, marketing_medium)
+      VALUES (?, ?, ?, ?, ?, 'morno', 'novo', ?, ?, 1, '1', ?, ?, ?, ?)
     `).run(vehicle_id ?? null, cleanName, String(phone).trim(), email ? String(email).trim() : null, source || 'site_formulario', simulation,
-      message ? String(message).slice(0, 1000) : null, new Date().toISOString());
+      message ? String(message).slice(0, 1000) : null, new Date().toISOString(),
+      String(marketing_source || '').trim().slice(0, 120), String(marketing_campaign || '').trim().slice(0, 120), String(marketing_medium || '').trim().slice(0, 120));
 
     // Aviso por e-mail à loja. Não atrasa nem derruba o registro do contato; o resultado fica na trilha.
     notifyNewLead({
@@ -112,7 +119,7 @@ export async function handleLeadRoutes(req, res, pathname, body) {
     if (!auth.authenticated) return sendJson(res, auth.status, { error: auth.error });
 
     const id = parseInt(leadStatusMatch[1], 10);
-    const { status, temperature, note } = body || {};
+    const { status, temperature, note, next_action, next_action_at } = body || {};
 
     const validStatuses = ['novo', 'em_atendimento', 'ganho', 'perdido'];
     if (temperature && !LEAD_TEMPERATURES.includes(temperature)) {
@@ -121,6 +128,12 @@ export async function handleLeadRoutes(req, res, pathname, body) {
     if (status && !validStatuses.includes(status)) {
       return sendJson(res, 400, { error: `Situação inválida. Permitidos: ${validStatuses.join(', ')}` });
     }
+    const hasAction = Object.hasOwn(body || {}, 'next_action');
+    const hasDate = Object.hasOwn(body || {}, 'next_action_at');
+    if (hasAction !== hasDate || (hasAction && (String(next_action || '').length > 200 || Boolean(String(next_action || '').trim()) !== Boolean(next_action_at) || (next_action_at && !Number.isFinite(Date.parse(next_action_at)))))) {
+      return sendJson(res, 400, { error: 'Informe uma próxima ação e uma data válida, ou remova ambas.' });
+    }
+    if (!db.prepare('SELECT id FROM leads WHERE id = ?').get(id)) return sendJson(res, 404, { error: 'Contato não encontrado.' });
 
     db.prepare(`
       UPDATE leads SET
@@ -128,7 +141,8 @@ export async function handleLeadRoutes(req, res, pathname, body) {
         temperature = COALESCE(?, temperature),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(status, temperature, id);
+    `).run(status || null, temperature || null, id);
+    if (hasAction) db.prepare('UPDATE leads SET next_action = ?, next_action_at = ? WHERE id = ?').run(String(next_action || '').trim() || null, next_action_at ? new Date(next_action_at).toISOString() : null, id);
 
     // Registra no histórico (Nível 2+ se houver nota)
     if (note) {

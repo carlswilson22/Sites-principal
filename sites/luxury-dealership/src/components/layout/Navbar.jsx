@@ -9,6 +9,7 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'estoque', label: 'Estoque' },
     { id: 'destaques', label: 'Destaques' },
     { id: 'servicos', label: 'Serviços' },
+    { id: 'agenda', label: 'Agenda' },
     { id: 'sobre-contato', label: 'Sobre Nós e Contato' }
   ];
   const activePage = currentPage === 'favoritos' ? 'estoque' : ['simulador', 'troca'].includes(currentPage) ? 'servicos' : currentPage;

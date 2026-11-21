@@ -322,14 +322,17 @@ for (const [model, scenario] of scenarios) {
         assertSingleWhatsapp();
       }
       button('Simular financiamento deste veículo').click();
+      await wait(() => document.querySelector('[data-financing-vehicle]'));
+      assert(!loginForm(), 'Simulador exigiu login');
+      button('Entrar').click();
       await wait(() => loginForm());
-      assert(!document.querySelector('[data-financing-vehicle]') && ad.isConnected, 'Simulador abriu antes do login ou fechou o anúncio');
+      assert(document.querySelector('[data-financing-vehicle]') && ad.isConnected, 'Simulador público perdeu o anúncio');
       assert.equal(document.querySelector('[data-account-theme]').dataset.accountTheme, { 'auto-dealership': 'classic', 'luxury-dealership': 'editorial', 'popular-dealership': 'workspace' }[model], 'Login não segue a identidade da loja');
       assert(!button('Equipe da loja') && !button('Preencher acesso de teste') && !button('Experimentar conta de cliente'), 'Atalhos removidos continuam no login');
       assert.equal(loginForm().elements.namedItem('email').value, '', 'Login preencheu o e-mail automaticamente');
       assert.equal(loginForm().elements.namedItem('password').value, '', 'Login preencheu a senha automaticamente');
       await setLoginFields('cliente@demo.invalid', 'Cliente@2026');
-      assert(!document.querySelector('[data-financing-vehicle]'), 'Preencher os campos iniciou uma sessão sem confirmação');
+      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Preencher os campos iniciou uma sessão sem confirmação');
       document.querySelector('button[aria-label="Mostrar senha"]').click();
       await wait(() => loginForm().elements.namedItem('password').type === 'text');
       assert.equal(loginForm().elements.namedItem('password').value, 'Cliente@2026', 'Mostrar senha alterou a credencial');
@@ -353,8 +356,8 @@ for (const [model, scenario] of scenarios) {
       assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Recuperação iniciou uma sessão sem confirmação');
       window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
       await wait(() => !loginForm());
-      assert(ad.isConnected && !document.querySelector('[data-financing-vehicle]'), 'Cancelar login abriu a ferramenta');
-      button('Simular financiamento deste veículo').click();
+      assert(ad.isConnected && document.querySelector('[data-financing-vehicle]'), 'Cancelar login fechou a ferramenta pública');
+      button('Entrar').click();
       await submitLogin('proprietario@demo.invalid', 'Cliente@2026', true);
       assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Senha incorreta criou uma sessão');
       assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Credenciais inválidas liberaram o painel');
@@ -397,6 +400,7 @@ for (const [model, scenario] of scenarios) {
       assert(financing.querySelector('[data-monthly-payment]').textContent.includes('••••'), 'Parcela apareceu antes de enviar os dados');
       const simulationForm = financing.querySelector('form[aria-label="Enviar simulação de financiamento"]');
       assert(simulationForm && !simulationForm.querySelector('button[type="submit"]').disabled);
+      await changeField(simulationForm.querySelector('input[autocomplete="name"]'), 'Cliente de Teste');
       await changeField(simulationForm.querySelector('input[type="tel"]'), '(61) 99999-1234');
       simulationForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
       await wait(() => simulationForm.querySelector('[role="alert"]'));
@@ -481,6 +485,25 @@ for (const [model, scenario] of scenarios) {
     }
     document.querySelector('button[title="Fechar (Esc)"]').click();
     await wait(() => !document.querySelector('[role="dialog"]'));
+    if (fullFlow) {
+      button('Agenda').click();
+      await wait(() => document.querySelector('form[data-booking-form]'));
+      assert(!loginForm(), 'Agenda exigiu login');
+      const booking = document.querySelector('form[data-booking-form]');
+      button('Test drive').click();
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const day = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+      await changeField(booking.querySelector('input[type="date"]'), day);
+      await changeField(booking.querySelectorAll('select')[1], '10:00');
+      await changeField(booking.querySelector('input[autocomplete="name"]'), 'Visitante Agenda');
+      await changeField(booking.querySelector('input[type="tel"]'), '(61) 98888-1234');
+      booking.querySelector('input[type="checkbox"]').click();
+      booking.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      await wait(() => booking.querySelector('[role="status"]')?.textContent.includes('Solicitação registrada'));
+      const entry = JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`)).find(item => item.name === 'Visitante Agenda');
+      assert.equal(entry.simulation_data.booking.type, 'test_drive');
+      assert(!loginForm(), 'Agendamento criou exigência de login');
+    }
     button('Sobre Nós e Contato').click();
     await wait(() => document.querySelector('[data-store-photo]'));
     assert.equal(document.querySelectorAll('a[href^="mailto:"]').length, 1, 'Contato duplicado na página institucional');
@@ -492,26 +515,25 @@ for (const [model, scenario] of scenarios) {
       inquiry.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
       await wait(() => inquiry.querySelector('[role="alert"]'));
       assert.equal(openedWindows.length, 0, 'Contato inválido abriu o WhatsApp');
-      for (const [name, value] of Object.entries({ nome: 'Cliente de Teste', telefone: '(61) 90000-0000', email: 'cliente@example.test', mensagem: 'Quero conhecer melhor um veículo do catálogo.' })) {
+      for (const [name, value] of Object.entries({ nome: 'Cliente de Teste', telefone: '(61) 90000-0000' })) {
         const input = inquiry.elements.namedItem(name);
         const prototype = input.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
         Object.getOwnPropertyDescriptor(prototype, 'value').set.call(input, value);
         input.dispatchEvent(new window.Event('input', { bubbles: true }));
       }
       await new Promise(resolve => setTimeout(resolve, 20));
+      inquiry.querySelector('input[type="checkbox"]').click();
       inquiry.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-      await wait(() => openedWindows.length === 1);
-      const destination = new URL(openedWindows[0][0]);
-      assert.equal(destination.hostname, 'wa.me');
-      assert(destination.searchParams.get('text').includes('Cliente de Teste') && destination.searchParams.get('text').includes('Quero conhecer melhor um veículo do catálogo.'), 'Mensagem perdeu os dados do cliente');
+      await wait(() => inquiry.querySelector('[role="status"]'));
+      assert.equal(openedWindows.length, 0, 'Formulário curto abriu WhatsApp sem solicitação');
       const storeKey = inquiry.dataset.storeInquiry;
       const leads = JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`));
       assert(leads.some(lead => lead.name === 'Cliente de Teste' && lead.source === 'formulario_site'), 'Contato não acompanha a loja no painel');
       assert.equal(inquiry.querySelector('[role="alert"]'), null);
-      assert(inquiry.querySelector('[role="status"]').textContent.includes('Continue no WhatsApp'), 'Confirmação de encaminhamento incorreta');
+      assert(inquiry.querySelector('[role="status"]').textContent.includes('Contato registrado'), 'Confirmação de contato incorreta');
       inquiry.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
       await new Promise(resolve => setTimeout(resolve, 20));
-      assert.equal(openedWindows.length, 1, 'Mensagem já preparada abriu conversa duplicada');
+      assert.equal(openedWindows.length, 0, 'Contato abriu conversa duplicada');
       assert.equal(JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`)).filter(lead => lead.name === 'Cliente de Teste' && lead.source === 'formulario_site').length, 1, 'Formulário duplicou o contato');
       if (model === 'popular-dealership') {
         const address = [...document.querySelectorAll('details')].find(item => item.querySelector('summary')?.textContent.includes('Endereço'));
@@ -687,6 +709,18 @@ for (const [model, scenario] of scenarios) {
       await wait(() => document.querySelector('[role="dialog"]'));
       const registrationAd = document.querySelector('[role="dialog"]');
       button('Simular financiamento deste veículo').click();
+      await wait(() => document.querySelector('[data-financing-vehicle]'));
+      assert(!loginForm(), 'Simulador exigiu conta');
+      const guestFinancing = document.querySelector('[data-financing-vehicle]');
+      const guestForm = guestFinancing.querySelector('form[aria-label="Enviar simulação de financiamento"]');
+      await changeField(guestForm.querySelector('input[autocomplete="name"]'), 'Simulação sem conta');
+      await changeField(guestForm.querySelector('input[type="tel"]'), '(61) 97777-0000');
+      guestForm.querySelector('input[type="checkbox"]').click();
+      guestForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+      await wait(() => guestFinancing.textContent.includes('Simulação registrada.'));
+      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Simulação abriu sessão');
+      assert(JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`)).some(lead => lead.name === 'Simulação sem conta' && lead.simulation_data?.parcelas), 'Simulação pública não gerou contato');
+      button('Entrar').click();
       await wait(() => loginForm());
       button('Criar conta').click();
       const newCustomer = { name: 'Cliente cadastrado', email: `cliente-${scenario}@example.test`, password: 'NovaSenha@2026', confirmPassword: 'NovaSenha@2026' };

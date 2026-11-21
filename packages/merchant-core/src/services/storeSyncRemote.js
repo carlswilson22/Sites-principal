@@ -8,6 +8,7 @@
  * - As funções que alteram dados devolvem Promise: quem chama usa `await` (em demonstração continuam síncronas).
  */
 import { apiFetch, ApiError, mediaPath, mediaUrl } from './remote.js';
+import { marketingAttribution } from '../utils/marketing.js';
 import { VEHICLE_PLACEHOLDER, leadFromApi, leadToApi, vehicleFromApi, vehicleToApi } from '../utils/vehicleAdapter.js';
 
 const EVENT_PREFIX = 'merchant_store_update_';
@@ -144,7 +145,7 @@ export const remoteStoreSync = {
   getLeads() { return state.leads; },
 
   async addLead(storeKey, lead) {
-    await apiFetch('/leads', { method: 'POST', body: leadToApi(lead) });
+    await apiFetch('/leads', { method: 'POST', body: leadToApi({ ...marketingAttribution(), ...lead }) });
     // A equipe vê o contato novo na lista; o visitante não tem acesso e a chamada abaixo é ignorada.
     await refreshLeads(storeKey).catch(() => {});
     return state.leads;
@@ -154,6 +155,8 @@ export const remoteStoreSync = {
     const body = {};
     if (updates.status) body.status = updates.status;
     if (updates.temperature) body.temperature = updates.temperature;
+    if (Object.hasOwn(updates, 'next_action')) body.next_action = updates.next_action;
+    if (Object.hasOwn(updates, 'next_action_at')) body.next_action_at = updates.next_action_at;
     if (updates.note) body.note = String(updates.note).slice(0, 500);
     if (Object.keys(body).length) await apiFetch(`/leads/${leadId}/status`, { method: 'PATCH', body });
     await refreshLeads(storeKey);

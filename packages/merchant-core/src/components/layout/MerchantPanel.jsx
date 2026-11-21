@@ -8,6 +8,7 @@ import { LoginView } from '../../pages/LoginView';
 import { DashboardView } from '../../pages/DashboardView';
 import { InventoryView } from '../../pages/InventoryView';
 import { LeadsView } from '../../pages/LeadsView';
+import { AgendaView } from '../../pages/AgendaView';
 import { ClientsView } from '../../pages/ClientsView';
 import { ContractsView } from '../../pages/ContractsView';
 import { FipePricingView } from '../../pages/FipePricingView';
@@ -22,7 +23,7 @@ import { AuditLgpdView } from '../../pages/AuditLgpdView';
 import { AnalyticsView } from '../../pages/AnalyticsView';
 import { FinancingView } from '../../pages/FinancingView';
 
-const merchantViews = { dashboard: DashboardView, inventory: InventoryView, leads: LeadsView, clients: ClientsView,
+const merchantViews = { dashboard: DashboardView, inventory: InventoryView, leads: LeadsView, agenda: AgendaView, clients: ClientsView,
   financing: FinancingView, fipe: FipePricingView, contracts: ContractsView, financial: FinancialView, analytics: AnalyticsView,
   consignments: ConsignmentsView, contracts_adv: AdvancedContractsView, financial_full: FullFinancialView,
   market_pricing: MarketPricingView, funnel: SalesFunnelView, stories: StoryStudioView, audit_lgpd: AuditLgpdView };
