@@ -1,0 +1,39 @@
+@keyframes merchant-view-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.merchant-sidebar-section-content { display: grid; grid-template-rows: 0fr; opacity: 0; }
+.merchant-sidebar-section-inner { min-height: 0; overflow: hidden; }
+[data-sidebar-section][data-expanded="true"] .merchant-sidebar-section-content { grid-template-rows: 1fr; opacity: 1; }
+[data-sidebar-section][data-expanded="true"] .merchant-sidebar-chevron { transform: rotate(180deg); }
+
+@media (max-width: 1023px) {
+  .merchant-sidebar { visibility: hidden; pointer-events: none; transform: translateX(-105%); }
+  .merchant-sidebar[data-open="true"] { visibility: visible; pointer-events: auto; transform: translateX(0); }
+  .merchant-sidebar-backdrop { visibility: hidden; opacity: 0; pointer-events: none; }
+  .merchant-sidebar-backdrop[data-open="true"] { visibility: visible; opacity: 1; pointer-events: auto; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .merchant-sidebar-section-content { transition: grid-template-rows 260ms ease, opacity 200ms ease; }
+  .merchant-sidebar-chevron { transition: transform 260ms ease; }
+  [data-merchant-view] { animation: merchant-view-enter 260ms ease-out backwards; }
+  [data-merchant-panel] button:not(:disabled) { transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+  [data-merchant-panel] button:not(:disabled):active { transform: scale(.97); }
+  @media (hover: hover) {
+    [data-merchant-panel] button:not(:disabled):hover { transform: translateY(-1px); }
+    [data-merchant-panel] button:not(:disabled):active { transform: translateY(0) scale(.97); }
+  }
+  @media (max-width: 1023px) {
+    .merchant-sidebar { transition: transform 260ms ease, visibility 0s linear 260ms; }
+    .merchant-sidebar[data-open="true"] { transition: transform 260ms ease, visibility 0s; }
+    .merchant-sidebar-backdrop { transition: opacity 260ms ease, visibility 0s linear 260ms; }
+    .merchant-sidebar-backdrop[data-open="true"] { transition: opacity 260ms ease, visibility 0s; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-merchant-view] { animation: none; }
+  .merchant-sidebar-section-content, .merchant-sidebar-chevron, .merchant-sidebar, .merchant-sidebar-backdrop { transition: none; }
+}

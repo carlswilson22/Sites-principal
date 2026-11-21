@@ -1,0 +1,63 @@
+/* Public navigation, menus and disclosures share the same restrained motion. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-store-theme] button:not(:disabled) {
+    transition-property: color, background-color, border-color, box-shadow, opacity, filter, scale;
+    transition-duration: 180ms;
+    transition-timing-function: ease;
+  }
+  [data-store-theme] button:not(:disabled):active { scale: .98; }
+
+  [data-store-disclosure] {
+    display: grid;
+    overflow: hidden;
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  [data-store-disclosure][data-open="true"] { animation: store-expand 220ms ease-out both; }
+  [data-store-disclosure][data-open="false"] { animation: store-collapse 220ms ease-in both; pointer-events: none; }
+  [data-store-disclosure] > div { min-height: 0; overflow: hidden; }
+  [data-store-disclosure][hidden] { display: none; }
+
+  [data-account-menu][data-open="true"] { animation: store-menu-in 180ms ease-out both; }
+  [data-account-menu][data-open="false"] { animation: store-menu-out 180ms ease-in both; pointer-events: none; }
+}
+
+@keyframes store-expand { from { grid-template-rows: 0fr; opacity: 0; } to { grid-template-rows: 1fr; opacity: 1; } }
+@keyframes store-collapse { from { grid-template-rows: 1fr; opacity: 1; } to { grid-template-rows: 0fr; opacity: 0; } }
+@keyframes store-menu-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes store-menu-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-6px) scale(.98); } }
+
+/* Native details keep their keyboard behavior; older browsers use their normal
+   instant disclosure when they do not support animating intrinsic sizes. */
+@supports (interpolate-size: allow-keywords) and selector(details::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-store-theme] details { interpolate-size: allow-keywords; }
+    [data-store-theme] details::details-content {
+      block-size: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: block-size 220ms ease, opacity 180ms ease, content-visibility 220ms allow-discrete;
+    }
+    [data-store-theme] details[open]::details-content { block-size: auto; opacity: 1; }
+  }
+}
+
+@media (max-width: 767px) {
+  .store-mobile-navigation {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .store-mobile-navigation[data-open="true"] { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
+  .store-mobile-navigation > div { min-height: 0; overflow-y: auto; }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .store-mobile-navigation { transition: grid-template-rows 220ms ease, opacity 180ms ease, visibility 0s linear 220ms; }
+  .store-mobile-navigation[data-open="true"] { transition: grid-template-rows 220ms ease, opacity 180ms ease, visibility 0s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-mobile-navigation, [data-store-disclosure], [data-account-menu] { animation: none !important; transition: none !important; }
+}

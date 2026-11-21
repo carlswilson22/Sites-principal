@@ -20,6 +20,7 @@ import { useFavorites } from './hooks/useFavorites';
 import { useComparator } from './hooks/useComparator';
 import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
 import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
+import { PublicModalTransition } from '../../../packages/merchant-core/src/components/common/PublicModalTransition';
 import { BookingPage } from '../../../packages/merchant-core/src/components/common/BookingForm';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
@@ -203,8 +204,8 @@ function StoreApp() {
       )}
 
       {/* Modal Global de Detalhes com TCO, 360° e Galeria Expandida */}
-      {comparisonOpen && <React.Suspense fallback={<p role="status" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-slate-900 p-4 text-cyan-200">Abrindo comparação…</p>}><VehicleComparatorModal key={user ? `${user.role}:${user.id}` : 'guest'} vehicles={publishedVehicles} comparedVehicles={comparedVehicles} onConfirm={replaceCompared} onClose={() => setComparisonOpen(false)} onSelectVehicle={vehicle => { setComparisonOpen(false); openVehicle(vehicle); }} /></React.Suspense>}
-      {selectedVehicleForModal && (
+      <PublicModalTransition open={comparisonOpen}>{comparisonOpen && <React.Suspense fallback={<p role="status" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-slate-900 p-4 text-cyan-200">Abrindo comparação…</p>}><VehicleComparatorModal key={user ? `${user.role}:${user.id}` : 'guest'} vehicles={publishedVehicles} comparedVehicles={comparedVehicles} onConfirm={replaceCompared} onClose={() => setComparisonOpen(false)} onSelectVehicle={vehicle => { setComparisonOpen(false); openVehicle(vehicle); }} /></React.Suspense>}</PublicModalTransition>
+      <PublicModalTransition open={Boolean(selectedVehicleForModal)}>{selectedVehicleForModal && (
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
@@ -213,23 +214,23 @@ function StoreApp() {
           isFavorite={isFavorite(selectedVehicleForModal.id)}
           onToggleFavorite={toggleFavorite}
         />
-      )}
+      )}</PublicModalTransition>
 
       {/* Modal de Dossiê Oficial de Procedência */}
-      {dossierVehicle && (
+      <PublicModalTransition open={Boolean(dossierVehicle)}>{dossierVehicle && (
         <OfficialDossierModal
           vehicle={dossierVehicle}
           onClose={() => setDossierVehicle(null)}
         />
-      )}
+      )}</PublicModalTransition>
 
       {/* Modal de Alerta de Preço */}
-      {priceAlertVehicle && isAuthenticated && (
+      <PublicModalTransition open={Boolean(priceAlertVehicle && isAuthenticated)}>{priceAlertVehicle && isAuthenticated && (
         <PriceAlertModal
           vehicle={priceAlertVehicle}
           onClose={() => setPriceAlertVehicle(null)}
         />
-      )}
+      )}</PublicModalTransition>
 
     </div>
   );

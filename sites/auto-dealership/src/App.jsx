@@ -11,6 +11,7 @@ import { VehicleDetailModal } from './components/vehicles/VehicleDetailModal';
 import { vehiclesData } from './data/vehicles';
 import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
 import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
+import { PublicModalTransition } from '../../../packages/merchant-core/src/components/common/PublicModalTransition';
 import { BookingPage } from '../../../packages/merchant-core/src/components/common/BookingForm';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 
@@ -114,12 +115,12 @@ function StoreApp() {
       <Footer compact={currentPage === 'sobre-contato'} />
 
       {/* Modal Global de Detalhes & Galeria Expandida */}
-      {selectedVehicleForModal && (
+      <PublicModalTransition open={Boolean(selectedVehicleForModal)}>{selectedVehicleForModal && (
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
         />
-      )}
+      )}</PublicModalTransition>
 
     </div>
   );

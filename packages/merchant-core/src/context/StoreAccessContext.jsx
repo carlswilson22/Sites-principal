@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from './AuthContext';
 import { AccountLoginDialog } from '../components/common/AccountLoginDialog';
+import { PublicModalTransition } from '../components/common/PublicModalTransition';
 import { customerPages } from '../utils/siteAccess';
 import { isStaffUser } from '../services/demoConfig';
 import { storeSync } from '../services/storeSync';
@@ -47,7 +48,7 @@ function StoreAccess({ storeKey, storeName, children }) {
   };
   return <StoreAccessContext.Provider value={{ ...auth, storeKey, storeName, storeError, requestLogin, requireLogin, authorizeNavigation }}>
     {children}
-    {loginRequest && <AccountLoginDialog reason={loginRequest.reason} storeKey={storeKey} storeName={storeName} onClose={close} onSuccess={onLogin} />}
+    <PublicModalTransition open={Boolean(loginRequest)}>{loginRequest && <AccountLoginDialog reason={loginRequest.reason} storeKey={storeKey} storeName={storeName} onClose={close} onSuccess={onLogin} />}</PublicModalTransition>
   </StoreAccessContext.Provider>;
 }
 

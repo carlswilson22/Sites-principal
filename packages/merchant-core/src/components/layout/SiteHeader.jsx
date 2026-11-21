@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { SiteAccountControls } from './SiteAccountControls';
+import './storeInteractions.css';
 
 export function SiteHeader({ currentPage, onNavigate, links, name, Logo, variant = 'classic', favoritesEnabled = false, favoritesCount = 0, favoritesActive = false }) {
   const [open, setOpen] = useState(false);
@@ -28,10 +29,12 @@ export function SiteHeader({ currentPage, onNavigate, links, name, Logo, variant
           {open ? <X aria-hidden="true" className="w-5 h-5" /> : <Menu aria-hidden="true" className="w-5 h-5" />}
         </button>
       </div>
-      <nav id={navigationId} aria-label="Navegação principal" className={`${open ? 'flex' : 'hidden'} md:flex flex-col md:flex-row md:items-center ${editorial ? 'md:justify-center' : ''} gap-1 pb-3 md:pb-2 max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain md:max-h-none md:overflow-visible`}>
+      <nav id={navigationId} aria-label="Navegação principal" data-open={open} className="store-mobile-navigation">
+        <div className={`flex flex-col md:flex-row md:items-center ${editorial ? 'md:justify-center' : ''} gap-1 pb-3 md:pb-2 max-h-[calc(100dvh-8rem)] overscroll-contain md:max-h-none md:overflow-visible`}>
         {links.map(link => <button key={link.id} type="button" aria-current={currentPage === link.id ? 'page' : undefined} style={currentPage === link.id ? { backgroundColor: 'var(--store-action)', color: '#fff', borderColor: 'var(--store-action)' } : undefined} onClick={() => navigate(link.id)} className={`min-h-11 px-3 sm:px-4 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${editorial ? `border-l-2 md:border-l-0 md:border-b-2 ${currentPage === link.id ? 'border-amber-200 text-amber-200' : 'border-transparent text-slate-300 hover:text-white'}` : workspace ? `rounded-lg ${currentPage === link.id ? 'bg-cyan-300 text-slate-950' : 'text-slate-300 hover:bg-slate-800'}` : `rounded-xl ${currentPage === link.id ? 'bg-blue-600 text-white' : 'text-slate-200 hover:bg-slate-800'}`}`}>
           {link.label}{link.count > 0 && <span className="ml-2 text-xs">{link.count}</span>}
         </button>)}
+        </div>
       </nav>
     </div>
   </header>;

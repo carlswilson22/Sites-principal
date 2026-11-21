@@ -16,10 +16,10 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-merchant-modal][data-phase="open"] > * { animation: merchant-modal-backdrop-in 200ms ease-out both; }
-  [data-merchant-modal][data-phase="open"] > * > :first-child { animation: merchant-modal-card-in 200ms ease-out both; }
-  [data-merchant-modal][data-phase="closing"] > * { animation: merchant-modal-backdrop-out 180ms ease-in both; pointer-events: none; }
-  [data-merchant-modal][data-phase="closing"] > * > :first-child { animation: merchant-modal-card-out 180ms ease-in both; }
+  [data-merchant-modal][data-phase="open"] > * { animation: merchant-modal-backdrop-in 260ms ease-out both; }
+  [data-merchant-modal][data-phase="open"] > * > :first-child { animation: merchant-modal-card-in 260ms ease-out both; }
+  [data-merchant-modal][data-phase="closing"] > * { animation: merchant-modal-backdrop-out 240ms ease-in both; pointer-events: none; }
+  [data-merchant-modal][data-phase="closing"] > * > :first-child { animation: merchant-modal-card-out 240ms ease-in both; }
 }
 
 @media (prefers-reduced-motion: reduce) {

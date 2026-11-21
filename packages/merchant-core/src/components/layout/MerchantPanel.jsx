@@ -61,11 +61,11 @@ export function MerchantPanel({ storeKey, dealership, defaultVehicles, onExitToS
       <strong className="block text-white">{newSimulations.length === 1 ? 'Nova simulação de financiamento' : `${newSimulations.length} novas simulações de financiamento`}</strong>
       <span>Veja os dados do veículo e do contato em Contatos &amp; WhatsApp.</span>
     </button>}
-    <PanelErrorBoundary key={`${active}-${storeKey}`} onRecover={() => setTab('dashboard')}>
+    <div key={`${active}-${storeKey}`} data-merchant-view={active}><PanelErrorBoundary onRecover={() => setTab('dashboard')}>
       {View ? <View storeKey={storeKey} defaultVehicles={defaultVehicles} vehicles={vehicles}
         dealership={{ ...dealership, ...dealership.endereco }} selectedClient={client}
         onNavigateTo={setTab} onClientPrefilled={() => setClient(null)} onOpenContractWithClient={selected => { setClient(selected); setTab('contracts'); }} />
         : <p role="status">Selecione uma funcionalidade no menu.</p>}
-    </PanelErrorBoundary>
+    </PanelErrorBoundary></div>
   </MerchantShell>;
 }

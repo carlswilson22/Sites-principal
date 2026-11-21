@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { hasOpenDialogs, isTopDialog, registerDialog } from '../../utils/dialogActivity.js';
 
 let previousOverflow = '';
+// Encadeia o foco de retorno quando um diálogo abre durante a saída de outro.
+const dialogFocusChains = new WeakMap();
 
 export function useDialog(onClose) {
   const ref = useRef(null);
@@ -11,6 +13,9 @@ export function useDialog(onClose) {
     const dialog = ref.current;
     if (!dialog) return;
     const previousFocus = document.activeElement;
+    const previousDialog = previousFocus?.closest?.('[role="dialog"]');
+    const focusChain = [previousFocus, ...(dialogFocusChains.get(previousDialog) || [])];
+    dialogFocusChains.set(dialog, focusChain);
     if (!hasOpenDialogs()) previousOverflow = document.body.style.overflow;
     const unregister = registerDialog(dialog);
     const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex="0"]')]
@@ -45,7 +50,11 @@ export function useDialog(onClose) {
       const wasTop = isTopDialog(dialog);
       unregister();
       if (!hasOpenDialogs()) document.body.style.overflow = previousOverflow;
-      if (wasTop && previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      if (wasTop) {
+        const target = focusChain.find(element => element?.isConnected && !element.closest?.('[data-phase="closing"]'));
+        target?.focus({ preventScroll: true });
+      }
+      dialogFocusChains.delete(dialog);
     };
   }, []);
   return ref;

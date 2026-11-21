@@ -18,7 +18,9 @@ for (const [model, scenario] of scenarios) {
   const directory = path.resolve('dist', model);
   const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
   const panelCss = fs.readdirSync(path.join(directory, 'assets')).filter(file => /^MerchantPanel-.*\.css$/.test(file)).map(file => fs.readFileSync(path.join(directory, 'assets', file), 'utf8')).join('\n');
-  assert(panelCss.includes('merchant-modal-card-in') && panelCss.includes('merchant-modal-card-out') && panelCss.includes('prefers-reduced-motion'), `Animações do painel ausentes: ${model}`);
+  assert(panelCss.includes('merchant-modal-card-in') && panelCss.includes('merchant-modal-card-out') && panelCss.includes('merchant-view-enter') && panelCss.includes('merchant-sidebar-section-content') && panelCss.includes('prefers-reduced-motion'), `Animações do painel ausentes: ${model}`);
+  const siteCss = fs.readdirSync(path.join(directory, 'assets')).filter(file => /^index-.*\.css$/.test(file)).map(file => fs.readFileSync(path.join(directory, 'assets', file), 'utf8')).join('\n');
+  assert(siteCss.includes('public-modal-card-in') && siteCss.includes('public-modal-card-out') && siteCss.includes('store-mobile-navigation') && siteCss.includes('store-collapse') && siteCss.includes('prefers-reduced-motion'), `Animações da loja ausentes: ${model}`);
   const entry = html.match(/<script[^>]+src="([^"]+)"/)?.[1];
   assert(entry, `Entrada não encontrada: ${model}`);
   const failures = [];
@@ -193,6 +195,7 @@ for (const [model, scenario] of scenarios) {
     assert(mobileMenu && mobileMenu.getAttribute('aria-expanded') === 'false', 'Menu móvel não iniciou fechado');
     mobileMenu.click();
     await wait(() => mobileMenu.getAttribute('aria-expanded') === 'true');
+    assert.equal(document.querySelector('nav[aria-label="Navegação principal"]')?.dataset.open, 'true', 'Menu do site não iniciou a abertura');
     const mobileNav = document.getElementById(mobileMenu.getAttribute('aria-controls'));
     assert(mobileNav && mobileNav.querySelector('[aria-current="page"]'), 'Menu móvel não exibe navegação e página ativa');
     window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
@@ -244,6 +247,15 @@ for (const [model, scenario] of scenarios) {
     ads[0].click();
     await wait(() => document.querySelector('[role="dialog"]'));
     if (fullFlow) {
+      const originalMotionPreference = window.matchMedia;
+      window.matchMedia = () => ({ matches: false });
+      assert.equal(document.querySelector('[role="dialog"]').closest('[data-public-modal]')?.dataset.phase, 'open', 'Anúncio sem transição de abertura');
+      document.querySelector('button[title="Fechar (Esc)"]').click();
+      await wait(() => document.querySelector('[role="dialog"]')?.closest('[data-public-modal]')?.dataset.phase === 'closing');
+      await wait(() => !document.querySelector('[role="dialog"]'));
+      window.matchMedia = originalMotionPreference;
+      ads[0].click();
+      await wait(() => document.querySelector('[role="dialog"]'));
       const vehicleAd = document.querySelector('[role="dialog"]');
       const mainGallery = vehicleAd.querySelector('[data-vehicle-gallery]');
       initialAdId = vehicleAd.dataset.vehicleId;
@@ -500,6 +512,7 @@ for (const [model, scenario] of scenarios) {
         await wait(() => button('Abrir dossiê do veículo'));
         button('Abrir dossiê do veículo').click();
         await wait(() => document.querySelector('button[aria-label="Fechar dossiê do veículo"]'));
+        await wait(() => !ad.isConnected);
         assert(!ad.isConnected && document.body.style.overflow === 'hidden', 'Dossiê não assumiu o diálogo');
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
         await wait(() => !document.querySelector('[role="dialog"]'));
@@ -739,6 +752,7 @@ for (const [model, scenario] of scenarios) {
       const chosenId = comparisonDialog().querySelector('[data-comparison-vehicle]').dataset.comparisonVehicle;
       button('Ver anúncio').click();
       await wait(() => document.querySelector('[role="dialog"][data-vehicle-id]'));
+      await wait(() => !comparisonDialog());
       assert(!comparisonDialog(), 'Anúncio abriu sobre outra janela de comparação');
       assert.equal(document.querySelector('[role="dialog"][data-vehicle-id]').dataset.vehicleId, chosenId);
       document.querySelector('button[title="Fechar (Esc)"]').click();
@@ -879,8 +893,10 @@ for (const [model, scenario] of scenarios) {
       assert.equal(panelMenuToggle.getAttribute('aria-expanded'), 'false');
       panelMenuToggle.click();
       await wait(() => panelMenuToggle.getAttribute('aria-expanded') === 'true');
+      assert.equal(document.querySelector('#merchant-navigation')?.dataset.open, 'true', 'Menu móvel não iniciou a abertura');
       window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       await wait(() => panelMenuToggle.getAttribute('aria-expanded') === 'false');
+      assert.equal(document.querySelector('#merchant-navigation')?.dataset.open, 'false', 'Menu móvel não iniciou o fechamento');
       button('Estoque de Veículos').click();
       await wait(() => document.querySelector(`[data-inventory-vehicle-id="${initialAdId}"]`));
       const inventoryCard = document.querySelector(`[data-inventory-vehicle-id="${initialAdId}"]`);
@@ -906,10 +922,17 @@ for (const [model, scenario] of scenarios) {
       const financialSection = button('Simulador de financiamento').closest('details');
       assert(financialSection.open, 'Seção do simulador não começou disponível');
       assert([...financialSection.querySelectorAll('button')].length > 1, 'Seção com apenas uma ferramenta');
+      const sidebarMotionPreference = window.matchMedia;
+      window.matchMedia = () => ({ matches: false });
       financialSection.querySelector('summary').click();
+      await wait(() => financialSection.dataset.expanded === 'false');
+      assert(financialSection.open, 'Seção desapareceu antes da animação de fechamento');
+      assert.equal(financialSection.querySelector('summary').getAttribute('aria-expanded'), 'false');
       await wait(() => !financialSection.open);
       financialSection.querySelector('summary').click();
-      await wait(() => financialSection.open);
+      await wait(() => financialSection.open && financialSection.dataset.expanded === 'true');
+      assert.equal(financialSection.querySelector('summary').getAttribute('aria-expanded'), 'true');
+      window.matchMedia = sidebarMotionPreference;
       button('Contratos & Termos').click();
       await wait(() => button('Emitir Novo Documento'));
       assert(!button('Gerar Documento'), 'Contato antigo reabriu o formulário de contrato');
@@ -961,6 +984,7 @@ for (const [model, scenario] of scenarios) {
         for (const label of labels) {
           [...menu.querySelectorAll('button')].find(item => item.textContent.trim() === label).click();
           await wait(() => menu.querySelector('button[aria-current="page"]')?.textContent.trim() === label && document.querySelector('main h1'));
+          assert(document.querySelector('[data-merchant-view]'), 'Ferramenta sem transição de entrada');
           assert(!document.querySelector('main').textContent.includes('Não foi possível abrir esta seção'), `Rota com erro: ${model}/${role}/${label}`);
           checkedRoutes += 1;
         }
@@ -1035,7 +1059,7 @@ for (const [model, scenario] of scenarios) {
         await wait(() => document.querySelector('[data-publication-id]')?.closest('[data-merchant-modal]')?.dataset.phase === 'closing');
         button('Ver publicação').click();
         await wait(() => document.querySelector('[data-publication-id]')?.closest('[data-merchant-modal]')?.dataset.phase === 'open');
-        await new Promise(resolve => setTimeout(resolve, 220));
+        await new Promise(resolve => setTimeout(resolve, 280));
         assert(document.querySelector('[data-publication-id]'), 'Reabrir durante a saída fechou a janela novamente');
         assert.equal(document.querySelector('[data-publication-id]').dataset.publicationId, publication.id, 'Botão não reabre a mesma publicação');
         window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));

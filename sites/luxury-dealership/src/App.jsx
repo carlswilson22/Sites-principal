@@ -15,6 +15,7 @@ import { vehiclesData } from './data/vehicles';
 import { dealershipInfo } from './data/dealershipInfo';
 import { storeSync } from '../../../packages/merchant-core/src/services/storeSync';
 import { MerchantEntry } from '../../../packages/merchant-core/src/components/layout/MerchantEntry';
+import { PublicModalTransition } from '../../../packages/merchant-core/src/components/common/PublicModalTransition';
 import { BookingPage } from '../../../packages/merchant-core/src/components/common/BookingForm';
 import { isPublishedVehicle } from '../../../packages/merchant-core/src/utils/vehicles';
 import { StoreServicesPage } from '../../../packages/merchant-core/src/components/layout/StoreServicesPage';
@@ -145,12 +146,12 @@ function StoreApp() {
       <Footer compact={currentPage === 'sobre-contato'} />
 
       {/* Modal Global de Detalhes & Experiência 360° */}
-      {selectedVehicleForModal && (
+      <PublicModalTransition open={Boolean(selectedVehicleForModal)}>{selectedVehicleForModal && (
         <VehicleDetailModal
           vehicle={selectedVehicleForModal}
           onClose={() => setSelectedVehicleForModal(null)}
         />
-      )}
+      )}</PublicModalTransition>
 
     </div>
   );
