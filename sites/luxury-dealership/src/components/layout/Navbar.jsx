@@ -12,6 +12,6 @@ export function Navbar({ currentPage = 'home', onNavigate, favoritesCount = 0, c
     { id: 'agenda', label: 'Agenda' },
     { id: 'sobre-contato', label: 'Sobre Nós e Contato' }
   ];
-  const activePage = currentPage === 'favoritos' ? 'estoque' : ['simulador', 'troca'].includes(currentPage) ? 'servicos' : currentPage;
+  const activePage = ['simulador', 'troca'].includes(currentPage) ? 'servicos' : currentPage;
   return <SiteHeader variant="editorial" currentPage={activePage} onNavigate={onNavigate} links={navLinks} name={dealershipInfo.nome} Logo={AutomatchLogo} favoritesEnabled favoritesCount={favoritesCount} favoritesActive={currentPage === 'favoritos'} />;
 }

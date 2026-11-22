@@ -17,6 +17,7 @@ export function StoreContactDetails({ dealership, stacked = false, tone = 'blue'
     { title: 'Horários da loja', Icon: Clock, content: <>{Object.entries(dealership.horarios || {}).map(([key, value]) => <p key={key}>{value}</p>)}</> },
     { title: 'Endereço', Icon: MapPin, content: <>
       <address className="not-italic leading-relaxed">{address.logradouro}, {address.bairro}<br />{address.cidade}/{address.uf} · CEP {address.cep}</address>
+      {dealership.cnpj && <p>CNPJ: {dealership.cnpj}</p>}
       <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`} target="_blank" rel="noopener noreferrer" className={`inline-block underline underline-offset-4 ${accent}`}>Abrir rota no Google Maps</a>
     </> },
   ];

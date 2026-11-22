@@ -1,9 +1,10 @@
+import { WhatsAppIcon } from '../../../../../packages/merchant-core/src/components/common/WhatsAppIcon.jsx';
 import { VehicleCardFacts } from '../../../../../packages/merchant-core/src/components/common/VehicleCardFacts';
 import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
 import { dealershipInfo } from '../../data/dealershipInfo';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React, { useEffect, useState } from 'react';
-import { Calendar, Gauge, Fuel, Cog, MessageCircle, Eye, Sparkles } from 'lucide-react';
+import { Calendar, Gauge, Fuel, Cog, Eye, Sparkles } from 'lucide-react';
 import { InspectionBadge } from './InspectionBadge';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -116,7 +117,7 @@ export function VehicleCard({ vehicle, onSelect, show360Badge = true }) {
             <Button
               variant="whatsapp"
               size="sm"
-              icon={MessageCircle}
+              icon={WhatsAppIcon}
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"

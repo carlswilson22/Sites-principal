@@ -206,8 +206,24 @@ for (const [model, scenario] of scenarios) {
     assert.equal(document.querySelector('nav[aria-label="Navegação principal"]')?.dataset.open, 'true', 'Menu do site não iniciou a abertura');
     const mobileNav = document.getElementById(mobileMenu.getAttribute('aria-controls'));
     assert(mobileNav && mobileNav.querySelector('[aria-current="page"]'), 'Menu móvel não exibe navegação e página ativa');
+    const aboutButton = [...mobileNav.querySelectorAll('button')].find(item => item.textContent.trim() === 'Sobre Nós e Contato');
+    const favorites = favoriteShortcut();
+    if (model === 'auto-dealership') assert(!favorites, 'Modelo sem favoritos recebeu o atalho');
+    else {
+      assert.equal(document.querySelectorAll('button[aria-label="Ver carros favoritos"]').length, 1, 'Atalho de favoritos duplicado');
+      assert(aboutButton && aboutButton.nextElementSibling === favorites, 'Favoritos não está à direita de Sobre Nós e Contato');
+    }
+    const storeFooter = document.querySelector('[data-store-theme] > footer');
+    assert(storeFooter && !/cnpj|endere[cç]o|hor[aá]rio|telefone/i.test(storeFooter.textContent) && !storeFooter.querySelector('a[href^="mailto:"],a[href^="tel:"]'), 'Rodapé contém informações da loja');
     window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await wait(() => mobileMenu.getAttribute('aria-expanded') === 'false');
+    if (fullFlow) {
+      aboutButton.click();
+      await wait(() => document.querySelector('[aria-label="Informações de contato da loja"]'));
+      assert(document.querySelector('[aria-label="Informações de contato da loja"]').textContent.includes('CNPJ'), 'CNPJ ausente da página Sobre Nós e Contato');
+      button('Início').click();
+      await wait(() => document.querySelectorAll('[data-vehicle-id]').length >= 5);
+    }
     assert(!button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Visitante nao deve ver login ou painel');
     assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Visitante recebeu perfis da equipe');
     if (model === 'popular-dealership') {
@@ -248,6 +264,12 @@ for (const [model, scenario] of scenarios) {
     }
     const ads = buttons().filter(item => item.textContent.includes('Visualizar anúncio'));
     assert(ads.length >= 5, `Vitrine incompleta: ${model}`);
+    const cardWhatsappLinks = [...document.querySelectorAll('[data-vehicle-id] a[href*="wa.me"]')];
+    assert(cardWhatsappLinks.length >= 5, 'Vitrine sem contato dos veículos');
+    for (const link of cardWhatsappLinks) {
+      const icon = link.querySelector('svg');
+      assert(icon?.querySelector('[fill="#128c4f"]') && icon.querySelector('path[fill="#fff"]'), 'Cartão sem o símbolo verde e branco do WhatsApp');
+    }
     ads[0].click();
     await wait(() => document.querySelector('[role="dialog"]'));
     if (fullFlow) {

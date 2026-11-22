@@ -1,9 +1,10 @@
+import { WhatsAppIcon } from '../../../../../packages/merchant-core/src/components/common/WhatsAppIcon.jsx';
 import { VehicleCardFacts } from '../../../../../packages/merchant-core/src/components/common/VehicleCardFacts';
 import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
 import { dealershipInfo } from '../../data/dealershipInfo';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
-import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, MessageCircle, Heart } from 'lucide-react';
+import { Shield, Sparkles, KeyRound, Zap, RotateCw, ArrowRight, Heart } from 'lucide-react';
 import { formatCurrency, formatKm } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
@@ -94,7 +95,7 @@ export function VehicleCard({ vehicle, onSelect, layout = 'grid', index, isFavor
               rel="noopener noreferrer"
               className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5"
             >
-              <MessageCircle className="w-3.5 h-3.5 fill-black" />
+              <WhatsAppIcon className="w-4 h-4 shrink-0" />
               <span>Tenho interesse</span>
             </a>
           </div>

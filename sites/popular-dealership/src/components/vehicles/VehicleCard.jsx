@@ -1,7 +1,8 @@
+import { WhatsAppIcon } from '../../../../../packages/merchant-core/src/components/common/WhatsAppIcon.jsx';
 import { VehicleCardFacts } from '../../../../../packages/merchant-core/src/components/common/VehicleCardFacts';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 ﻿import React from 'react';
-import { Heart, Scale, ShieldCheck, Zap, ArrowRight, MessageCircle, RotateCw, Bell } from 'lucide-react';
+import { Heart, Scale, ShieldCheck, Zap, ArrowRight, RotateCw, Bell } from 'lucide-react';
 import { formatCurrency, formatKm, calculateFipeDiff } from '../../utils/formatters';
 import { buildVehicleWhatsappLink } from '../../utils/whatsapp';
 
@@ -132,7 +133,7 @@ export function VehicleCard({
               rel="noopener noreferrer"
               className="px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-xs font-bold transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5"
             >
-              <MessageCircle className="w-3.5 h-3.5 fill-black" />
+              <WhatsAppIcon className="w-4 h-4 shrink-0" />
               <span>Tenho interesse</span>
             </a>
           </div>

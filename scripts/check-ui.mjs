@@ -93,6 +93,7 @@ for (const [name, Component, props] of [
     const whatsappLinks = html.split('<a ').slice(1).map(part => part.slice(0, part.indexOf('</a>'))).filter(part => part.includes('href="https://wa.me/'));
     const elementText = part => part.slice(part.indexOf('>') + 1).replace(/<[^>]*>/g, '').trim();
     const interestButtons = html.split('<button ').slice(1).map(part => elementText(part.slice(0, part.indexOf('</button>')))).filter(text => text === 'Tenho interesse');
+    if ((name.startsWith('card-modelo-') || name.startsWith('destaques-modelo-') || name.startsWith('chat-modelo-') || name.startsWith('anuncio-')) && whatsappLinks.some(link => !link.includes('data-whatsapp-icon=') || !link.includes('fill="#128c4f"') || !link.includes('fill="#fff"'))) throw new Error('Contato sem o símbolo verde e branco do WhatsApp');
     if (name.startsWith('chat-modelo-')) {
       if (whatsappLinks.length !== 1 || elementText(whatsappLinks[0]) !== 'Tenho interesse') throw new Error('Contato público ausente, duplicado ou com texto incorreto');
     }
@@ -116,7 +117,7 @@ for (const [name, Component, props] of [
     if (name.startsWith('sobre-modelo-')) {
       const visibleText = html.replace(/<[^>]*>/g, ' ');
       const dealership = props.dealership;
-      for (const value of [dealership.telefone, dealership.whatsappFormatado, dealership.email, dealership.endereco.logradouro, ...Object.values(dealership.horarios)]) {
+      for (const value of [dealership.telefone, dealership.whatsappFormatado, dealership.email, dealership.cnpj, dealership.endereco.logradouro, ...Object.values(dealership.horarios)]) {
         const encoded = renderToString(React.createElement(React.Fragment, null, value));
         if (visibleText.split(encoded).length - 1 !== 1) throw new Error('Informação de contato ausente ou duplicada: ' + value);
       }

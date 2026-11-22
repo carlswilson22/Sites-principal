@@ -1,6 +1,7 @@
+import { WhatsAppIcon } from '../../../../../packages/merchant-core/src/components/common/WhatsAppIcon.jsx';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
 import React from 'react';
-import { Sparkles, ShieldCheck, CheckCircle2, MessageCircle, ArrowRight, Gauge, Cog, Fuel } from 'lucide-react';
+import { Sparkles, ShieldCheck, CheckCircle2, ArrowRight, Gauge, Cog, Fuel } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { InspectionBadge } from '../vehicles/InspectionBadge';
 import { formatCurrency, formatKm } from '../../utils/formatters';
@@ -89,7 +90,7 @@ export function FeaturedSection({ vehicle, onSelect }) {
               <Button
                 variant="whatsapp"
                 size="md"
-                icon={MessageCircle}
+                icon={WhatsAppIcon}
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
