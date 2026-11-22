@@ -4,9 +4,6 @@ import { Sparkles, Smartphone, CheckCircle2 } from 'lucide-react';
 export const Header = () => {
   return (
     <header className="relative pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
-      <a href="#painel-do-lojista" className="absolute right-4 top-3 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
-        Painel do lojista
-      </a>
       {/* Pill Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-sm font-semibold mb-5">
         <Sparkles className="w-3.5 h-3.5 text-blue-600" />

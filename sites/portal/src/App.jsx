@@ -1,7 +1,6 @@
 import React from 'react';
 import Header from './components/Header';
 import ModelCard from './components/ModelCard';
-import MerchantAccess from './components/MerchantAccess';
 import Footer from './components/Footer';
 import ModelHub from './components/ModelHub';
 import { modelsList } from './data/modelsData';
@@ -23,7 +22,6 @@ export function App() {
               <ModelCard key={model.id} model={model} />
             ))}
           </div>
-          <MerchantAccess models={modelsList} />
         </main>
 
         <Footer />

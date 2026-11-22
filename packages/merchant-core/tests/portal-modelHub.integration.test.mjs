@@ -69,6 +69,9 @@ for (const base of ['/', '/Sites-principal/']) {
       try {
         const links = [...home.window.document.querySelectorAll('.model-card a')];
         assert.equal(links.length, 3);
+        assert.equal(home.window.document.querySelector('#painel-do-lojista'), null, 'O portal principal não deve exibir uma seção global de painel');
+        assert.equal(home.window.document.querySelector('a[href="#painel-do-lojista"]'), null, 'O portal principal não deve ter atalho global para o painel');
+        assert.equal(home.window.document.querySelector('iframe'), null, 'O painel só deve abrir após selecionar um modelo');
         for (const model of models) {
           const link = links.find(item => new URL(item.href).searchParams.get('modelo') === model.id);
           assert.ok(link, `Cartão sem link do hub de ${model.title}`);
@@ -80,6 +83,8 @@ for (const base of ['/', '/Sites-principal/']) {
             assert.equal(document.querySelector('h1')?.textContent, model.title);
             const site = [...document.querySelectorAll('a')].find(item => item.textContent.includes('Acessar o site'));
             assert.equal(site?.href, `${mainUrl}${model.id}/`);
+            assert.ok(document.querySelector('#demo-site-title'), 'Opção de acesso ao site ausente');
+            assert.ok(document.querySelector('#demo-panel-title'), 'Opção de acesso ao painel ausente');
             const back = [...document.querySelectorAll('a')].find(item => item.textContent.includes('Voltar aos modelos'));
             assert.equal(back?.href, mainUrl);
             const open = [...document.querySelectorAll('button')].find(item => item.textContent.includes('Fazer login no painel'));
