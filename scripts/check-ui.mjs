@@ -111,7 +111,7 @@ for (const [name, Component, props] of [
     if (name.startsWith('modelo-') && (html.includes('Voltar ao Topo') || html.includes('Auto-Dealership'))) throw new Error('Texto genérico ou atalho antigo presente');
     if (name.startsWith('modelo-') && (html.match(/data-vehicle-id=/g) || []).length < 5) throw new Error('Página inicial com menos de cinco veículos');
     if (name === 'portal' && html.includes('a-la-carte-title')) throw new Error('Ferramentas à la carte ainda presentes no portal');
-    if (name.startsWith('portal-hub-') && (!html.includes('Acessar o site') || !html.includes('Fazer login no painel') || !html.includes(props.model.title) || !html.includes(props.model.path) || html.includes('<iframe'))) throw new Error('Escolhas do hub individual incorretas');
+    if (name.startsWith('portal-hub-') && (!html.includes('role="dialog"') || !html.includes('aria-modal="true"') || !html.includes('Acessar o site') || !html.includes('Fazer login no painel') || !html.includes(props.model.title) || !html.includes(props.model.path) || html.includes('<iframe'))) throw new Error('Escolhas do modal de demonstração incorretas');
     if (name.startsWith('modelo-') || name.startsWith('sobre-modelo-')) {
       if (html.includes('data-store-highlight=') || ['Carros entregues com sucesso', 'Veículos periciados', 'Pré-análise de crédito', 'Veículos disponíveis'].some(label => html.includes(label))) throw new Error('Indicadores antigos ainda presentes');
       if (html.includes('Pedido de visita') || html.includes('Visitas e showroom')) throw new Error('Navegação antiga de visitas ainda presente');
