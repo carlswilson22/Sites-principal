@@ -8,6 +8,7 @@ import { DollarSign, TrendingUp, Users, Download, Building, ShieldCheck, PieChar
 import { apiClient } from '../services/apiClient';
 import { downloadBlob } from '../utils/storyArt.js';
 import { exportVehiclesToCsv } from '../utils/catalogExport.js';
+import { exportFinancialSummaryCsv } from '../utils/financialExport.js';
 import { normalizeVehicle } from '../utils/vehicles.js';
 
 export function FullFinancialView({ dealership = {}, vehicles = [] }) {
@@ -38,28 +39,9 @@ export function FullFinancialView({ dealership = {}, vehicles = [] }) {
   const handleExportBankReport = () => {
     const report = data?.bankReport;
     if (!report) return;
-    const content = `
-=====================================================
-RESUMO FINANCEIRO DOS ÚLTIMOS 12 MESES
-EMISSOR: ${dealership.nome || report.storeName}
-DATA DE EMISSÃO: ${new Date(report.generatedAt).toLocaleDateString('pt-BR')}
-=====================================================
-1. POSIÇÃO PATRIMONIAL DO ESTOQUE
-- Total de Veículos em Pátio: ${report.activeInventoryCount} unidades
-- Valor Total a Preço de Varejo: ${formatBrl(report.activeInventoryValue)}
-- Capital Próprio Imobilizado: ${formatBrl(report.ownStockInvestedCapital)}
-
-2. PERFORMANCE DOS ÚLTIMOS 12 MESES
-- Receita da loja nas vendas registradas: ${formatBrl(report.last12MonthsGrossRevenue)}
-- Resultado apurado (vendas menos custos lançados): ${formatBrl(report.last12MonthsNetProfit)}
-
-Calculado apenas com as vendas e despesas registradas no sistema.
-Não é balanço, parecer contábil nem auditoria.
-=====================================================
-Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'}.
-    `;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    downloadBlob(blob, `relatorio_bancario_12m_${new Date().getFullYear()}.txt`);
+    const content = exportFinancialSummaryCsv(report, dealership.nome, { demo: data.demo });
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+    downloadBlob(blob, 'resumo_financeiro_12_meses.csv');
   };
 
   if (loading) {
@@ -95,10 +77,11 @@ Este documento foi gerado pelo sistema de gestão da ${dealership.nome || 'loja'
           </button>
           <button
             onClick={handleExportBankReport}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+            disabled={!bankReport}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 text-xs font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
           >
             <Download className="w-4 h-4" />
-            Resumo 12 meses (TXT)
+            Resumo 12 meses (CSV)
           </button>
         </div>
       </div>

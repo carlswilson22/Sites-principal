@@ -1151,6 +1151,17 @@ for (const [model, scenario] of scenarios) {
         button('Estoque (CSV)').click();
         assert.equal(downloads.at(-1), 'catalogo-veiculos.csv');
         assert.equal(blobs.at(-1).type, 'text/csv;charset=utf-8');
+        assert(button('Resumo 12 meses (CSV)'), 'Resumo financeiro não oferece uma planilha CSV');
+        button('Resumo 12 meses (CSV)').click();
+        assert.equal(downloads.at(-1), 'resumo_financeiro_12_meses.csv');
+        assert.equal(blobs.at(-1).type, 'text/csv;charset=utf-8');
+        const financialCsv = await new Promise((resolve, reject) => {
+          const reader = new window.FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsText(blobs.at(-1));
+        });
+        assert(financialCsv.includes('Receita da loja nas vendas registradas') && financialCsv.includes('Demonstração'), 'Planilha não contém os dados financeiros de demonstração');
         assert(!openedWindows.some(([url]) => String(url).includes('/api/tier3/portals/export')), 'Exportação abriu uma rota inexistente');
         console.log('OK: Enterprise (publicação de Story, histórico, consignação, minutas, aditivo e anonimização)');
       }
