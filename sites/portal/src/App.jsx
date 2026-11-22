@@ -3,9 +3,13 @@ import Header from './components/Header';
 import ModelCard from './components/ModelCard';
 import MerchantAccess from './components/MerchantAccess';
 import Footer from './components/Footer';
+import ModelHub from './components/ModelHub';
 import { modelsList } from './data/modelsData';
+import { findSelectedModel } from './data/modelNavigation';
 
 export function App() {
+  const selected = findSelectedModel(typeof window === 'undefined' ? '' : window.location.search, modelsList);
+  if (selected) return <ModelHub model={selected} />;
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-600 selection:text-white font-sans">
       <div className="relative z-10 flex-1 flex flex-col">

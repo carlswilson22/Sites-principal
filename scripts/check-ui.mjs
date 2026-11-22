@@ -16,6 +16,8 @@ import { VehicleCard as AutoCard } from './sites/auto-dealership/src/components/
 import { VehicleCard as LuxuryCard } from './sites/luxury-dealership/src/components/vehicles/VehicleCard.jsx';
 import { VehicleCard as PopularCard } from './sites/popular-dealership/src/components/vehicles/VehicleCard.jsx';
 import PortalApp from './sites/portal/src/App.jsx';
+import ModelHub from './sites/portal/src/components/ModelHub.jsx';
+import { modelsList } from './sites/portal/src/data/modelsData.js';
 import AutoApp from './sites/auto-dealership/src/App.jsx';
 import LuxuryApp from './sites/luxury-dealership/src/App.jsx';
 import PopularApp from './sites/popular-dealership/src/App.jsx';
@@ -46,6 +48,7 @@ function AboutWithFooter({ Page, dealership }) {
 }
 for (const [name, Component, props] of [
   ['portal', PortalApp], ['modelo-1', AutoApp], ['modelo-2', LuxuryApp], ['modelo-3', PopularApp],
+  ...modelsList.map(model => ['portal-hub-' + model.id, ModelHub, { model }]),
   ...[autoVehicles, luxuryVehicles, popularVehicles].map((vehicles, index) => ['ficha-compacta-' + (index + 1), VehicleTechnicalSheet, { vehicle: vehicles[0] }]),
   ['selecao-comparacao', VehicleComparatorModal, { vehicles: popularVehicles, comparedVehicles: [], onClose: () => {}, onConfirm: () => {}, onSelectVehicle: () => {} }],
   ['servicos-modelo-2', StoreServicesPage, { premium: true, onNavigate: () => {} }],
@@ -108,6 +111,7 @@ for (const [name, Component, props] of [
     if (name.startsWith('modelo-') && (html.includes('Voltar ao Topo') || html.includes('Auto-Dealership'))) throw new Error('Texto genérico ou atalho antigo presente');
     if (name.startsWith('modelo-') && (html.match(/data-vehicle-id=/g) || []).length < 5) throw new Error('Página inicial com menos de cinco veículos');
     if (name === 'portal' && html.includes('a-la-carte-title')) throw new Error('Ferramentas à la carte ainda presentes no portal');
+    if (name.startsWith('portal-hub-') && (!html.includes('Acessar o site') || !html.includes('Fazer login no painel') || !html.includes(props.model.title) || !html.includes(props.model.path) || html.includes('<iframe'))) throw new Error('Escolhas do hub individual incorretas');
     if (name.startsWith('modelo-') || name.startsWith('sobre-modelo-')) {
       if (html.includes('data-store-highlight=') || ['Carros entregues com sucesso', 'Veículos periciados', 'Pré-análise de crédito', 'Veículos disponíveis'].some(label => html.includes(label))) throw new Error('Indicadores antigos ainda presentes');
       if (html.includes('Pedido de visita') || html.includes('Visitas e showroom')) throw new Error('Navegação antiga de visitas ainda presente');

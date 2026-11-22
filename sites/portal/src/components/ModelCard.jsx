@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExternalLink, Check, Clock } from 'lucide-react';
 import { ModelPreview } from './ModelPreview';
+import { modelHubHref } from '../data/modelNavigation';
 
 export const ModelCard = ({ model }) => {
   const isAvailable = model.status === 'available';
@@ -43,7 +44,7 @@ export const ModelCard = ({ model }) => {
       </div>
 
       <div className="model-card-action mx-6 mb-6 sm:mx-7 sm:mb-7 pt-4 border-t border-slate-200">
-        {isAvailable ? <a href={import.meta.env.BASE_URL + model.path} aria-label={`Acessar demonstração de ${model.title}`} className="w-full min-h-12 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base inline-flex items-center justify-center gap-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600">
+        {isAvailable ? <a href={modelHubHref(import.meta.env.BASE_URL, model.id)} aria-label={`Acessar demonstração de ${model.title}`} className="w-full min-h-12 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base inline-flex items-center justify-center gap-2 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600">
           Ver demonstração <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
         </a> : <button disabled className="w-full min-h-12 py-3 px-4 rounded-xl bg-slate-100 text-slate-500 font-medium text-base inline-flex items-center justify-center gap-2 border border-slate-200">
           <Clock className="w-4 h-4" /> Em desenvolvimento
