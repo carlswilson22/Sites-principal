@@ -20,6 +20,14 @@ export function getVehicle360Images(vehicle) {
   return Array.isArray(vehicle?.imagens360) ? vehicle.imagens360.map(photoSource).filter(Boolean) : [];
 }
 
+// An orbital sequence must contain distinct frames of the same car, in order.
+// The operator is responsible for choosing photographs of the advertised vehicle.
+export function validateVehicle360Images(images) {
+  if (!Array.isArray(images) || images.length === 0) return '';
+  if (images.length < 8 || new Set(images).size !== images.length) return 'Adicione ao menos 8 imagens diferentes do mesmo veículo, em ordem, para formar o giro 360°.';
+  return '';
+}
+
 export function galleryIndex(index, length) {
   return Math.min(Math.max(Number.isInteger(index) ? index : 0, 0), Math.max(length - 1, 0));
 }

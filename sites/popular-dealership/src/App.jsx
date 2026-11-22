@@ -27,7 +27,7 @@ import { StoreServicesPage } from '../../../packages/merchant-core/src/component
 
 
 import { StoreAccessProvider, useStoreAccess } from '../../../packages/merchant-core/src/context/StoreAccessContext';
-import { canAccessSitePage } from '../../../packages/merchant-core/src/utils/siteAccess';
+import { useStorePage } from '../../../packages/merchant-core/src/hooks/useStorePage';
 
 const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 const VehicleComparatorModal = React.lazy(() => import('./components/vehicles/VehicleComparatorModal').then(module => ({ default: module.VehicleComparatorModal })));
@@ -38,11 +38,11 @@ export default function App() {
 }
 
 function StoreApp() {
-  const { user, isAuthenticated, authorizeNavigation, requireLogin } = useStoreAccess();
+  const { user, authorizeNavigation } = useStoreAccess();
   const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('apexluxury', vehiclesData));
   React.useEffect(() => storeSync.subscribe('apexluxury', detail => { if (detail.type === 'VEHICLES_UPDATED') setVehicles(detail.vehicles); }), []);
   const publishedVehicles = vehicles.filter(isPublishedVehicle);
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useStorePage();
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
   const [dossierVehicle, setDossierVehicle] = useState(null);
@@ -77,13 +77,9 @@ function StoreApp() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  const openPriceAlert = vehicle => requireLogin(() => setPriceAlertVehicle(vehicle), 'Entre para solicitar um aviso de condição de preço.');
+  const openPriceAlert = vehicle => setPriceAlertVehicle(vehicle);
 
   const openVehicle = vehicle => setSelectedVehicleForModal(vehicle);
-
-  React.useEffect(() => {
-    if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
-  }, [currentPage, user]);
 
   useSiteAnalytics('apexluxury', currentPage, selectedVehicleForModal);
 
@@ -167,11 +163,11 @@ function StoreApp() {
           />
         )}
 
-        {currentPage === 'troca' && isAuthenticated && (
+        {currentPage === 'troca' && (
           <TradeInPage vehicles={publishedVehicles} />
         )}
 
-        {currentPage === 'favoritos' && isAuthenticated && (
+        {currentPage === 'favoritos' && (
           <FavoritesPage
             favoriteVehicles={favoriteVehicles}
             onNavigate={navigateTo}
@@ -225,7 +221,7 @@ function StoreApp() {
       )}</PublicModalTransition>
 
       {/* Modal de Alerta de Preço */}
-      <PublicModalTransition open={Boolean(priceAlertVehicle && isAuthenticated)}>{priceAlertVehicle && isAuthenticated && (
+      <PublicModalTransition open={Boolean(priceAlertVehicle)}>{priceAlertVehicle && (
         <PriceAlertModal
           vehicle={priceAlertVehicle}
           onClose={() => setPriceAlertVehicle(null)}

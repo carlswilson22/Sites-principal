@@ -69,6 +69,16 @@ for (const [name, Component, props] of [
       ['anuncio-novo-modelo-' + (index + 1), Component, { vehicle: normalizeVehicle({ id: 'new', title: 'Teste', price: 45000 }), onClose: () => {} }],
       ['anuncio-com-simulador-' + (index + 1), Component, { vehicle: normalizeVehicle(vehicles[0]), initialFinancing: true, onClose: () => {} }],
     ]),
+  ...(() => {
+    const vehicle = popularVehicles.find(item => item.nome === 'Toyota Corolla Cross');
+    const frames = vehicle.imagens360;
+    return [
+      ['anuncio-360-valido', PopularModal, { vehicle: normalizeVehicle(vehicle), expected360: true, onClose: () => {} }],
+      ['anuncio-360-ausente', PopularModal, { vehicle: normalizeVehicle({ ...vehicle, imagens360: [] }), expected360: false, onClose: () => {} }],
+      ['anuncio-360-incompleto', PopularModal, { vehicle: normalizeVehicle({ ...vehicle, imagens360: frames.slice(0, 7) }), expected360: false, onClose: () => {} }],
+      ['anuncio-360-repetido', PopularModal, { vehicle: normalizeVehicle({ ...vehicle, imagens360: Array(8).fill(frames[0]) }), expected360: false, onClose: () => {} }],
+    ];
+  })(),
 ]) {
   try {
     const html = renderToString(React.createElement(StoreAccessProvider, { storeKey: 'qa', storeName: 'Loja de teste' }, React.createElement(Component, props)));
@@ -124,7 +134,9 @@ for (const [name, Component, props] of [
       if (props.vehicle.imagemPrincipal.includes('/images/catalog/') && !html.includes('Foto ilustrativa do modelo')) throw new Error('Créditos da foto ausentes');
       if (html.includes('data-financing-vehicle=') !== Boolean(props.initialFinancing)) throw new Error('Montagem inicial do simulador público incorreta');
       if (html.includes('data-concierge-vehicle=') || html.includes('<textarea')) throw new Error('Chat fechado está sendo montado antecipadamente');
-      if (html.includes('data-feature="vehicle-360"') !== (Component === PopularModal)) throw new Error('360 habilitado em edição incorreta');
+      const premium360Names = ['Toyota Corolla Cross', 'Volkswagen Polo', 'Hyundai HB20'];
+      const expected360 = Component === PopularModal && (props.expected360 ?? premium360Names.includes(props.vehicle.nome));
+      if (html.includes('data-feature="vehicle-360"') !== expected360) throw new Error('360 exibido sem quadros válidos ou ausente em sequência válida');
       const services = html.indexOf('data-vehicle-services=');
       const tools = html.indexOf('data-vehicle-tools=');
       const gallery = html.indexOf('Foto 1 de ');

@@ -11,8 +11,9 @@ import { getVehicleGallery, getVehicle360Images, galleryIndex } from '../../../.
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
 import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
+import { WhatsAppIcon } from '../../../../../packages/merchant-core/src/components/common/WhatsAppIcon.jsx';
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, ClipboardList, ShieldCheck, CheckCircle2, MessageCircle, ChevronLeft, ChevronRight, RotateCw, Camera } from 'lucide-react';
+import { X, ClipboardList, ShieldCheck, CheckCircle2, ChevronLeft, ChevronRight, RotateCw, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Vehicle360Viewer } from './Vehicle360Viewer';
@@ -175,7 +176,7 @@ export function VehicleDetailModal({ vehicle, onClose, initialFinancing = false 
             <Button
               variant="gold"
               size="md"
-              icon={MessageCircle}
+              icon={WhatsAppIcon}
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"

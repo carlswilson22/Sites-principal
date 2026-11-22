@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { canAccessSitePage, customerPages } from '../src/utils/siteAccess.js';
 import { canAccessMerchantRoute, merchantPermissions } from '../src/utils/merchantAccess.js';
 
-test('visitante navega pelo catálogo e precisa entrar para usar ferramentas pessoais', () => {
+test('visitante navega pelo catálogo e usa as ferramentas públicas sem login', () => {
   for (const page of ['home', 'estoque', 'destaques', 'sobre-contato', 'servicos', 'concierge', 'comparador']) assert.equal(canAccessSitePage(page, null), true);
-  for (const page of Object.keys(customerPages)) {
-    assert.equal(canAccessSitePage(page, null), false);
-    assert.equal(canAccessSitePage(page, { role: 'desconhecido' }), false);
+  for (const page of customerPages) {
+    assert.equal(canAccessSitePage(page, null), true);
+    assert.equal(canAccessSitePage(page, { role: 'desconhecido' }), true);
     assert.equal(canAccessSitePage(page, { role: 'cliente' }), true);
   }
 });

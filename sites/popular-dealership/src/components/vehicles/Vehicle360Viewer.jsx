@@ -3,25 +3,14 @@ import { VehicleImage } from '../../../../../packages/merchant-core/src/componen
 import { RotateCw, MoveHorizontal, Compass } from 'lucide-react';
 
 export function Vehicle360Viewer({ images, autoRotate = false }) {
-  const defaultImages = [
-    '/images/cars/sc-001/0.jpg',
-    '/images/cars/sc-001/45.jpg',
-    '/images/cars/sc-001/90.jpg',
-    '/images/cars/sc-001/135.jpg',
-    '/images/cars/sc-001/180.jpg',
-    '/images/cars/sc-001/225.jpg',
-    '/images/cars/sc-001/270.jpg',
-    '/images/cars/sc-001/315.jpg'
-  ];
-
-  const frameList = images && images.length > 0 ? images : defaultImages;
+  const frameList = Array.isArray(images) ? images : [];
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startXRef = useRef(0);
   const startFrameRef = useRef(0);
 
   useEffect(() => {
-    if (!autoRotate || isDragging) return;
+    if (!autoRotate || isDragging || !frameList.length) return;
     const interval = setInterval(() => {
       setCurrentFrame(prev => (prev + 1) % frameList.length);
     }, 400);
@@ -61,6 +50,8 @@ export function Vehicle360Viewer({ images, autoRotate = false }) {
     const newFrame = (startFrameRef.current - framesToMove) % total;
     setCurrentFrame((newFrame + total) % total);
   };
+
+  if (!frameList.length) return <p role="status">Visualização 360° indisponível para este veículo.</p>;
 
   const angleDegree = Math.round((currentFrame / frameList.length) * 360);
 

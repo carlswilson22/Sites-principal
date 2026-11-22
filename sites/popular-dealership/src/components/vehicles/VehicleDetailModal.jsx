@@ -6,13 +6,14 @@ import { VehicleThumbnails } from '../../../../../packages/merchant-core/src/com
 import { VehicleAdServices } from '../../../../../packages/merchant-core/src/components/common/VehicleAdServices';
 import { hasVehicle360 } from '../../../../../packages/merchant-core/src/utils/storeExperience';
 import { dealershipInfo } from '../../data/dealershipInfo';
-import { getVehicleGallery, getVehicle360Images, galleryIndex } from '../../../../../packages/merchant-core/src/utils/vehicleGallery';
+import { getVehicleGallery, getVehicle360Images, galleryIndex, validateVehicle360Images } from '../../../../../packages/merchant-core/src/utils/vehicleGallery';
 import { VehiclePhotoCredit } from '../../../../../packages/merchant-core/src/components/common/VehiclePhotoCredit';
 import { useDialog } from '../../../../../packages/merchant-core/src/components/common/useDialog';
 import { isTopDialog } from '../../../../../packages/merchant-core/src/utils/dialogActivity';
 import { VehicleImage } from '../../../../../packages/merchant-core/src/components/common/VehicleImage.jsx';
+import { WhatsAppIcon } from '../../../../../packages/merchant-core/src/components/common/WhatsAppIcon.jsx';
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, ClipboardList, ShieldCheck, CheckCircle2, MessageCircle, ChevronLeft, ChevronRight, RotateCw, Camera, Calculator, Bell, Heart } from 'lucide-react';
+import { X, ClipboardList, ShieldCheck, CheckCircle2, ChevronLeft, ChevronRight, RotateCw, Camera, Calculator, Bell, Heart } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Vehicle360Viewer } from './Vehicle360Viewer';
 import { TcoCalculatorCard } from './TcoCalculatorCard';
@@ -198,7 +199,7 @@ export function VehicleDetailModal({
               { id: 'laudo', label: 'Laudo informado pela loja', icon: ShieldCheck, content: <VehicleInspectionDetails vehicle={vehicle} onOpenDossier={onOpenDossier} /> },
               { id: 'tco', label: 'Calculadora TCO', icon: Calculator, keepMounted: true, content: <TcoCalculatorCard vehicle={vehicle} /> },
               { id: 'galeria', label: `Galeria Expandida (${images.length})`, icon: Camera, content: <VehicleExpandedGallery images={images} vehicleName={vehicle.nome} /> },
-              ...(hasVehicle360(dealershipInfo) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: orbitalImages.length ? <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> : <p role="status" className="p-3 text-sm text-slate-300">Visualização 360° indisponível para este veículo. Consulte as fotos cadastradas na galeria.</p> }] : []),
+              ...(hasVehicle360(dealershipInfo) && orbitalImages.length >= 8 && !validateVehicle360Images(orbitalImages) ? [{ id: '360', label: 'Giro 360°', icon: RotateCw, feature: 'vehicle-360', content: <Vehicle360Viewer images={orbitalImages} autoRotate={true} /> }] : []),
             ]} />
           </VehicleAdSections>
         </div>
@@ -209,7 +210,7 @@ export function VehicleDetailModal({
             <Button
               variant="primary"
               size="md"
-              icon={MessageCircle}
+              icon={WhatsAppIcon}
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"

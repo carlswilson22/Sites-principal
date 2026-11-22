@@ -11,6 +11,7 @@ const scenarios = [
   ['popular-dealership', 'invalid-favorites'], ['popular-dealership', 'legacy-favorites'],
   ['auto-dealership', 'lan-http'],
   ['auto-dealership', 'legacy-staff'], ['popular-dealership', 'invalid-account'],
+  ['auto-dealership', 'staff-entry'], ['luxury-dealership', 'staff-entry'], ['popular-dealership', 'staff-entry'],
 ];
 for (const [model, scenario] of scenarios) {
   const storeKey = { 'auto-dealership': 'autoelite', 'luxury-dealership': 'drivenow', 'popular-dealership': 'apexluxury' }[model];
@@ -28,7 +29,7 @@ for (const [model, scenario] of scenarios) {
   virtualConsole.on('jsdomError', error => failures.push(error.message));
   virtualConsole.on('error', (...args) => failures.push(args.map(String).join(' ')));
   const origin = scenario === 'lan-http' ? 'http://192.168.1.10' : 'https://carlswilson22.github.io';
-  const dom = new JSDOM(html, { url: `${origin}/Sites-principal/${model}/`, runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
+  const dom = new JSDOM(html, { url: `${origin}/Sites-principal/${model}/${scenario === 'staff-entry' ? '#painel-lojista' : ''}`, runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
   const { window } = dom;
   // O JSDOM não carrega folhas adicionadas pelo pré-carregamento de módulos do Vite.
   const appendHead = window.document.head.appendChild.bind(window.document.head);
@@ -98,7 +99,6 @@ for (const [model, scenario] of scenarios) {
     assert(predicate(), `Estado não encontrado: ${model} (${scenario})`);
   };
   const loginForm = () => document.querySelector('form[aria-label="Login da loja"]');
-  const registrationForm = () => document.querySelector('form[aria-label="Criar conta de cliente"]');
   const favoriteShortcut = () => document.querySelector('button[aria-label="Ver carros favoritos"]');
   const changeField = async (field, value) => {
     const prototype = field instanceof window.HTMLSelectElement ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
@@ -120,49 +120,41 @@ for (const [model, scenario] of scenarios) {
     await setLoginFields(email, password);
     const form = loginForm();
     form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-    await wait(() => failure ? form.querySelector('[role="alert"]') : !document.querySelector('button[aria-label="Fechar login"]'));
-  };
-  const submitRegistration = async (values, failure = false) => {
-    await wait(() => registrationForm());
-    const form = registrationForm();
-    for (const [name, value] of Object.entries(values)) {
-      const input = form.elements.namedItem(name);
-      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, value);
-      input.dispatchEvent(new window.Event('input', { bubbles: true }));
-    }
     await new Promise(resolve => setTimeout(resolve, 20));
-    form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-    if (!failure) form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-    await wait(() => failure ? form.querySelector('[role="alert"]') : !document.querySelector('button[aria-label="Fechar login"]'));
+    await wait(() => failure ? form.querySelector('[role="alert"]') : !loginForm());
   };
   const signInStaff = async role => {
-    button('Entrar').click();
+    window.location.hash = '#painel-lojista';
     await wait(() => loginForm());
-    assert(!button('Equipe da loja'), 'Login mantém entrada separada para equipe');
-    if (role === 'atendente') {
-      button('Esqueceu a senha?').click();
-      await wait(() => document.querySelector('section[aria-label="Recuperar acesso"]'));
-      assert(document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('administrador da loja'), 'Recuperação da equipe não orienta procurar o administrador');
-      assert(!document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('Cliente@2026'), 'Recuperação da equipe mostrou credenciais de cliente');
-      button('Voltar ao login').click();
-    }
+    assert.equal(document.querySelector('[data-account-theme]').dataset.accountTheme, { 'auto-dealership': 'classic', 'luxury-dealership': 'editorial', 'popular-dealership': 'workspace' }[model]);
+    assert(!button('Criar conta'), 'O acesso da equipe nao deve oferecer cadastro de clientes');
+    assert.equal(loginForm().elements.namedItem('email').value, '');
+    assert.equal(loginForm().elements.namedItem('password').value, '');
+    await setLoginFields('cliente@demo.invalid', 'Cliente@2026');
+    document.querySelector('button[aria-label="Mostrar senha"]').click();
+    await wait(() => loginForm().elements.namedItem('password').type === 'text');
+    assert.equal(loginForm().elements.namedItem('password').value, 'Cliente@2026');
+    document.querySelector('button[aria-label="Ocultar senha"]').click();
+    await wait(() => loginForm().elements.namedItem('password').type === 'password');
+    button('Esqueceu a senha?').click();
+    await wait(() => document.querySelector('section[aria-label="Recuperar acesso"]'));
+    assert(document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('administrador da loja'));
+    button('Voltar ao login').click();
+    await wait(() => loginForm());
+    assert.equal(loginForm().elements.namedItem('password').type, 'password');
+    await submitLogin('cliente@demo.invalid', 'Cliente@2026', true);
+    assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Cliente nao pode acessar o painel');
+    await submitLogin('proprietario@demo.invalid', 'senha-incorreta', true);
+    assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Senha incorreta abriu sessao');
     await submitLogin(`${role}@demo.invalid`, 'Demonstracao@2026');
-    assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.role, role, 'Login único identificou um perfil incorreto');
-    assert(document.querySelector('button[aria-label="Painel do lojista"]'), 'Equipe autenticada sem acesso ao painel');
-    if (model === 'popular-dealership') {
-      for (const target of [document.querySelector('button[aria-label="Minha conta"]'), document.querySelector('button[aria-label="Painel do lojista"]')]) assert(favoriteShortcut().compareDocumentPosition(target) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Favoritos deve ficar à esquerda do painel e do perfil');
-    }
-    document.querySelector('button[aria-label="Painel do lojista"]').click();
     await wait(() => button('Contratos & Termos'));
-    assert.equal(document.querySelector('main h1')?.textContent.trim(), 'Painel de Controle', 'Painel não abriu na tela inicial');
-    const salesSummary = [...document.querySelectorAll('main details')].find(item => item.querySelector('summary')?.textContent.includes('Vendas e resultados'));
-    assert(salesSummary?.open, 'Indicadores de vendas começam fechados');
-    assert(!document.querySelector('#merchant-navigation').textContent.includes('· Painel do lojista'), 'Rodapé redundante ainda aparece no menu');
-    assert.equal(document.querySelector('[data-merchant-panel]')?.dataset.merchantTheme, { autoelite: 'classic', drivenow: 'editorial', apexluxury: 'workspace' }[storeKey], 'Painel não acompanha a identidade da vitrine');
+    assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.role, role);
+    assert.equal(document.querySelector('main h1')?.textContent.trim(), 'Painel de Controle');
+    assert.equal(document.querySelector('[data-merchant-panel]')?.dataset.merchantTheme, { autoelite: 'classic', drivenow: 'editorial', apexluxury: 'workspace' }[storeKey]);
     const profiles = document.querySelector('select[aria-label="Perfil de acesso"]');
-    assert(profiles, 'Painel demonstrativo sem seletor de perfis');
+    assert(profiles);
     assert.deepEqual([...profiles.options].map(option => option.value), ['proprietario', 'gerente', 'atendente']);
-    assert.equal(profiles.value, role, 'Seletor não reflete o perfil autenticado');
+    assert.equal(profiles.value, role);
   };
   const switchStaffRole = async role => {
     const profiles = document.querySelector('select[aria-label="Perfil de acesso"]');
@@ -179,16 +171,32 @@ for (const [model, scenario] of scenarios) {
     if (role === 'atendente') for (const label of ['Métricas do Site', 'Consignação', 'Contratos avançados e aditivos', 'Funil de Vendas & Giro']) assert(!button(label), `Atendente recebeu ${label}`);
   };
   const signOut = async () => {
-    const staffExit = document.querySelector('button[aria-label="Encerrar Sessão"]');
-    if (staffExit) staffExit.click();
-    else { document.querySelector('button[aria-label="Minha conta"]').click(); await wait(() => button('Sair da conta')); button('Sair da conta').click(); }
-    await wait(() => button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'));
-    assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Sair não removeu a sessão da loja');
+    const staffExit = document.querySelector('button[aria-label="Encerrar Sess\u00e3o"]');
+    assert(staffExit, 'Botao de saida da equipe ausente');
+    staffExit.click();
+    await wait(() => loginForm());
+    assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null);
+    assert.equal(window.location.hash, '#painel-lojista');
   };
   try {
     const root = moduleFor(path.join(directory, entry.slice(entry.lastIndexOf('/assets/') + 1)));
     await root.link(link);
     await root.evaluate();
+    if (scenario === 'staff-entry') {
+      await wait(() => loginForm());
+      assert(!document.querySelector('nav[aria-label="Navegação do painel"]'), 'Endereço reservado abriu o painel sem autenticação');
+      await signInStaff('atendente');
+      document.querySelector('button[aria-label="Ver vitrine da loja"]').click();
+      await wait(() => document.querySelector('[data-store-layout]'));
+      assert.equal(window.location.hash, '');
+      document.querySelector('button[aria-label="Painel do lojista"]').click();
+      await wait(() => button('Contratos & Termos'));
+      assert.equal(window.location.hash, '#painel-lojista', 'Voltar ao painel não preservou o endereço reservado');
+      await signOut();
+      assert(!document.querySelector('nav[aria-label="Navegação do painel"]'), 'Painel continuou aberto após sair');
+      console.log(`OK: ${model} (endereço reservado, acesso da equipe e saída)`);
+      continue;
+    }
     await wait(() => document.querySelector('[data-store-layout]'));
     assert(document.querySelector('#root h1'), `Página em branco: ${model}`);
     const mobileMenu = document.querySelector('button[aria-label="Abrir menu"]');
@@ -200,19 +208,16 @@ for (const [model, scenario] of scenarios) {
     assert(mobileNav && mobileNav.querySelector('[aria-current="page"]'), 'Menu móvel não exibe navegação e página ativa');
     window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await wait(() => mobileMenu.getAttribute('aria-expanded') === 'false');
-    assert(button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Primeira visita começou com acesso ao painel');
-    assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Visitante recebeu seletor de perfis da equipe');
+    assert(!button('Entrar') && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Visitante nao deve ver login ou painel');
+    assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Visitante recebeu perfis da equipe');
     if (model === 'popular-dealership') {
       assert(!document.querySelector('a[href="#explorar-enterprise"]'), 'Atalho de rolagem continua na abertura');
       for (const label of ['Comparar escolhas', 'Meus favoritos']) assert(!buttons().find(item => item.textContent.includes(label)), `Atalho não foi movido para o estoque: ${label}`);
       assert(favoriteShortcut() && favoriteShortcut().dataset.favoritesCount === '0', 'Visitante não recebeu o atalho de favoritos vazio');
-      assert(favoriteShortcut().compareDocumentPosition(button('Entrar')) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Atalho de favoritos deve ficar à esquerda do login');
       if (fullFlow) {
         favoriteShortcut().click();
-        await wait(() => loginForm());
-        assert(document.querySelector('[data-store-layout]') && !document.querySelector('h1').textContent.includes('Meus Veículos Salvos'), 'Atalho abriu favoritos sem login');
-        window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
-        await wait(() => !loginForm());
+        await wait(() => document.querySelector('h1')?.textContent.includes('Meus Ve\u00edculos Salvos'));
+        assert(!loginForm(), 'Favoritos exigiu login');
         button('Estoque').click();
         await wait(() => buttons().find(item => item.textContent.includes('Comparar escolhas')));
         buttons().find(item => item.textContent.includes('Comparar escolhas')).click();
@@ -237,7 +242,6 @@ for (const [model, scenario] of scenarios) {
       }
     } else if (model === 'luxury-dealership') {
       assert(favoriteShortcut() && favoriteShortcut().dataset.favoritesCount === '0', 'Expert (DriveNow) sem o atalho de favoritos para o visitante');
-      assert(favoriteShortcut().compareDocumentPosition(button('Entrar')) & window.Node.DOCUMENT_POSITION_FOLLOWING, 'Atalho de favoritos deve ficar à esquerda do login');
     } else assert(!favoriteShortcut(), 'Atalho de favoritos apareceu em modelo sem essa função');
     if (scenario === 'legacy-favorites') {
       assert.equal(window.localStorage.getItem('drivenow_favorites_v1'), '[1,"1",999,2]', 'Preferências antigas foram alteradas sem login');
@@ -283,6 +287,8 @@ for (const [model, scenario] of scenarios) {
       }
       assert.equal(vehicleAd.querySelectorAll('[data-ad-facts] > div').length, 4, 'Resumo inicial sem as quatro informações essenciais');
       assert(vehicleAd.querySelector('[data-ad-contact] a[href*="wa.me"]'), 'Contato não está no rodapé fixo');
+      const whatsappIcon = vehicleAd.querySelector('[data-ad-contact] a[href*="wa.me"] svg');
+      assert(whatsappIcon?.querySelector('[fill="#128c4f"]') && whatsappIcon.querySelector('path[fill="#fff"]'), 'Ícone do WhatsApp sem a marca em verde e branco');
       assert(controls.length > 0 && controls.every(control => control.getAttribute('aria-expanded') === 'false' && panelFor(control).hidden && !panelFor(control).childElementCount), 'Ferramentas carregadas antes do clique');
       for (const control of controls) {
         const panel = panelFor(control);
@@ -362,45 +368,6 @@ for (const [model, scenario] of scenarios) {
       button('Simular financiamento deste veículo').click();
       await wait(() => document.querySelector('[data-financing-vehicle]'));
       assert(!loginForm(), 'Simulador exigiu login');
-      button('Entrar').click();
-      await wait(() => loginForm());
-      assert(document.querySelector('[data-financing-vehicle]') && ad.isConnected, 'Simulador público perdeu o anúncio');
-      assert.equal(document.querySelector('[data-account-theme]').dataset.accountTheme, { 'auto-dealership': 'classic', 'luxury-dealership': 'editorial', 'popular-dealership': 'workspace' }[model], 'Login não segue a identidade da loja');
-      assert(!button('Equipe da loja') && !button('Preencher acesso de teste') && !button('Experimentar conta de cliente'), 'Atalhos removidos continuam no login');
-      assert.equal(loginForm().elements.namedItem('email').value, '', 'Login preencheu o e-mail automaticamente');
-      assert.equal(loginForm().elements.namedItem('password').value, '', 'Login preencheu a senha automaticamente');
-      await setLoginFields('cliente@demo.invalid', 'Cliente@2026');
-      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Preencher os campos iniciou uma sessão sem confirmação');
-      document.querySelector('button[aria-label="Mostrar senha"]').click();
-      await wait(() => loginForm().elements.namedItem('password').type === 'text');
-      assert.equal(loginForm().elements.namedItem('password').value, 'Cliente@2026', 'Mostrar senha alterou a credencial');
-      document.querySelector('button[aria-label="Ocultar senha"]').click();
-      await wait(() => loginForm().elements.namedItem('password').type === 'password');
-      button('Criar conta').click();
-      await wait(() => registrationForm());
-      assert(registrationForm().elements.namedItem('name') && registrationForm().elements.namedItem('confirmPassword'), 'Formulário de cadastro incompleto');
-      assert(!button('Experimentar conta de cliente'), 'Cadastro preservou o atalho da conta fictícia');
-      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Abrir o cadastro criou uma sessão');
-      button('Fazer login').click();
-      await wait(() => loginForm());
-      button('Esqueceu a senha?').click();
-      await wait(() => document.querySelector('section[aria-label="Recuperar acesso"]'));
-      assert(document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('administrador da loja'), 'Recuperação não orienta a equipe');
-      assert(!document.querySelector('section[aria-label="Recuperar acesso"]').textContent.includes('Cliente@2026') && !button('Preencher acesso de teste'), 'Recuperação mantém o acesso fictício visível');
-      button('Voltar ao login').click();
-      await wait(() => loginForm());
-      assert.equal(loginForm().elements.namedItem('email').value, 'cliente@demo.invalid');
-      assert.equal(loginForm().elements.namedItem('password').type, 'password', 'Recuperação deixou a senha exposta');
-      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Recuperação iniciou uma sessão sem confirmação');
-      window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
-      await wait(() => !loginForm());
-      assert(ad.isConnected && document.querySelector('[data-financing-vehicle]'), 'Cancelar login fechou a ferramenta pública');
-      button('Entrar').click();
-      await submitLogin('proprietario@demo.invalid', 'Cliente@2026', true);
-      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Senha incorreta criou uma sessão');
-      assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Credenciais inválidas liberaram o painel');
-      await submitLogin('  CLIENTE@DEMO.INVALID  ', 'Cliente@2026');
-      await wait(() => document.querySelector('[data-financing-vehicle]'));
       assertSingleWhatsapp();
       assert(!ad.querySelector('[data-financing-vehicle] a[href*="wa.me"]'), 'Simulador criou outro botão de WhatsApp no anúncio');
       assert.equal(document.querySelector('[data-financing-vehicle]').dataset.financingVehicle, ad.dataset.vehicleId, 'Login perdeu o contexto do veículo');
@@ -643,6 +610,7 @@ for (const [model, scenario] of scenarios) {
         document.querySelector('button[title="Salvar nos favoritos"]').click();
         await wait(() => favoriteShortcut().dataset.favoritesCount === String(index + 1));
       }
+      assert.equal(JSON.parse(window.localStorage.getItem(`customer_favorites_${storeKey}_visitante`)).length, 2, 'Favoritos do visitante não foram persistidos');
       buttons().find(item => item.textContent.includes('Meus favoritos')).click();
       await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
       const savedExpert = document.querySelectorAll('[data-vehicle-id]').length;
@@ -671,6 +639,7 @@ for (const [model, scenario] of scenarios) {
         document.querySelector('button[title="Salvar nos favoritos"]').click();
         await wait(() => favoriteShortcut().dataset.favoritesCount === String(index + 1));
       }
+      assert.equal(JSON.parse(window.localStorage.getItem(`customer_favorites_${storeKey}_visitante`)).length, 2, 'Favoritos do visitante não foram persistidos');
       buttons().find(item => item.textContent.includes('Meus favoritos')).click();
       await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
       const saved = document.querySelectorAll('[data-vehicle-id]').length;
@@ -768,21 +737,6 @@ for (const [model, scenario] of scenarios) {
       console.log('OK: Enterprise (comparação em janela, seleção, limite, cancelamento, análise e anúncio)');
     }
     if (fullFlow) {
-      await signOut();
-      if (model === 'popular-dealership') {
-        assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Visitante recebeu os favoritos da conta anterior');
-        document.querySelector('button[title="Salvar nos favoritos"]').click();
-        await wait(() => loginForm());
-        assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Favorito foi salvo sem login');
-        button('Cadastre-se').click();
-        await wait(() => registrationForm());
-        assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Abrir o cadastro iniciou uma sessão fictícia');
-        button('Fazer login').click();
-        await submitLogin('cliente@demo.invalid', 'Cliente@2026');
-        await wait(() => favoriteShortcut().dataset.favoritesCount === '2');
-        assert.equal(JSON.parse(window.localStorage.getItem('customer_favorites_apexluxury_cliente_customer-demo')).length, 2, 'Login não retomou o favorito solicitado na conta correta');
-        await signOut();
-      }
       button('Início').click();
       await wait(() => document.querySelector('[data-store-layout]'));
       buttons().find(item => item.textContent.includes('Visualizar anúncio')).click();
@@ -800,49 +754,6 @@ for (const [model, scenario] of scenarios) {
       await wait(() => guestFinancing.textContent.includes('Simulação registrada.'));
       assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Simulação abriu sessão');
       assert(JSON.parse(window.localStorage.getItem(`store_leads_${storeKey}`)).some(lead => lead.name === 'Simulação sem conta' && lead.simulation_data?.parcelas), 'Simulação pública não gerou contato');
-      button('Entrar').click();
-      await wait(() => loginForm());
-      button('Criar conta').click();
-      const newCustomer = { name: 'Cliente cadastrado', email: `cliente-${scenario}@example.test`, password: 'NovaSenha@2026', confirmPassword: 'NovaSenha@2026' };
-      await submitRegistration({ ...newCustomer, confirmPassword: 'OutraSenha@2026' }, true);
-      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null, 'Confirmação divergente criou sessão');
-      await submitRegistration(newCustomer);
-      await wait(() => document.querySelector('[data-financing-vehicle]'));
-      assert(registrationAd.isConnected && !document.querySelector('button[aria-label="Painel do lojista"]'), 'Cadastro perdeu o anúncio ou liberou o painel');
-      assert.equal(document.querySelector('[data-financing-vehicle]').dataset.financingVehicle, registrationAd.dataset.vehicleId);
-      const registeredUser = JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user;
-      assert.equal(registeredUser.role, 'cliente');
-      const registeredAccounts = window.localStorage.getItem(`demo_customer_accounts_${storeKey}`);
-      assert.equal(JSON.parse(registeredAccounts).length, 1, 'Envio repetido duplicou a conta');
-      assert(!registeredAccounts.includes(newCustomer.password), 'Cadastro guardou senha aberta');
-      document.querySelector('button[title="Fechar (Esc)"]').click();
-      await wait(() => !document.querySelector('[role="dialog"]'));
-      if (model === 'popular-dealership') {
-        assert.equal(favoriteShortcut().dataset.favoritesCount, '0', 'Nova conta herdou favoritos');
-        document.querySelector('button[title="Salvar nos favoritos"]').click();
-        await wait(() => favoriteShortcut().dataset.favoritesCount === '1');
-      }
-      await signOut();
-      if (model === 'popular-dealership') favoriteShortcut().click();
-      else button('Entrar').click();
-      await wait(() => loginForm());
-      button('Criar conta').click();
-      await submitRegistration(newCustomer, true);
-      assert(registrationForm().querySelector('[role="alert"]').textContent.includes('já possui'), 'Cadastro duplicado não foi explicado');
-      assert.equal(window.sessionStorage.getItem(`store_access_${storeKey}`), null);
-      button('Fazer login').click();
-      await submitLogin(newCustomer.email, 'Senha incorreta', true);
-      await submitLogin(newCustomer.email, newCustomer.password);
-      assert.equal(JSON.parse(window.sessionStorage.getItem(`store_access_${storeKey}`)).user.id, registeredUser.id, 'Login criou outra identidade');
-      assert(!document.querySelector('button[aria-label="Painel do lojista"]'), 'Cliente cadastrado recebeu painel');
-      assert(!document.querySelector('select[aria-label="Perfil de acesso"]'), 'Cliente cadastrado recebeu seletor de perfis da equipe');
-      if (model === 'popular-dealership') {
-        await wait(() => document.querySelector('h1')?.textContent.includes('Meus Veículos Salvos'));
-        assert.equal(JSON.parse(window.localStorage.getItem(`customer_favorites_${storeKey}_cliente_${registeredUser.id}`)).length, 1, 'Sair apagou o favorito da nova conta');
-        await wait(() => document.querySelectorAll('[data-vehicle-id]').length === 1 && favoriteShortcut().dataset.favoritesCount === '1');
-        assert.equal(favoriteShortcut().getAttribute('aria-current'), 'page');
-      }
-      await signOut();
       await signInStaff('atendente');
       button('Agenda e próximas ações').click();
       await wait(() => document.querySelector('[data-merchant-agenda]'));

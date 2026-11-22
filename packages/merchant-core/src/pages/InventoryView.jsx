@@ -5,8 +5,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MerchantModalTransition } from '../components/common/MerchantModalTransition';
 import { storeSync } from '../services/storeSync';
+import { isRemote } from '../services/remote';
 import { VehicleImage } from '../components/common/VehicleImage';
-import { getVehicleGallery } from '../utils/vehicleGallery';
+import { getVehicleGallery, getVehicle360Images, validateVehicle360Images } from '../utils/vehicleGallery';
+import { hasVehicle360 } from '../utils/storeExperience';
 import {
   Car,
   Plus,
@@ -47,7 +49,7 @@ const STANDARD_FEATURES = [
   'Piloto Automático Adaptativo / Cruise Control'
 ];
 
-export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) {
+export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [], dealership }) {
   const { hasRole } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,6 +87,11 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   // Estado do gestor de fotos (E4: até 20 fotos, capa, ordem, remoção)
   const [photosList, setPhotosList] = useState([]);
+  const [orbitalList, setOrbitalList] = useState([]);
+  const [photoMode, setPhotoMode] = useState('gallery');
+  const canEdit360 = hasVehicle360(dealership) && !isRemote;
+  const currentPhotos = photoMode === '360' ? orbitalList : photosList;
+  const setCurrentPhotos = photoMode === '360' ? setOrbitalList : setPhotosList;
 
   useEffect(() => () => { photoSession.current += 1; }, []);
 
@@ -245,6 +252,8 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     setSelectedVehicle(v);
     const gallery = getVehicleGallery(v);
     setPhotosList(gallery);
+    setOrbitalList(getVehicle360Images(v));
+    setPhotoMode('gallery');
     setIsPhotosModalOpen(true);
   };
 
@@ -254,7 +263,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
     e.target.value = '';
     if (!files.length || readingPhotos.current) return;
 
-    if (photosList.length + files.length > 20) {
+    if (currentPhotos.length + files.length > 20) {
       setError('Limite excedido: selecione no máximo 20 fotos por veículo.');
       return;
     }
@@ -300,7 +309,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
         reader.readAsDataURL(file);
       })));
       if (photoSession.current !== session) return;
-      setPhotosList(previous => [...previous, ...photos]);
+      setCurrentPhotos(previous => [...previous, ...photos]);
     } catch (failure) {
       if (photoSession.current === session) setError(failure.message || 'Não foi possível processar as fotos.');
     } finally {
@@ -313,35 +322,40 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
   // Definir foto de capa
   const handleSetCover = (index) => {
-    const updated = [...photosList];
+    const updated = [...currentPhotos];
     const [selected] = updated.splice(index, 1);
     updated.unshift(selected); // Capa fica no topo (índice 0)
-    setPhotosList(updated);
+    setCurrentPhotos(updated);
   };
 
   // Reordenar fotos (mover para esquerda ou direita)
   const handleMovePhoto = (index, direction) => {
     const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= photosList.length) return;
-    const updated = [...photosList];
+    if (targetIndex < 0 || targetIndex >= currentPhotos.length) return;
+    const updated = [...currentPhotos];
     const [item] = updated.splice(index, 1);
     updated.splice(targetIndex, 0, item);
-    setPhotosList(updated);
+    setCurrentPhotos(updated);
   };
 
   // Remover foto
   const handleRemovePhoto = (index) => {
-    setPhotosList(prev => prev.filter((_, i) => i !== index));
+    setCurrentPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   // Salvar fotos no veículo (E4) com storeSync
   const handleSavePhotos = async () => {
     if (readingPhotos.current) return;
+    const originalFrames = getVehicle360Images(selectedVehicle);
+    const changedFrames = orbitalList.length !== originalFrames.length || orbitalList.some((frame, index) => frame !== originalFrames[index]);
+    const orbitalError = canEdit360 && changedFrames ? validateVehicle360Images(orbitalList) : '';
+    if (orbitalError) { setError(orbitalError); return; }
     if (selectedVehicle) {
       const updatedVehicle = {
         ...selectedVehicle,
         cover_photo: photosList[0] || '',
-        photos: photosList
+        photos: photosList,
+        ...(canEdit360 ? { imagens360: orbitalList } : {})
       };
       if (!(await saveVehicle(updatedVehicle))) return;
     }
@@ -726,10 +740,10 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               <div>
                 <h2 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
                   <ImageIcon className="w-5 h-5 text-blue-400" />
-                  Galeria de Fotos: {selectedVehicle?.title}
+                  {photoMode === '360' ? 'Quadros do giro 360°' : 'Galeria de Fotos'}: {selectedVehicle?.title}
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Até 20 fotos por veículo. A primeira imagem é a Capa Principal do anúncio.
+                  {photoMode === '360' ? 'Envie de 8 a 20 fotos diferentes do mesmo veículo em ordem ao redor dele.' : 'Até 20 fotos por veículo. A primeira imagem é a Capa Principal do anúncio.'}
                 </p>
               </div>
               <button
@@ -745,11 +759,15 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {error && <p role="alert" className="p-3 rounded-xl border border-rose-700 text-rose-200 bg-rose-950/40">{error}</p>}
               {isReadingPhotos && <p role="status" className="text-sm text-blue-200">Processando fotos… Aguarde antes de salvar a galeria.</p>}
+              {canEdit360 && <div className="flex gap-2" aria-label="Tipo de imagens">
+                <button type="button" disabled={isReadingPhotos} aria-pressed={photoMode === 'gallery'} onClick={() => { setPhotoMode('gallery'); setError(''); }} className={`rounded-lg px-3 py-2 text-sm font-semibold ${photoMode === 'gallery' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200'}`}>Fotos do anúncio</button>
+                <button type="button" disabled={isReadingPhotos} aria-pressed={photoMode === '360'} onClick={() => { setPhotoMode('360'); setError(''); }} className={`rounded-lg px-3 py-2 text-sm font-semibold ${photoMode === '360' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200'}`}>Giro 360° ({orbitalList.length})</button>
+              </div>}
               {/* Upload de Imagens */}
               <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-900/40 hover:bg-slate-900/80 transition-all text-center">
                 <Upload className="w-8 h-8 text-blue-400 mb-2" />
                 <span className="text-xs sm:text-sm font-semibold text-slate-200">
-                  Selecione até {20 - photosList.length} fotos adicionais
+                  Selecione até {20 - currentPhotos.length} fotos adicionais
                 </span>
                 <span className="text-[11px] text-slate-400 mt-1">
                   Formatos aceitos: JPG, PNG, WebP (máx. 10MB por foto com compressão automática)
@@ -757,7 +775,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                 <input
                   type="file"
                   multiple
-                  disabled={isReadingPhotos || photosList.length >= 20}
+                  disabled={isReadingPhotos || currentPhotos.length >= 20}
                   accept="image/jpeg,image/png,image/webp"
                   onChange={handleAddPhotoFile}
                   className="hidden"
@@ -765,10 +783,10 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
               </label>
 
               {/* Grid de Fotos com Capa e Reordenação (E4) */}
-              {photosList.length === 0 && <p className="text-sm text-slate-400">Nenhuma foto cadastrada. Adicione imagens para exibi-las no anúncio.</p>}
+              {currentPhotos.length === 0 && <p className="text-sm text-slate-400">{photoMode === '360' ? 'Nenhum quadro 360° cadastrado para este veículo.' : 'Nenhuma foto cadastrada. Adicione imagens para exibi-las no anúncio.'}</p>}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {photosList.map((url, index) => {
-                  const isCover = index === 0;
+                {currentPhotos.map((url, index) => {
+                  const isCover = photoMode === 'gallery' && index === 0;
 
                   return (
                     <div
@@ -789,7 +807,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
                       {/* Botões de Ação na Foto (E4: Capa, Reordenar, Remover) */}
                       <div className="absolute inset-0 bg-black/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
-                        {!isCover && (
+                        {photoMode === 'gallery' && !isCover && (
                           <button
                             type="button"
                             onClick={() => handleSetCover(index)}
@@ -811,7 +829,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
                           </button>
                         )}
 
-                        {index < photosList.length - 1 && (
+                        {index < currentPhotos.length - 1 && (
                           <button
                             type="button"
                             onClick={() => handleMovePhoto(index, 1)}
@@ -839,7 +857,7 @@ export function InventoryView({ storeKey = 'autoelite', defaultVehicles = [] }) 
 
             <div className="p-4 sm:p-5 border-t border-slate-800 flex items-center justify-between">
               <span className="text-xs text-slate-400">
-                Total: <strong className="text-white">{photosList.length} / 20</strong> fotos
+                Total: <strong className="text-white">{currentPhotos.length} / 20</strong> fotos
               </span>
               <button
                 type="button"

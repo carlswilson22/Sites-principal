@@ -22,7 +22,7 @@ import { StoreServicesPage } from '../../../packages/merchant-core/src/component
 
 
 import { StoreAccessProvider, useStoreAccess } from '../../../packages/merchant-core/src/context/StoreAccessContext';
-import { canAccessSitePage } from '../../../packages/merchant-core/src/utils/siteAccess';
+import { useStorePage } from '../../../packages/merchant-core/src/hooks/useStorePage';
 
 const StoreConciergePage = React.lazy(() => import('../../../packages/merchant-core/src/pages/StoreConciergePage').then(module => ({ default: module.StoreConciergePage })));
 
@@ -32,8 +32,8 @@ export default function App() {
 }
 
 function StoreApp() {
-  const { user, isAuthenticated, authorizeNavigation } = useStoreAccess();
-  const [currentPage, setCurrentPage] = useState('home');
+  const { authorizeNavigation } = useStoreAccess();
+  const [currentPage, setCurrentPage] = useStorePage();
   const [selectedVehicleForModal, setSelectedVehicleForModal] = useState(null);
   const [financingPreselectedVehicle, setFinancingPreselectedVehicle] = useState(null);
   const [vehicles, setVehicles] = useState(() => storeSync.getVehicles('drivenow', vehiclesData));
@@ -60,10 +60,6 @@ function StoreApp() {
   });
 
 
-
-  React.useEffect(() => {
-    if (!canAccessSitePage(currentPage, user)) setCurrentPage('home');
-  }, [currentPage, user]);
 
   useSiteAnalytics('drivenow', currentPage, selectedVehicleForModal);
 
@@ -121,11 +117,11 @@ function StoreApp() {
           />
         )}
 
-        {currentPage === 'troca' && isAuthenticated && (
+        {currentPage === 'troca' && (
           <TradeInPage vehicles={publishedVehicles} />
         )}
 
-        {currentPage === 'favoritos' && isAuthenticated && (
+        {currentPage === 'favoritos' && (
           <FavoritesPage
             favoriteVehicles={favoriteVehicles}
             onNavigate={navigateTo}
