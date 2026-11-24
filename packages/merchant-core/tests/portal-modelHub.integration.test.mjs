@@ -59,8 +59,8 @@ const models = [
   { id: 'popular-dealership', title: 'Enterprise Veículos' },
 ];
 
-function buttonContaining(element, text) {
-  return [...element.querySelectorAll('button')].find(button => button.textContent.includes(text));
+function panelLink(dialog) {
+  return [...dialog.querySelectorAll('a')].find(link => link.textContent.includes('Fazer login no painel'));
 }
 
 for (const base of ['/', '/Sites-principal/']) {
@@ -91,19 +91,11 @@ for (const base of ['/', '/Sites-principal/']) {
           assert.match(dialog.textContent, /Painel do lojista/);
           const site = [...dialog.querySelectorAll('a')].find(item => item.textContent.includes('Acessar o site'));
           assert.equal(site?.href, `${mainUrl}${model.id}/`);
-          const open = buttonContaining(dialog, 'Fazer login no painel');
-          assert.ok(open, 'Acesso ao painel ausente');
-          assert.equal(dialog.querySelector('iframe'), null);
-          open.click();
-          const iframe = await waitFor(() => dialog.querySelector('iframe'), 'Login do painel não abriu dentro do modal');
-          assert.equal(iframe.src, `${mainUrl}${model.id}/#painel-lojista`);
-          assert.equal(iframe.title, `Painel do lojista: ${model.title}`);
-          const back = buttonContaining(dialog, 'Voltar às opções');
-          assert.ok(back, 'Opção para voltar ao site e painel ausente');
-          back.click();
-          await waitFor(() => !dialog.querySelector('iframe'), 'Painel não foi fechado ao voltar');
-          assert.ok(buttonContaining(dialog, 'Fazer login no painel'));
-          assert.ok([...dialog.querySelectorAll('a')].some(item => item.textContent.includes('Acessar o site')));
+          const login = panelLink(dialog);
+          assert.ok(login, 'Acesso ao painel ausente');
+          assert.equal(login.href, `${mainUrl}${model.id}/#painel-lojista`, 'O painel deve abrir na página do modelo');
+          assert.ok(!login.target || login.target === '_self', 'O painel deve abrir na mesma aba');
+          assert.equal(dialog.querySelector('iframe'), null, 'O painel não deve abrir dentro do modal');
           dialog.querySelector('[aria-label="Fechar demonstração"]').click();
           await waitFor(() => !document.querySelector('[role="dialog"]'), 'Modal não fechou');
           await waitFor(() => document.activeElement === trigger, 'O foco deve voltar ao cartão depois de fechar');
@@ -234,9 +226,10 @@ test('links antigos para modelo abrem o modal sobre o portal; seleção inválid
       assert.equal(document.querySelectorAll('.model-card').length, 3);
       const dialog = await waitFor(() => document.querySelector('[role="dialog"]'), 'Link antigo não abriu o modal');
       assert.ok(dialog.textContent.includes(model.title));
-      buttonContaining(dialog, 'Fazer login no painel').click();
-      const iframe = await waitFor(() => dialog.querySelector('iframe'), 'Painel não abriu no modal acessado pelo link antigo');
-      assert.equal(iframe.src, `${base}${model.id}/#painel-lojista`);
+      const login = panelLink(dialog);
+      assert.equal(login?.href, `${base}${model.id}/#painel-lojista`, 'O link antigo deve apresentar o painel correto');
+      assert.ok(!login.target || login.target === '_self', 'O painel deve abrir na mesma aba');
+      assert.equal(dialog.querySelector('iframe'), null, 'O link antigo não deve embutir o painel no modal');
       dialog.querySelector('[aria-label="Fechar demonstração"]').click();
       await waitFor(() => !document.querySelector('[role="dialog"]'), 'Modal não fechou');
       const remainingUrl = new URL(dom.window.location.href);

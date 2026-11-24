@@ -51,11 +51,6 @@
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
 }
 
-.model-dialog-panel {
-  width: min(100%, 78rem);
-  height: min(90dvh, 58rem);
-}
-
 .model-dialog-header {
   display: flex;
   flex: none;
@@ -71,26 +66,9 @@
   padding: 1.5rem;
 }
 
-.model-dialog-panel-content {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.model-dialog-iframe {
-  display: block;
-  flex: 1 1 auto;
-  width: 100%;
-  min-height: 0;
-  border: 0;
-  background: #fff;
-}
-
 @media (max-width: 640px) {
   .model-dialog-overlay { padding: 0.5rem; }
   .model-dialog { max-height: calc(100dvh - 1rem); }
-  .model-dialog-panel { height: calc(100dvh - 1rem); }
   .model-dialog-header, .model-dialog-choices { padding: 1rem; }
 }
 

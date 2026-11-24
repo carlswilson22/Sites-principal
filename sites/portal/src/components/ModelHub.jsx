@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, LayoutDashboard, Store, X } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Store, X } from 'lucide-react';
 
 const accents = {
   'auto-dealership': { label: 'text-blue-700', icon: 'bg-blue-50 text-blue-700', button: 'bg-blue-700 hover:bg-blue-800' },
@@ -7,15 +7,12 @@ const accents = {
   'popular-dealership': { label: 'text-cyan-700', icon: 'bg-cyan-50 text-cyan-700', button: 'bg-cyan-700 hover:bg-cyan-800' },
 };
 
-const focusableSelector = 'a[href], button:not([disabled]), iframe, input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export default function ModelHub({ model, onClose, returnFocus }) {
-  const [showPanel, setShowPanel] = useState(false);
   const [closing, setClosing] = useState(false);
   const dialog = useRef(null);
   const closeButton = useRef(null);
-  const backButton = useRef(null);
-  const panelButton = useRef(null);
   const closeTimer = useRef(null);
   const accent = accents[model.id] || accents['auto-dealership'];
   const siteUrl = `${import.meta.env.BASE_URL}${model.path}`;
@@ -66,10 +63,6 @@ export default function ModelHub({ model, onClose, returnFocus }) {
     };
   }, [model.id, onClose, returnFocus]);
 
-  useEffect(() => {
-    if (showPanel) backButton.current?.focus();
-  }, [showPanel]);
-
   function requestClose() {
     if (closeTimer.current !== null) return;
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
@@ -80,15 +73,9 @@ export default function ModelHub({ model, onClose, returnFocus }) {
     closeTimer.current = window.setTimeout(onClose, 180);
   }
 
-  function returnToChoices() {
-    setShowPanel(false);
-    // The button is mounted again in the next render.
-    requestAnimationFrame(() => panelButton.current?.focus());
-  }
-
   return (
     <div className="model-dialog-overlay" data-closing={closing} onMouseDown={event => { if (event.target === event.currentTarget) requestClose(); }}>
-      <section ref={dialog} role="dialog" aria-modal="true" aria-labelledby="model-demo-title" tabIndex={-1} className={`model-dialog ${showPanel ? 'model-dialog-panel' : ''}`}>
+      <section ref={dialog} role="dialog" aria-modal="true" aria-labelledby="model-demo-title" tabIndex={-1} className="model-dialog">
         <header className="model-dialog-header">
           <div className="min-w-0">
             <p className={`text-xs font-bold uppercase tracking-wider ${accent.label}`}>Demonstração · {model.badge}</p>
@@ -99,17 +86,6 @@ export default function ModelHub({ model, onClose, returnFocus }) {
           </button>
         </header>
 
-        {showPanel ? (
-          <div className="model-dialog-panel-content">
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2 sm:px-6">
-              <button ref={backButton} type="button" onClick={returnToChoices} className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar às opções
-              </button>
-              <span className="hidden text-sm font-semibold text-slate-600 sm:inline">Painel do lojista</span>
-            </div>
-            <iframe title={`Painel do lojista: ${model.title}`} src={`${siteUrl}#painel-lojista`} className="model-dialog-iframe" />
-          </div>
-        ) : (
           <div className="model-dialog-choices">
             <p className="text-sm leading-relaxed text-slate-600">Escolha como deseja conhecer este modelo.</p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -124,14 +100,13 @@ export default function ModelHub({ model, onClose, returnFocus }) {
               <section aria-labelledby="demo-panel-title" className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
                 <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${accent.icon}`}><LayoutDashboard className="h-5 w-5" aria-hidden="true" /></span>
                 <h3 id="demo-panel-title" className="mt-4 text-lg font-bold">Painel do lojista</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Faça login para conhecer as ferramentas de gestão da loja neste portal.</p>
-                <button ref={panelButton} type="button" onClick={() => setShowPanel(true)} className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600">
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Faça login para conhecer as ferramentas de gestão da loja.</p>
+                <a href={`${siteUrl}#painel-lojista`} className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600">
                   Fazer login no painel <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </button>
+                </a>
               </section>
             </div>
           </div>
-        )}
       </section>
     </div>
   );
